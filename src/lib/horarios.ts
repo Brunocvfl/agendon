@@ -66,11 +66,11 @@ export function telaParaFaixas(dias: DiaTela[]): { faixas: Faixa[]; erros: Recor
       continue;
     }
     if (!HORA_RE.test(d.intervaloInicio) || !HORA_RE.test(d.intervaloFim)) {
-      erros[d.dia] = "Preencha o começo e o fim do intervalo (ou deixe os dois vazios).";
+      erros[d.dia] = "Escolha quando a pausa começa e termina.";
       continue;
     }
     if (!(d.inicio < d.intervaloInicio && d.intervaloInicio < d.intervaloFim && d.intervaloFim < d.fim)) {
-      erros[d.dia] = "O intervalo precisa ficar dentro do horário de trabalho.";
+      erros[d.dia] = "A pausa precisa ficar dentro do horário de trabalho.";
       continue;
     }
     faixas.push({ dia: d.dia, inicio: d.inicio, fim: d.intervaloInicio });
@@ -80,9 +80,9 @@ export function telaParaFaixas(dias: DiaTela[]): { faixas: Faixa[]; erros: Recor
   return { faixas, erros };
 }
 
-// "Ter 09:00–18:00 (intervalo 12:00–13:00)" para leitura.
+// "09:00 às 18:00, com pausa das 12:00 às 13:00" para leitura.
 export function resumoDia(d: DiaTela) {
-  if (!d.trabalha) return "Folga";
+  if (!d.trabalha) return "Não atende";
   const base = `${d.inicio} às ${d.fim}`;
-  return d.intervaloInicio ? `${base} · intervalo ${d.intervaloInicio}–${d.intervaloFim}` : base;
+  return d.intervaloInicio ? `${base}, com pausa das ${d.intervaloInicio} às ${d.intervaloFim}` : base;
 }
