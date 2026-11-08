@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useActionState } from "react";
-import { Alerta, Botao, Campo } from "@/components/ui";
+import { Alerta, Botao, BotaoLink, Campo } from "@/components/ui";
 import { criarProfissional, type EstadoForm } from "../actions";
 
 export function FormNovoProfissional({ podeSerEu }: { podeSerEu: boolean }) {
@@ -35,12 +34,9 @@ export function FormNovoProfissional({ podeSerEu }: { podeSerEu: boolean }) {
       ) : null}
       <p className="text-sm text-noite/60">Depois de salvar, você define os serviços, o horário e as folgas.</p>
       <div className="mt-2 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-        <Link
-          href="/painel/profissionais"
-          className="inline-flex h-11 items-center justify-center rounded-xl border border-noite/15 bg-white px-5 text-sm font-semibold hover:bg-fundo"
-        >
+        <BotaoLink href="/painel/profissionais" variante="secundario">
           Cancelar
-        </Link>
+        </BotaoLink>
         <Botao type="submit" disabled={pendente}>
           {pendente ? "Salvando…" : "Salvar e continuar"}
         </Botao>

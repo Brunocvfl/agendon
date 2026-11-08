@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { Cartao } from "@/components/ui";
+import { BotaoLink, Cartao } from "@/components/ui";
 import { exigirVinculo, podeEditarCadastro } from "@/lib/auth";
 import { iniciais } from "@/lib/formato";
 import { listarProfissionais } from "./dados";
@@ -28,12 +28,7 @@ async function Conteudo() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold sm:text-3xl">Profissionais</h1>
         {podeCadastrar ? (
-          <Link
-            href="/painel/profissionais/novo"
-            className="inline-flex h-11 items-center justify-center rounded-xl bg-on px-5 text-sm font-semibold text-white hover:bg-on/90"
-          >
-            + Adicionar
-          </Link>
+          <BotaoLink href="/painel/profissionais/novo">+ Adicionar profissional</BotaoLink>
         ) : null}
       </div>
 
