@@ -59,12 +59,17 @@ Matriz de permissões:
 
 ## Comandos
 
+CLI do Supabase é dependência de dev: use `npx supabase ...` ou os scripts npm.
+
 ```bash
-supabase start            # sobe o Supabase local (precisa do Docker)
-supabase db reset         # recria o banco local a partir das migrations
-supabase test db          # roda os testes pgTAP em supabase/tests/database
-supabase migration new x  # nova migration (nunca editar o banco de produção pelo painel)
+npm run db:start              # sobe o Supabase local (precisa do Docker Desktop aberto)
+npm run db:reset              # recria o banco local a partir das migrations
+npm run db:test               # roda os testes pgTAP em supabase/tests/database
+npm run db:stop               # para os containers
+npx supabase migration new x  # nova migration (nunca editar o banco de produção pelo painel)
 ```
+
+Portas locais em 443xx (API 44321, Postgres 44322, Studio 44323, Mailpit 44324), fora da faixa dinâmica do Windows (49152+), que causava conflito com as 543xx padrão.
 
 ## Estado atual
 
@@ -77,8 +82,8 @@ Testes: `supabase/tests/database/01_isolation.test.sql` (12 testes).
 
 ## Fase 0: o que falta (nesta ordem)
 
-- [ ] `supabase init` (se `supabase/config.toml` ainda não existe) e `supabase start`.
-- [ ] Rodar `supabase db reset` e `supabase test db` e conferir que tudo passa.
+- [x] `supabase init` (se `supabase/config.toml` ainda não existe) e `supabase start`.
+- [x] Rodar `supabase db reset` e `supabase test db` e conferir que tudo passa (12/12, 2026-11-07).
 - [ ] Projeto Next.js + TypeScript na raiz, com `@supabase/supabase-js` e `@supabase/ssr`.
 - [ ] Projetos Supabase de staging e produção; variáveis de ambiente (ver `.env.example`).
 - [ ] CI no GitHub Actions: lint, testes de banco, varredura de segredos.
