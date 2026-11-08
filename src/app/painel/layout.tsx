@@ -4,18 +4,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { getUsuario, getVinculo } from "@/lib/auth";
 import { sair } from "@/app/(acesso)/actions";
-
-// Itens do wireframe; os que ainda não existem aparecem como "em breve".
-const MENU = [
-  { href: "/painel", rotulo: "Início", pronto: true },
-  { href: "/painel/agenda", rotulo: "Agenda", pronto: false },
-  { href: "/painel/clientes", rotulo: "Clientes", pronto: false },
-  { href: "/painel/servicos", rotulo: "Serviços", pronto: false },
-  { href: "/painel/profissionais", rotulo: "Profissionais", pronto: false },
-  { href: "/painel/lembretes", rotulo: "Lembretes", pronto: false },
-  { href: "/painel/link", rotulo: "Link de agendamento", pronto: false },
-  { href: "/painel/configuracoes", rotulo: "Configurações", pronto: false },
-];
+import { ListaMenu, NavPainel } from "./nav-painel";
 
 export default function LayoutPainel({ children }: { children: ReactNode }) {
   return (
@@ -29,32 +18,9 @@ export default function LayoutPainel({ children }: { children: ReactNode }) {
             </span>
           </Link>
         </div>
-        <nav aria-label="Menu do painel" className="overflow-x-auto px-2 pb-3 md:flex-1 md:px-3 md:pb-0">
-          <ul className="flex gap-1 md:flex-col">
-            {MENU.map((item) => (
-              <li key={item.href} className="shrink-0">
-                {item.pronto ? (
-                  <Link
-                    href={item.href}
-                    className="block rounded-xl bg-on px-4 py-2.5 text-sm font-medium text-white"
-                  >
-                    {item.rotulo}
-                  </Link>
-                ) : (
-                  <span
-                    aria-disabled
-                    className="flex items-center justify-between gap-2 rounded-xl px-4 py-2.5 text-sm text-white/45"
-                  >
-                    {item.rotulo}
-                    <span className="hidden rounded-full bg-white/10 px-2 py-0.5 text-[10px] uppercase tracking-wide md:inline">
-                      em breve
-                    </span>
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-        </nav>
+        <Suspense fallback={<ListaMenu pathname={null} />}>
+          <NavPainel />
+        </Suspense>
         <Suspense fallback={null}>
           <Conta />
         </Suspense>
