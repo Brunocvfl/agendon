@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { Cartao } from "@/components/ui";
-import { exigirVinculo } from "@/lib/auth";
+import { exigirPermissao } from "@/lib/auth";
 import { buscarServico } from "../dados";
 import { FormServico } from "../form-servico";
 
@@ -25,8 +25,7 @@ export default function PaginaEditarServico({ params }: PageProps<"/painel/servi
 
 async function Conteudo({ params }: { params: PageProps<"/painel/servicos/[id]">["params"] }) {
   const { id } = await params;
-  const { salao, perfil } = await exigirVinculo();
-  if (perfil !== "dono") redirect("/painel/servicos");
+  const { salao } = await exigirPermissao("editar-servicos", "/painel/servicos");
   if (!UUID_RE.test(id)) notFound();
 
   const servico = await buscarServico(salao.id, id);

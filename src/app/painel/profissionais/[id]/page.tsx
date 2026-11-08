@@ -3,7 +3,8 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { Cartao } from "@/components/ui";
-import { exigirVinculo, podeEditarCadastro, podeEditarHorarios } from "@/lib/auth";
+import { exigirVinculo } from "@/lib/auth";
+import { pode } from "@/lib/permissoes";
 import { iniciais } from "@/lib/formato";
 import { DIAS, faixasParaTela, resumoDia } from "@/lib/horarios";
 import { buscarProfissional, listarServicosAtivos } from "../dados";
@@ -40,8 +41,8 @@ async function Conteudo({ params }: { params: PageProps<"/painel/profissionais/[
   ]);
   if (!profissional) notFound();
 
-  const editaCadastro = podeEditarCadastro(perfil);
-  const editaHorarios = podeEditarHorarios(perfil);
+  const editaCadastro = pode(perfil, "editar-profissionais");
+  const editaHorarios = pode(perfil, "editar-horarios");
   const dias = faixasParaTela(profissional.faixas);
 
   return (

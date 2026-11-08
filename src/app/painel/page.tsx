@@ -2,16 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { Cartao } from "@/components/ui";
-import { exigirVinculo, podeEditarCadastro, type Perfil } from "@/lib/auth";
+import { exigirVinculo } from "@/lib/auth";
+import { NOME_PERFIL, pode } from "@/lib/permissoes";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Painel · AgendOn" };
-
-const NOME_PERFIL: Record<Perfil, string> = {
-  dono: "Dono(a)",
-  recepcao: "Recepção",
-  profissional: "Profissional",
-};
 
 export default function PaginaPainel() {
   return (
@@ -39,7 +34,7 @@ async function progresso(salonId: string) {
 async function Inicio() {
   const { salao, perfil } = await exigirVinculo();
   const p = await progresso(salao.id);
-  const dono = podeEditarCadastro(perfil);
+  const dono = pode(perfil, "editar-servicos");
 
   const passos = [
     {

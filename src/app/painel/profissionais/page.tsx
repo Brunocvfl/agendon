@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { BotaoLink, Cartao } from "@/components/ui";
-import { exigirVinculo, podeEditarCadastro } from "@/lib/auth";
+import { exigirVinculo } from "@/lib/auth";
+import { pode } from "@/lib/permissoes";
 import { iniciais } from "@/lib/formato";
 import { listarProfissionais } from "./dados";
 
@@ -20,7 +21,7 @@ export default function PaginaProfissionais() {
 
 async function Conteudo() {
   const { salao, perfil, membroId } = await exigirVinculo();
-  const podeCadastrar = podeEditarCadastro(perfil);
+  const podeCadastrar = pode(perfil, "editar-profissionais");
   const profissionais = await listarProfissionais(salao.id);
 
   return (

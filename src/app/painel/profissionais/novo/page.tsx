@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { redirect } from "next/navigation";
 import { Cartao } from "@/components/ui";
-import { exigirVinculo, podeEditarCadastro } from "@/lib/auth";
+import { exigirPermissao } from "@/lib/auth";
 import { listarProfissionais } from "../dados";
 import { FormNovoProfissional } from "./form-novo";
 
@@ -22,8 +21,7 @@ export default function PaginaNovoProfissional() {
 }
 
 async function Guarda() {
-  const { salao, perfil, membroId } = await exigirVinculo();
-  if (!podeEditarCadastro(perfil)) redirect("/painel/profissionais");
+  const { salao, membroId } = await exigirPermissao("editar-profissionais", "/painel/profissionais");
   const jaSouProfissional = (await listarProfissionais(salao.id)).some((p) => p.memberId === membroId);
   return <FormNovoProfissional podeSerEu={!jaSouProfissional} />;
 }
