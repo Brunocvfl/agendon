@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Suspense } from "react";
 import { BotaoLink, Cartao } from "@/components/ui";
-import { exigirVinculo } from "@/lib/auth";
+import { PaginaProtegida } from "@/components/pagina-protegida";
+import type { Vinculo } from "@/lib/auth";
 import { pode } from "@/lib/permissoes";
 import { formatarDuracao, formatarPreco, iniciais } from "@/lib/formato";
 import { listarServicos } from "./dados";
@@ -13,9 +13,9 @@ export const metadata: Metadata = { title: "Serviços · AgendOn" };
 export default function PaginaServicos() {
   return (
     <div className="mx-auto max-w-5xl">
-      <Suspense fallback={<Cabecalho podeEditar={false} />}>
-        <Conteudo />
-      </Suspense>
+      <PaginaProtegida carregando={<Cabecalho podeEditar={false} />}>
+        {({ vinculo }) => <Conteudo vinculo={vinculo} />}
+      </PaginaProtegida>
     </div>
   );
 }
@@ -31,8 +31,7 @@ function Cabecalho({ podeEditar }: { podeEditar: boolean }) {
   );
 }
 
-async function Conteudo() {
-  const { salao, perfil } = await exigirVinculo();
+async function Conteudo({ vinculo: { salao, perfil } }: { vinculo: Vinculo }) {
   const podeEditar = pode(perfil, "editar-servicos");
   const servicos = await listarServicos(salao.id);
 
