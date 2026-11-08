@@ -5,6 +5,8 @@ import { refresh } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { exigirPermissao } from "@/lib/auth";
 import { DIAS, telaParaFaixas, type DiaTela } from "@/lib/horarios";
+import { lerNomeProfissional } from "@/lib/regras/profissional";
+import { lerFolga } from "@/lib/regras/folga";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -26,10 +28,10 @@ function lerId(formData: FormData, campo = "id") {
 
 export async function criarProfissional(_a: EstadoForm, formData: FormData): Promise<EstadoForm> {
   const { salao, membroId } = await exigir("editar-profissionais");
-  const nome = String(formData.get("nome") ?? "").trim().replace(/\s+/g, " ");
+  const lido = lerNomeProfissional(String(formData.get("nome") ?? ""));
+  if (!lido.ok) return { erros: lido.erros };
+  const nome = lido.valor;
   const souEu = formData.get("sou_eu") === "on";
-
-  if (nome.length < 2 || nome.length > 60) return { erros: { nome: "Use de 2 a 60 caracteres." } };
 
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -52,10 +54,11 @@ export async function criarProfissional(_a: EstadoForm, formData: FormData): Pro
 export async function salvarDados(_a: EstadoForm, formData: FormData): Promise<EstadoForm> {
   const { salao } = await exigir("editar-profissionais");
   const id = lerId(formData);
-  const nome = String(formData.get("nome") ?? "").trim().replace(/\s+/g, " ");
   const ativo = formData.get("ativo") === "on";
   if (!id) return { erro: "Profissional inválido." };
-  if (nome.length < 2 || nome.length > 60) return { erros: { nome: "Use de 2 a 60 caracteres." } };
+  const lido = lerNomeProfissional(String(formData.get("nome") ?? ""));
+  if (!lido.ok) return { erros: lido.erros };
+  const nome = lido.valor;
 
   const supabase = await createClient();
   const { error } = await supabase.from("professionals").update({ nome, ativo }).eq("id", id).eq("salon_id", salao.id);
@@ -117,20 +120,18 @@ export async function salvarHorarios(_a: EstadoForm, formData: FormData): Promis
   return { ok: "Horários salvos." };
 }
 
-const DATA_HORA_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
-
 export async function adicionarFolga(_a: EstadoForm, formData: FormData): Promise<EstadoForm> {
   await exigir("editar-horarios");
   const id = lerId(formData);
   if (!id) return { erro: "Profissional inválido." };
 
-  const motivo = String(formData.get("motivo") ?? "").trim().slice(0, 80);
-  const inicio = String(formData.get("inicio") ?? "");
-  const fim = String(formData.get("fim") ?? "");
-  if (!DATA_HORA_RE.test(inicio) || !DATA_HORA_RE.test(fim)) {
-    return { erros: { periodo: "Informe o começo e o fim." } };
-  }
-  if (fim <= inicio) return { erros: { periodo: "O fim precisa ser depois do começo." } };
+  const lido = lerFolga({
+    inicio: String(formData.get("inicio") ?? ""),
+    fim: String(formData.get("fim") ?? ""),
+    motivo: String(formData.get("motivo") ?? ""),
+  });
+  if (!lido.ok) return { erros: lido.erros };
+  const { inicio, fim, motivo } = lido.valor;
 
   const supabase = await createClient();
   // Os horários vão como "horário do salão"; o banco converte para UTC com o fuso do salão.

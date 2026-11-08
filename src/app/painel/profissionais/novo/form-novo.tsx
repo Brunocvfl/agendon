@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { Alerta, Botao, BotaoLink, Campo } from "@/components/ui";
+import { LIMITES_PROFISSIONAL } from "@/lib/regras/profissional";
 import { criarProfissional, type EstadoForm } from "../actions";
 
 export function FormNovoProfissional({ podeSerEu }: { podeSerEu: boolean }) {
@@ -15,7 +16,7 @@ export function FormNovoProfissional({ podeSerEu }: { podeSerEu: boolean }) {
         name="nome"
         label="Nome"
         placeholder="Ana Lima"
-        maxLength={60}
+        maxLength={LIMITES_PROFISSIONAL.nome.max}
         autoComplete="off"
         required
         erro={estado.erros?.nome}
