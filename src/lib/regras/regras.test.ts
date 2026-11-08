@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { lerServico } from "./servico";
 import { lerNomeProfissional } from "./profissional";
 import { lerFolga } from "./folga";
+import { lerCliente, lerTelefone } from "./cliente";
 import { lerSalao, normalizarSlug, SLUGS_RESERVADOS } from "./salao";
 
 describe("lerServico", () => {
@@ -83,5 +84,41 @@ describe("lerSalao", () => {
     const bloco = sql.match(/select p_slug = any \(array\[([\s\S]*?)\]\)/)?.[1] ?? "";
     const doBanco = [...bloco.matchAll(/'([^']+)'/g)].map((m) => m[1]).sort();
     expect([...SLUGS_RESERVADOS].sort()).toEqual(doBanco);
+  });
+});
+
+describe("lerTelefone", () => {
+  it.each([
+    ["(11) 98765-4321", "+5511987654321"],
+    ["11987654321", "+5511987654321"],
+    ["011 98765 4321", "+5511987654321"],
+    ["55 11 98765-4321", "+5511987654321"],
+    ["+55 (21) 3456-7890", "+552134567890"],
+    ["+1 415 555 2671", "+14155552671"],
+  ])("%s -> %s", (entrada, esperado) => expect(lerTelefone(entrada)).toBe(esperado));
+
+  it.each([
+    "",
+    "98765-4321", // sem DDD
+    "(11) 8765-43210", // celular sem o 9
+    "(01) 98765-4321", // DDD inválido
+    "(11) 98765-432", // faltando dígito
+    "+55 11 98765-43210", // dígito a mais
+  ])("recusa %s", (entrada) => expect(lerTelefone(entrada)).toBeNull());
+});
+
+describe("lerCliente", () => {
+  it("aceita e normaliza", () =>
+    expect(lerCliente({ nome: "  Marina   Prado ", telefone: "(11) 98765-4321", observacoes: "  Prefere manhã\n " })).toEqual({
+      ok: true,
+      valor: { nome: "Marina Prado", telefone: "+5511987654321", observacoes: "Prefere manhã" },
+    }));
+  it("observações vazias viram null", () => {
+    const r = lerCliente({ nome: "Ana", telefone: "11987654321", observacoes: "   " });
+    expect(r.ok && r.valor.observacoes).toBeNull();
+  });
+  it("aponta cada campo inválido", () => {
+    const r = lerCliente({ nome: "A", telefone: "123", observacoes: "x".repeat(501) });
+    expect(r.ok ? [] : Object.keys(r.erros).sort()).toEqual(["nome", "observacoes", "telefone"]);
   });
 });

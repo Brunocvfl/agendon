@@ -18,7 +18,7 @@ export default function LayoutPainel({ children }: { children: ReactNode }) {
           </Suspense>
         </Link>
         <Suspense fallback={<span className="h-10 w-20" />}>
-          <MenuCelular conta={<Conta />} />
+          <MenuCelularDoVinculo />
         </Suspense>
       </header>
 
@@ -31,7 +31,7 @@ export default function LayoutPainel({ children }: { children: ReactNode }) {
           </span>
         </Link>
         <Suspense fallback={<ListaMenu pathname={null} />}>
-          <NavPainel />
+          <NavDoVinculo />
         </Suspense>
         <Suspense fallback={null}>
           <Conta />
@@ -41,6 +41,17 @@ export default function LayoutPainel({ children }: { children: ReactNode }) {
       <main className="min-w-0 flex-1 px-4 py-6 sm:px-8 sm:py-10">{children}</main>
     </div>
   );
+}
+
+// O menu depende do perfil (itens com permissão); lido aqui, dentro do <Suspense>.
+async function NavDoVinculo() {
+  const vinculo = await getVinculo();
+  return <NavPainel perfil={vinculo?.perfil ?? null} />;
+}
+
+async function MenuCelularDoVinculo() {
+  const vinculo = await getVinculo();
+  return <MenuCelular conta={<Conta />} perfil={vinculo?.perfil ?? null} />;
 }
 
 async function NomeSalao() {

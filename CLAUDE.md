@@ -98,9 +98,13 @@ Migrations em `supabase/migrations/`:
 
 6. `20261108000003_professionals.sql`: nome único por salão, vínculo profissional↔login com FK composta (um profissional por login), horários sem sobreposição (exclusão) e funções `salvar_horarios`, `salvar_servicos_profissional` e `adicionar_folga` (SECURITY INVOKER: a RLS vale; checam o perfil e respondem 42501).
 
-Testes: `01_isolation` (12), `02_onboarding` (11), `03_services` (14), `04_professionals` (20). Os testes não podem depender do banco vazio (use slugs/nomes que não colidem com dados criados à mão).
+7. `20261108000004_clients.sql`: WhatsApp obrigatório (E.164, único por salão; nulo só em cliente anonimizado), limites de nome (2–80) e observações (500), policies por ação sem delete (eliminação será por anonimização) e `listar_clientes(salão, busca, limite, offset)` com busca por nome ou dígitos do WhatsApp, visitas, faltas, último atendimento e total (SECURITY INVOKER).
 
-App (`src/app`): `/entrar`, `/cadastro`, `/auth/callback`, `/criar-salao`, `/painel`, `/painel/servicos` (lista, `novo`, `[id]`; só Dono(a) edita), `/painel/profissionais` (lista, `novo` com "sou eu", `[id]` com dados, serviços, horário semanal com intervalo e folgas; horários e folgas: Dono(a) e Recepção). Horário: `src/lib/horarios.ts` converte faixas do banco ↔ "início, fim e intervalo". Folgas são digitadas no horário do salão e o banco converte para UTC com `salons.fuso`. Acesso em `src/lib/auth.ts` (`getUsuario`, `getVinculo`, `exigirUsuario`, `exigirVinculo`); o proxy só faz o redirecionamento otimista. O `createClient` do servidor chama `connection()` (exigência do Cache Components para o `Date.now()` do Supabase). Rotas novas do app precisam entrar na lista de `app.slug_reservado`.
+Testes: `01_isolation` (12), `02_onboarding` (11), `03_services` (14), `04_professionals` (20), `05_clients` (21). Os testes não podem depender do banco vazio (use slugs/nomes que não colidem com dados criados à mão nem com o seed).
+
+Seed local (`supabase/seed.sql`, roda no `db:reset`; o `db push` não envia): salão "Studio Teste" com logins `dono@`, `recepcao@` e `profissional@agendon.test` (senha no arquivo), serviços, profissionais com horário, clientes e histórico.
+
+App (`src/app`): `/entrar`, `/cadastro`, `/auth/callback`, `/criar-salao`, `/painel`, `/painel/servicos` (lista, `novo`, `[id]`; só Dono(a) edita), `/painel/profissionais` (lista, `novo` com "sou eu", `[id]` com dados, serviços, horário semanal com intervalo e folgas; horários e folgas: Dono(a) e Recepção). `/painel/clientes` (lista com busca e paginação, `novo`, `[id]` com dados, histórico e "Chamar no WhatsApp"; só Dono(a) e Recepção; o item do menu some para quem não tem `ver-clientes`). Telefone: `lerTelefone` (`src/lib/regras/cliente.ts`) normaliza para E.164 (sem "+", número brasileiro); `formatarTelefone` exibe. Horário: `src/lib/horarios.ts` converte faixas do banco ↔ "início, fim e intervalo". Folgas: "Dia inteiro" (de/até, fim exclusivo às 00:00 do dia seguinte) ou "Horário" (um dia, seletor de 15 min); são digitadas no horário do salão e o banco converte para UTC com `salons.fuso`. Acesso em `src/lib/auth.ts` (`getUsuario`, `getVinculo`, `exigirUsuario`, `exigirVinculo`); o proxy só faz o redirecionamento otimista. O `createClient` do servidor chama `connection()` (exigência do Cache Components para o `Date.now()` do Supabase). Rotas novas do app precisam entrar na lista de `app.slug_reservado`.
 
 ## Fase 0: o que falta (nesta ordem)
 
@@ -129,6 +133,11 @@ App (`src/app`): `/entrar`, `/cadastro`, `/auth/callback`, `/criar-salao`, `/pai
 ## Pendências técnicas
 
 - `message_log.appointment_id` com FK composta `(id, salon_id)`.
+
+## Decisões tomadas
+
+- WhatsApp do cliente é obrigatório também no cadastro pelo painel (2026-11-08).
+- Agendamento manual pelo painel pode ser feito fora do expediente ou numa folga (encaixe), com aviso e confirmação; sobreposição com outro agendamento continua proibida. A página pública só oferece horários livres (2026-11-08).
 
 ## Decisões em aberto
 
