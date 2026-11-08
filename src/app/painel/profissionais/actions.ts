@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { refresh } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { exigirVinculo, podeEditarCadastro, podeEditarHorarios } from "@/lib/auth";
+import { exigirPermissao } from "@/lib/auth";
 import { DIAS, telaParaFaixas, type DiaTela } from "@/lib/horarios";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -14,11 +14,8 @@ export type EstadoForm = {
   erros?: Record<string, string>;
 };
 
-async function exigir(regra: (p: Parameters<typeof podeEditarCadastro>[0]) => boolean) {
-  const vinculo = await exigirVinculo();
-  if (!regra(vinculo.perfil)) redirect("/painel/profissionais");
-  return vinculo;
-}
+const exigir = (permissao: "editar-profissionais" | "editar-horarios") =>
+  exigirPermissao(permissao, "/painel/profissionais");
 
 function lerId(formData: FormData, campo = "id") {
   const id = String(formData.get(campo) ?? "");
@@ -28,7 +25,7 @@ function lerId(formData: FormData, campo = "id") {
 // --- Cadastro (só Dono(a)) -------------------------------------------------
 
 export async function criarProfissional(_a: EstadoForm, formData: FormData): Promise<EstadoForm> {
-  const { salao, membroId } = await exigir(podeEditarCadastro);
+  const { salao, membroId } = await exigir("editar-profissionais");
   const nome = String(formData.get("nome") ?? "").trim().replace(/\s+/g, " ");
   const souEu = formData.get("sou_eu") === "on";
 
@@ -53,7 +50,7 @@ export async function criarProfissional(_a: EstadoForm, formData: FormData): Pro
 }
 
 export async function salvarDados(_a: EstadoForm, formData: FormData): Promise<EstadoForm> {
-  const { salao } = await exigir(podeEditarCadastro);
+  const { salao } = await exigir("editar-profissionais");
   const id = lerId(formData);
   const nome = String(formData.get("nome") ?? "").trim().replace(/\s+/g, " ");
   const ativo = formData.get("ativo") === "on";
@@ -71,7 +68,7 @@ export async function salvarDados(_a: EstadoForm, formData: FormData): Promise<E
 }
 
 export async function salvarServicos(_a: EstadoForm, formData: FormData): Promise<EstadoForm> {
-  await exigir(podeEditarCadastro);
+  await exigir("editar-profissionais");
   const id = lerId(formData);
   if (!id) return { erro: "Profissional inválido." };
   const servicos = formData.getAll("servico").map(String).filter((s) => UUID_RE.test(s));
@@ -89,7 +86,7 @@ export async function salvarServicos(_a: EstadoForm, formData: FormData): Promis
 // --- Horários e folgas (Dono(a) e Recepção) --------------------------------
 
 export async function salvarHorarios(_a: EstadoForm, formData: FormData): Promise<EstadoForm> {
-  await exigir(podeEditarHorarios);
+  await exigir("editar-horarios");
   const id = lerId(formData);
   if (!id) return { erro: "Profissional inválido." };
 
@@ -123,7 +120,7 @@ export async function salvarHorarios(_a: EstadoForm, formData: FormData): Promis
 const DATA_HORA_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
 
 export async function adicionarFolga(_a: EstadoForm, formData: FormData): Promise<EstadoForm> {
-  await exigir(podeEditarHorarios);
+  await exigir("editar-horarios");
   const id = lerId(formData);
   if (!id) return { erro: "Profissional inválido." };
 
@@ -149,7 +146,7 @@ export async function adicionarFolga(_a: EstadoForm, formData: FormData): Promis
 }
 
 export async function removerFolga(formData: FormData) {
-  const { salao } = await exigir(podeEditarHorarios);
+  const { salao } = await exigir("editar-horarios");
   const id = lerId(formData);
   if (!id) return;
   const supabase = await createClient();

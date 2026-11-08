@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { BotaoLink, Cartao } from "@/components/ui";
 import { exigirVinculo } from "@/lib/auth";
+import { pode } from "@/lib/permissoes";
 import { formatarDuracao, formatarPreco, iniciais } from "@/lib/formato";
 import { listarServicos } from "./dados";
 import { SwitchAtivo } from "./switch-ativo";
@@ -32,7 +33,7 @@ function Cabecalho({ podeEditar }: { podeEditar: boolean }) {
 
 async function Conteudo() {
   const { salao, perfil } = await exigirVinculo();
-  const podeEditar = perfil === "dono";
+  const podeEditar = pode(perfil, "editar-servicos");
   const servicos = await listarServicos(salao.id);
 
   return (

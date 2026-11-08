@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { redirect } from "next/navigation";
 import { Cartao } from "@/components/ui";
-import { exigirVinculo } from "@/lib/auth";
+import { exigirPermissao } from "@/lib/auth";
 import { FormServico } from "../form-servico";
 
 export const metadata: Metadata = { title: "Novo serviço · AgendOn" };
@@ -21,7 +20,6 @@ export default function PaginaNovoServico() {
 }
 
 async function Guarda() {
-  const { perfil } = await exigirVinculo();
-  if (perfil !== "dono") redirect("/painel/servicos");
+  await exigirPermissao("editar-servicos", "/painel/servicos");
   return <FormServico />;
 }

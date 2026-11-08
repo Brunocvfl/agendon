@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { refresh } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { exigirVinculo } from "@/lib/auth";
+import { exigirPermissao } from "@/lib/auth";
 import { lerPreco } from "@/lib/formato";
 
 export type EstadoServico = {
@@ -12,12 +12,7 @@ export type EstadoServico = {
   campos?: { nome?: string; duracao?: string; preco?: string };
 };
 
-// Só Dono(a) edita serviços e preços (matriz de permissões). A RLS garante o mesmo no banco.
-async function exigirDono() {
-  const vinculo = await exigirVinculo();
-  if (vinculo.perfil !== "dono") redirect("/painel/servicos");
-  return vinculo;
-}
+const exigirDono = () => exigirPermissao("editar-servicos", "/painel/servicos");
 
 export async function salvarServico(_anterior: EstadoServico, formData: FormData): Promise<EstadoServico> {
   const { salao } = await exigirDono();
