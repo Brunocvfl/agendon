@@ -94,7 +94,15 @@ export const adicionarFolga = acaoDoPainel({
   senao: VOLTAR,
   ler: (fd) => {
     if (!ehUuid(texto(fd, "id"))) return SEM_ID;
-    const folga = lerFolga({ inicio: texto(fd, "inicio"), fim: texto(fd, "fim"), motivo: texto(fd, "motivo") });
+    const folga = lerFolga({
+      modo: texto(fd, "modo"),
+      dataInicio: texto(fd, "dataInicio"),
+      dataFim: texto(fd, "dataFim"),
+      data: texto(fd, "data"),
+      horaInicio: texto(fd, "horaInicio"),
+      horaFim: texto(fd, "horaFim"),
+      motivo: texto(fd, "motivo"),
+    });
     return folga.ok ? valido({ id: texto(fd, "id"), ...folga.valor }) : folga;
   },
   // Os horários vão como "horário do salão"; o banco converte para UTC com o fuso do salão.

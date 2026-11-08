@@ -1,22 +1,45 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
+import { SeletorHora } from "@/components/seletor-hora";
 import { Alerta, Botao, Campo } from "@/components/ui";
-import { LIMITES_FOLGA } from "@/lib/regras/folga";
+import { LIMITES_FOLGA, proximoDia, type ModoFolga } from "@/lib/regras/folga";
 import { adicionarFolga, removerFolga, type EstadoForm } from "../actions";
 
 type Folga = { id: string; inicio: string; fim: string; motivo: string | null };
 type Props = { id: string; folgas: Folga[]; fuso: string; podeEditar: boolean };
 
+// "AAAA-MM-DD" do instante no fuso do salão.
+const dataNoFuso = (d: Date, fuso: string) =>
+  new Intl.DateTimeFormat("en-CA", { timeZone: fuso, year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
+
+// "19 nov" / "qua, 19 nov" a partir de "AAAA-MM-DD" (sem fuso: a data já é do salão).
+function rotuloDia(data: string, comSemana = false) {
+  const d = new Date(`${data}T12:00:00Z`);
+  const parte = (o: Intl.DateTimeFormatOptions) =>
+    new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC", ...o }).format(d).replace(".", "");
+  const dia = `${parte({ day: "2-digit" })} ${parte({ month: "short" })}`;
+  return comSemana ? `${parte({ weekday: "short" })}, ${dia}` : dia;
+}
+
 function formatarPeriodo(inicio: string, fim: string, fuso: string) {
-  const data = new Intl.DateTimeFormat("pt-BR", { timeZone: fuso, day: "2-digit", month: "short", weekday: "short" });
   const hora = new Intl.DateTimeFormat("pt-BR", { timeZone: fuso, hour: "2-digit", minute: "2-digit" });
   const i = new Date(inicio);
   const f = new Date(fim);
-  const mesmoDia = data.format(i) === data.format(f);
-  return mesmoDia
-    ? `${data.format(i)} · ${hora.format(i)}–${hora.format(f)}`
-    : `${data.format(i)} ${hora.format(i)} até ${data.format(f)} ${hora.format(f)}`;
+  const di = dataNoFuso(i, fuso);
+  const df = dataNoFuso(f, fuso);
+
+  // Dias inteiros: de 00:00 a 00:00 (fim exclusivo); o último dia é o anterior ao fim.
+  if (hora.format(i) === "00:00" && hora.format(f) === "00:00") {
+    const ultimo = proximoDia(df, -1);
+    if (ultimo === di) return rotuloDia(di, true);
+    return di.slice(0, 7) === ultimo.slice(0, 7)
+      ? `${di.slice(8)} a ${rotuloDia(ultimo)}`
+      : `${rotuloDia(di)} a ${rotuloDia(ultimo)}`;
+  }
+  return di === df
+    ? `${rotuloDia(di, true)} · ${hora.format(i)}–${hora.format(f)}`
+    : `${rotuloDia(di, true)} ${hora.format(i)} até ${rotuloDia(df, true)} ${hora.format(f)}`;
 }
 
 export function Folgas({ id, folgas, fuso, podeEditar }: Props) {
@@ -61,10 +84,7 @@ export function Folgas({ id, folgas, fuso, podeEditar }: Props) {
             maxLength={LIMITES_FOLGA.motivo.max}
             ajuda="Evite detalhes pessoais (por exemplo, motivo de saúde)."
           />
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Campo id="inicio" name="inicio" label="Começa em" type="datetime-local" required />
-            <Campo id="fim" name="fim" label="Termina em" type="datetime-local" required erro={estado.erros?.periodo} />
-          </div>
+          <Periodo fuso={fuso} erro={estado.erros?.periodo} />
           <div className="flex justify-end">
             <Botao type="submit" variante="secundario" disabled={pendente}>
               {pendente ? "Adicionando…" : "Adicionar"}
@@ -73,5 +93,94 @@ export function Folgas({ id, folgas, fuso, podeEditar }: Props) {
         </form>
       ) : null}
     </div>
+  );
+}
+
+const MODOS: { valor: ModoFolga; rotulo: string }[] = [
+  { valor: "dia", rotulo: "Dia inteiro" },
+  { valor: "horario", rotulo: "Horário" },
+];
+
+function Periodo({ fuso, erro }: { fuso: string; erro?: string }) {
+  const [hoje] = useState(() => dataNoFuso(new Date(), fuso));
+  const [modo, setModo] = useState<ModoFolga>("dia");
+  const [de, setDe] = useState(hoje);
+  const [ate, setAte] = useState(hoje);
+  const [dia, setDia] = useState(hoje);
+  const [horaInicio, setHoraInicio] = useState("09:00");
+  const [horaFim, setHoraFim] = useState("10:00");
+
+  const campoData =
+    "h-10 rounded-lg border border-noite/12 bg-white px-3 text-[15px] font-medium tabular-nums text-noite outline-none transition-colors hover:border-on/50 focus:border-on focus:ring-2 focus:ring-on/20";
+
+  return (
+    <fieldset className="flex flex-col gap-3">
+      <legend className="sr-only">Período</legend>
+      <input type="hidden" name="modo" value={modo} />
+      <div role="radiogroup" aria-label="Tipo de período" className="inline-flex w-fit rounded-xl bg-noite/[0.06] p-1">
+        {MODOS.map((m) => (
+          <button
+            key={m.valor}
+            type="button"
+            role="radio"
+            aria-checked={modo === m.valor}
+            onClick={() => setModo(m.valor)}
+            className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition-colors ${
+              modo === m.valor ? "bg-white text-noite shadow-sm" : "text-noite/60 hover:text-noite"
+            }`}
+          >
+            {m.rotulo}
+          </button>
+        ))}
+      </div>
+
+      {modo === "dia" ? (
+        <div className="flex flex-wrap items-center gap-2 text-sm text-noite/70">
+          <label htmlFor="folga-de">De</label>
+          <input
+            id="folga-de"
+            type="date"
+            name="dataInicio"
+            value={de}
+            onChange={(e) => {
+              setDe(e.target.value);
+              if (!ate || ate < e.target.value) setAte(e.target.value);
+            }}
+            className={campoData}
+          />
+          <label htmlFor="folga-ate">até</label>
+          <input
+            id="folga-ate"
+            type="date"
+            name="dataFim"
+            value={ate}
+            min={de || undefined}
+            onChange={(e) => setAte(e.target.value)}
+            className={campoData}
+          />
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-center gap-2 text-sm text-noite/70">
+          <label htmlFor="folga-dia">Dia</label>
+          <input
+            id="folga-dia"
+            type="date"
+            name="data"
+            value={dia}
+            onChange={(e) => setDia(e.target.value)}
+            className={campoData}
+          />
+          <SeletorHora name="horaInicio" rotulo="Começa às" valor={horaInicio} onChange={setHoraInicio} />
+          <span>às</span>
+          <SeletorHora name="horaFim" rotulo="Termina às" valor={horaFim} onChange={setHoraFim} />
+        </div>
+      )}
+
+      {erro ? (
+        <p role="alert" className="text-sm text-red-600">
+          {erro}
+        </p>
+      ) : null}
+    </fieldset>
   );
 }

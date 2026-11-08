@@ -34,17 +34,36 @@ describe("lerNomeProfissional", () => {
 });
 
 describe("lerFolga", () => {
-  it("aceita período válido e corta o motivo em 80", () => {
-    const r = lerFolga({ inicio: "2026-12-01T14:00", fim: "2026-12-01T16:00", motivo: "x".repeat(100) });
-    expect(r.ok && r.valor.motivo.length).toBe(80);
+  it("dia inteiro: um dia vai de 00:00 até 00:00 do dia seguinte", () =>
+    expect(lerFolga({ modo: "dia", dataInicio: "2026-12-01", dataFim: "2026-12-01", motivo: " Folga " })).toEqual({
+      ok: true,
+      valor: { inicio: "2026-12-01T00:00", fim: "2026-12-02T00:00", motivo: "Folga" },
+    }));
+  it("dia inteiro: vira o mês e o ano", () => {
+    const r = lerFolga({ modo: "dia", dataInicio: "2026-12-20", dataFim: "2026-12-31" });
+    expect(r.ok && r.valor).toEqual({ inicio: "2026-12-20T00:00", fim: "2027-01-01T00:00", motivo: "" });
   });
-  it("recusa fim antes do começo", () => {
-    expect(lerFolga({ inicio: "2026-12-01T16:00", fim: "2026-12-01T14:00" })).toEqual({
+  it("dia inteiro: recusa último dia antes do primeiro", () =>
+    expect(lerFolga({ modo: "dia", dataInicio: "2026-12-15", dataFim: "2026-12-01" })).toEqual({
+      ok: false,
+      erros: { periodo: "O último dia precisa ser igual ou depois do primeiro." },
+    }));
+  it("dia inteiro: recusa data inexistente", () =>
+    expect(lerFolga({ modo: "dia", dataInicio: "2026-02-30", dataFim: "2026-03-01" }).ok).toBe(false));
+  it("horário: aceita período e corta o motivo em 80", () => {
+    const r = lerFolga({ modo: "horario", data: "2026-11-19", horaInicio: "14:00", horaFim: "16:00", motivo: "x".repeat(100) });
+    expect(r.ok && r.valor).toEqual({ inicio: "2026-11-19T14:00", fim: "2026-11-19T16:00", motivo: "x".repeat(80) });
+  });
+  it("horário: recusa fim igual ou antes do começo", () =>
+    expect(lerFolga({ modo: "horario", data: "2026-11-19", horaInicio: "16:00", horaFim: "16:00" })).toEqual({
       ok: false,
       erros: { periodo: "O fim precisa ser depois do começo." },
-    });
+    }));
+  it("recusa campos faltando", () => {
+    expect(lerFolga({ modo: "horario", data: "2026-11-19", horaInicio: "14:00" }).ok).toBe(false);
+    expect(lerFolga({ modo: "dia", dataInicio: "2026-12-01" }).ok).toBe(false);
   });
-  it("recusa data incompleta", () => expect(lerFolga({ inicio: "2026-12-01", fim: "" }).ok).toBe(false));
+  it("recusa modo desconhecido", () => expect(lerFolga({ dataInicio: "2026-12-01", dataFim: "2026-12-01" }).ok).toBe(false));
 });
 
 describe("lerSalao", () => {
