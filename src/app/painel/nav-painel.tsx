@@ -3,29 +3,33 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, type ReactNode } from "react";
+import { pode, type Perfil, type Permissao } from "@/lib/permissoes";
 
 // Telas prontas primeiro; as que ainda vão chegar ficam agrupadas no fim, sem competir com as prontas.
-const PRONTAS = [
+// Item com `exige` só aparece para quem tem a permissão (sem perfil carregado, fica escondido).
+const PRONTAS: { href: string; rotulo: string; exige?: Permissao }[] = [
   { href: "/painel", rotulo: "Início" },
+  { href: "/painel/clientes", rotulo: "Clientes", exige: "ver-clientes" },
   { href: "/painel/servicos", rotulo: "Serviços" },
   { href: "/painel/profissionais", rotulo: "Profissionais" },
 ];
-const EM_BREVE = ["Agenda", "Clientes", "Lembretes", "Link de agendamento", "Configurações"];
+const EM_BREVE = ["Agenda", "Lembretes", "Link de agendamento", "Configurações"];
 
 const ehAtivo = (href: string, pathname: string | null) =>
   pathname !== null && (href === "/painel" ? pathname === "/painel" : pathname.startsWith(href));
 
 // Lê a rota atual para destacar o item. Fica dentro de <Suspense> (exigência do Cache Components).
-export function NavPainel() {
-  return <ListaMenu pathname={usePathname()} />;
+export function NavPainel({ perfil }: { perfil: Perfil | null }) {
+  return <ListaMenu pathname={usePathname()} perfil={perfil} />;
 }
 
 // Mesma lista, sem destaque: usada como fallback enquanto a rota atual não chega.
-export function ListaMenu({ pathname }: { pathname: string | null }) {
+export function ListaMenu({ pathname, perfil = null }: { pathname: string | null; perfil?: Perfil | null }) {
+  const itens = PRONTAS.filter((item) => !item.exige || (perfil !== null && pode(perfil, item.exige)));
   return (
     <nav aria-label="Menu do painel" className="flex flex-1 flex-col gap-6 px-3">
       <ul className="flex flex-col gap-1">
-        {PRONTAS.map((item) => {
+        {itens.map((item) => {
           const ativo = ehAtivo(item.href, pathname);
           return (
             <li key={item.href}>
@@ -57,7 +61,7 @@ export function ListaMenu({ pathname }: { pathname: string | null }) {
 }
 
 // Celular: botão "Menu" que abre uma gaveta lateral (<dialog> nativo: Esc fecha e o foco fica dentro).
-export function MenuCelular({ conta }: { conta: ReactNode }) {
+export function MenuCelular({ conta, perfil }: { conta: ReactNode; perfil: Perfil | null }) {
   const dialogo = useRef<HTMLDialogElement>(null);
   const pathname = usePathname();
 
@@ -104,7 +108,7 @@ export function MenuCelular({ conta }: { conta: ReactNode }) {
             </svg>
           </button>
         </div>
-        <ListaMenu pathname={pathname} />
+        <ListaMenu pathname={pathname} perfil={perfil} />
         {conta}
       </dialog>
     </>

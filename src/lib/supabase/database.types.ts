@@ -301,6 +301,11 @@ isOneToOne: false
 "create_salon":
 { Args: { "p_nome": string,"p_slug": string }; Returns: string
                            },
+"listar_clientes":
+{ Args: { "p_busca"?: string,"p_limite"?: number,"p_offset"?: number,"p_salon": string }; Returns: {
+              "criado_em": string,"faltas": number,"id": string,"nome": string,"telefone": string,"total": number,"ultimo_atendimento": string,"visitas": number
+            }[]
+                           },
 "salvar_horarios":
 { Args: { "p_horarios": Json,"p_professional": string }; Returns: undefined
                            },
