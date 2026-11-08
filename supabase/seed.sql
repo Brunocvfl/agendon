@@ -65,10 +65,23 @@ insert into public.clients (id, salon_id, nome, telefone, observacoes) values
   ('00000000-0000-4000-f000-000000000003', '00000000-0000-4000-b000-000000000001', 'Lucas Faria', '+5511987650003', null);
 
 -- Histórico (passado) para a lista e a página do cliente
-insert into public.appointments (salon_id, professional_id, service_id, client_id, inicio, fim, status) values
+insert into public.appointments (salon_id, professional_id, service_id, client_id, inicio, fim, status, preco) values
   ('00000000-0000-4000-b000-000000000001', '00000000-0000-4000-e000-000000000001', '00000000-0000-4000-d000-000000000001',
-   '00000000-0000-4000-f000-000000000001', '2026-10-06 12:00Z', '2026-10-06 13:00Z', 'concluido'),
+   '00000000-0000-4000-f000-000000000001', '2026-10-06 12:00Z', '2026-10-06 13:00Z', 'concluido', 90),
   ('00000000-0000-4000-b000-000000000001', '00000000-0000-4000-e000-000000000001', '00000000-0000-4000-d000-000000000002',
-   '00000000-0000-4000-f000-000000000001', '2026-11-03 13:00Z', '2026-11-03 13:45Z', 'concluido'),
+   '00000000-0000-4000-f000-000000000001', '2026-11-03 13:00Z', '2026-11-03 13:45Z', 'concluido', 60),
   ('00000000-0000-4000-b000-000000000001', '00000000-0000-4000-e000-000000000002', '00000000-0000-4000-d000-000000000001',
-   '00000000-0000-4000-f000-000000000003', '2026-10-20 17:00Z', '2026-10-20 18:00Z', 'faltou');
+   '00000000-0000-4000-f000-000000000003', '2026-10-20 17:00Z', '2026-10-20 18:00Z', 'faltou', 90);
+
+-- Agenda de hoje e de amanhã (relativa à data do reset, no fuso do salão)
+insert into public.appointments (salon_id, professional_id, service_id, client_id, inicio, fim, preco, status)
+select '00000000-0000-4000-b000-000000000001', a.prof, a.serv, a.cli,
+       ((now() at time zone 'America/Sao_Paulo')::date + a.dia + a.hora) at time zone 'America/Sao_Paulo',
+       ((now() at time zone 'America/Sao_Paulo')::date + a.dia + a.hora + a.dur) at time zone 'America/Sao_Paulo',
+       a.preco, a.status::public.appointment_status
+from (values
+  ('00000000-0000-4000-e000-000000000001'::uuid, '00000000-0000-4000-d000-000000000001'::uuid, '00000000-0000-4000-f000-000000000001'::uuid, 0, time '09:00', interval '60 min', 90, 'confirmado'),
+  ('00000000-0000-4000-e000-000000000001'::uuid, '00000000-0000-4000-d000-000000000002'::uuid, '00000000-0000-4000-f000-000000000002'::uuid, 0, time '10:30', interval '45 min', 60, 'agendado'),
+  ('00000000-0000-4000-e000-000000000002'::uuid, '00000000-0000-4000-d000-000000000001'::uuid, '00000000-0000-4000-f000-000000000003'::uuid, 0, time '14:00', interval '60 min', 90, 'agendado'),
+  ('00000000-0000-4000-e000-000000000002'::uuid, '00000000-0000-4000-d000-000000000002'::uuid, '00000000-0000-4000-f000-000000000001'::uuid, 1, time '11:00', interval '45 min', 60, 'agendado')
+) as a (prof, serv, cli, dia, hora, dur, preco, status);

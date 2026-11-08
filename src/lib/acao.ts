@@ -83,8 +83,8 @@ export function acaoDoPainel<T, D = unknown>(def: {
   erroDeLeitura?: string;
   executar: (valor: T, ctx: Contexto) => PromiseLike<RespostaBanco<D>>;
   mensagens?: Mensagens;
-  /** Sucesso: mostra `ok` e atualiza a tela, ou vai para outra página. */
-  depois: { ok: string } | { ir: string | ((data: D) => string) };
+  /** Sucesso: mostra `ok` e atualiza a tela, ou vai para outra página (a partir do que o banco devolveu e do que foi lido). */
+  depois: { ok: string } | { ir: string | ((data: D, valor: T) => string) };
 }) {
   return async function (_anterior: EstadoForm, fd: FormData): Promise<EstadoForm> {
     const vinculo = await exigirPermissao(def.permissao, def.senao);
@@ -98,7 +98,7 @@ export function acaoDoPainel<T, D = unknown>(def: {
     if (error) return { ...mensagemDoErro(error, def.mensagens), campos };
 
     if ("ir" in def.depois) {
-      redirect(typeof def.depois.ir === "function" ? def.depois.ir(data as D) : def.depois.ir);
+      redirect(typeof def.depois.ir === "function" ? def.depois.ir(data as D, lido.valor) : def.depois.ir);
     }
     refresh();
     return { ok: def.depois.ok };

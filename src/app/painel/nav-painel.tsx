@@ -9,11 +9,12 @@ import { pode, type Perfil, type Permissao } from "@/lib/permissoes";
 // Item com `exige` só aparece para quem tem a permissão (sem perfil carregado, fica escondido).
 const PRONTAS: { href: string; rotulo: string; exige?: Permissao }[] = [
   { href: "/painel", rotulo: "Início" },
+  { href: "/painel/agenda", rotulo: "Agenda" },
   { href: "/painel/clientes", rotulo: "Clientes", exige: "ver-clientes" },
   { href: "/painel/servicos", rotulo: "Serviços" },
   { href: "/painel/profissionais", rotulo: "Profissionais" },
 ];
-const EM_BREVE = ["Agenda", "Lembretes", "Link de agendamento", "Configurações"];
+const EM_BREVE = ["Lembretes", "Link de agendamento", "Configurações"];
 
 const ehAtivo = (href: string, pathname: string | null) =>
   pathname !== null && (href === "/painel" ? pathname === "/painel" : pathname.startsWith(href));
