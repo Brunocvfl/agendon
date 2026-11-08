@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  app:
+    name: App (lint, tipos, build)
+    runs-on: ubuntu-latest
+    env:
+      # Valores fictícios: o build não acessa o Supabase. Nunca colocar chaves reais aqui.
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:44321
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run build
+      - name: Auditoria das dependências de produção
+        run: npm audit --omit=dev --audit-level=high
+
+  db:
+    name: Banco (migrations e testes pgTAP)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Sobe o Postgres e aplica as migrations
+        run: npx supabase db start
+      - name: Testes de isolamento e permissões
+        run: npx supabase test db
+
+  secrets:
+    name: Varredura de segredos
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
