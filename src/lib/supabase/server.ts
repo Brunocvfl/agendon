@@ -2,14 +2,19 @@
 // Crie um cliente novo por requisição; nunca reaproveite entre requisições.
 import "server-only";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import type { Database } from "./database.types";
 import { supabaseEnv } from "./env";
 
 export async function createClient() {
   const { url, publishableKey } = supabaseEnv();
   const cookieStore = await cookies();
+  // Dados de sessão são sempre da requisição: o Supabase usa Date.now() para checar o token,
+  // e o Next (Cache Components) exige connection() antes disso.
+  await connection();
 
-  return createServerClient(url, publishableKey, {
+  return createServerClient<Database>(url, publishableKey, {
     cookies: {
       getAll() {
         return cookieStore.getAll();

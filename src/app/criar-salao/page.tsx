@@ -1,0 +1,33 @@
+import type { Metadata } from "next";
+import Image from "next/image";
+import { Suspense } from "react";
+import { redirect } from "next/navigation";
+import { Cartao } from "@/components/ui";
+import { exigirUsuario, getVinculo } from "@/lib/auth";
+import { FormSalao } from "./form-salao";
+
+export const metadata: Metadata = { title: "Cadastre seu salão · AgendOn" };
+
+export default function PaginaCriarSalao() {
+  return (
+    <main className="flex flex-1 flex-col items-center justify-center px-4 py-10 sm:py-16">
+      <Image src="/logo-agendon.png" alt="AgendOn" width={4092} height={1230} priority className="mb-8 h-auto w-48" />
+      <Cartao className="w-full max-w-lg">
+        <p className="text-sm font-semibold text-on">Passo 2 de 2</p>
+        <h1 className="mt-1 text-2xl font-semibold">Cadastre seu salão</h1>
+        <p className="mt-1 text-sm text-noite/60">
+          Você poderá completar endereço, horários e logo depois, nas configurações.
+        </p>
+        <Suspense fallback={<div className="mt-6 h-72" />}>
+          <Guarda />
+        </Suspense>
+      </Cartao>
+    </main>
+  );
+}
+
+async function Guarda() {
+  await exigirUsuario();
+  if (await getVinculo()) redirect("/painel");
+  return <FormSalao />;
+}

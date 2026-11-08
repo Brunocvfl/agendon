@@ -67,8 +67,13 @@ npm run db:start              # sobe o Supabase local (precisa do Docker Desktop
 npm run db:reset              # recria o banco local a partir das migrations
 npm run db:test               # roda os testes pgTAP em supabase/tests/database
 npm run db:stop               # para os containers
+npm run db:types              # regenera src/lib/supabase/database.types.ts (rodar após cada migration)
 npx supabase migration new x  # nova migration (nunca editar o banco de produção pelo painel)
 ```
+
+Depois de criar uma migration, rode `npm run db:reset`: o `db:start` restaura o backup do banco e **não** aplica migrations novas.
+
+Auth local: confirmação de e-mail ligada (como em produção); os e-mails chegam no Mailpit (`http://127.0.0.1:44324`). Abra o link no mesmo navegador do cadastro (fluxo PKCE).
 
 Portas locais em 443xx (API 44321, Postgres 44322, Studio 44323, Mailpit 44324), fora da faixa dinâmica do Windows (49152+), que causava conflito com as 543xx padrão.
 
@@ -80,8 +85,11 @@ Migrations em `supabase/migrations/`:
 1. `..._schema.sql`: tabelas, restrição de conflito de horário.
 2. `..._rls.sql`: RLS, funções `app.*`, permissões por perfil.
 3. `..._create_salon.sql`: função de onboarding `create_salon`.
+4. `20261108000001_onboarding.sql`: slugs reservados (`app.slug_reservado`), tamanho de slug/nome e um salão por usuário no MVP. `create_salon` devolve mensagens estáveis (`ja_tem_salao`, `slug_reservado`, `slug_invalido`, `nome_invalido`; slug em uso = `23505`).
 
-Testes: `supabase/tests/database/01_isolation.test.sql` (12 testes).
+Testes: `01_isolation.test.sql` (12) e `02_onboarding.test.sql` (11).
+
+App (`src/app`): `/entrar`, `/cadastro`, `/auth/callback`, `/criar-salao`, `/painel`. Acesso em `src/lib/auth.ts` (`getUsuario`, `getVinculo`, `exigirUsuario`, `exigirVinculo`); o proxy só faz o redirecionamento otimista. O `createClient` do servidor chama `connection()` (exigência do Cache Components para o `Date.now()` do Supabase). Rotas novas do app precisam entrar na lista de `app.slug_reservado`.
 
 ## Fase 0: o que falta (nesta ordem)
 
@@ -90,7 +98,7 @@ Testes: `supabase/tests/database/01_isolation.test.sql` (12 testes).
 - [x] Projeto Next.js + TypeScript na raiz, com `@supabase/supabase-js` e `@supabase/ssr`.
 - [ ] Projetos Supabase de staging e produção; variáveis de ambiente (ver `.env.example`).
 - [x] CI no GitHub Actions: lint, testes de banco, varredura de segredos (`.github/workflows/ci.yml`, repo privado github.com/Brunocvfl/agendon).
-- [ ] Tela de login e cadastro do salão (chamando `create_salon`).
+- [x] Tela de login e cadastro do salão (chamando `create_salon`). Falta: "esqueci a senha" e página de termos/privacidade.
 - [ ] Conta Meta Business aberta e verificação do negócio iniciada.
 
 ## Decisões em aberto
