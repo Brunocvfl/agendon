@@ -124,8 +124,11 @@ select is(
   2,
   'nenhum cliente duplicado'
 );
-update public.appointments set status = 'cancelado'
-  where professional_id = '61000000-0000-0000-0000-00000000000a' and inicio = '2030-01-08 12:00Z';
+do $$ begin
+  perform public.mudar_status(
+    (select id from public.appointments where professional_id = '61000000-0000-0000-0000-00000000000a' and inicio = '2030-01-08 12:00Z'),
+    'cancelado');
+end $$;
 select lives_ok(
   $$select public.criar_agendamento('61000000-0000-0000-0000-00000000000a', '62000000-0000-0000-0000-000000000001',
     '2030-01-08 09:00', '63000000-0000-0000-0000-000000000001')$$,

@@ -13,6 +13,9 @@ Termos do domínio e dos módulos. Use estes nomes no código, nos commits e nas
 - **Horário semanal**: os dias e horários em que um profissional atende, com **pausa** opcional. No banco, cada dia vira uma ou duas **faixas**.
 - **Folga**: período em que o profissional não atende (férias, compromisso). Digitada no fuso do salão, gravada em UTC.
 - **Cliente**: quem agenda. Dado pessoal (LGPD): Profissional não vê o telefone.
+- **Agendamento**: um cliente, um serviço e um profissional num horário. Nunca é apagado: muda de **status** (agendado, confirmado, concluído, faltou, cancelado). Faltou e cancelado liberam o horário.
+- **Remarcar**: mudar dia, hora ou profissional de um agendamento ainda de pé; serviço, cliente e preço ficam.
+- **Encaixe**: agendamento fora do expediente ou numa folga, feito pelo painel com confirmação.
 
 ## Módulos do front-end
 

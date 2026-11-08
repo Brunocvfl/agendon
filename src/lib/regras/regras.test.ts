@@ -5,7 +5,7 @@ import { lerServico } from "./servico";
 import { lerNomeProfissional } from "./profissional";
 import { lerFolga } from "./folga";
 import { lerCliente, lerTelefone } from "./cliente";
-import { lerAgendamento } from "./agendamento";
+import { lerAgendamento, lerMudancaDeStatus, lerRemarcacao, proximosStatus } from "./agendamento";
 import { lerSalao, normalizarSlug, SLUGS_RESERVADOS } from "./salao";
 
 describe("lerServico", () => {
@@ -148,5 +148,45 @@ describe("lerAgendamento", () => {
   it("cliente novo com WhatsApp inválido", () => {
     const r = lerAgendamento({ ...base, modoCliente: "novo", nome: "Ana", telefone: "123" });
     expect(r.ok ? [] : Object.keys(r.erros)).toEqual(["telefone"]);
+  });
+});
+
+describe("lerRemarcacao", () => {
+  const id = "00000000-0000-4000-a000-000000000001";
+  const profissional = "00000000-0000-4000-e000-000000000001";
+  it("monta o início no horário do salão", () =>
+    expect(lerRemarcacao({ id, profissional, dia: "2026-11-10", hora: "14:15" })).toEqual({
+      ok: true,
+      valor: { id, profissional, dia: "2026-11-10", inicio: "2026-11-10T14:15", encaixe: false },
+    }));
+  it("aponta dia e hora inválidos", () => {
+    const r = lerRemarcacao({ id, profissional, dia: "10/11/2026", hora: "25:00" });
+    expect(r.ok ? [] : Object.keys(r.erros).sort()).toEqual(["dia", "hora"]);
+  });
+  it("id inválido vira erro geral", () => {
+    const r = lerRemarcacao({ id: "x", profissional, dia: "2026-11-10", hora: "14:15" });
+    expect(r.ok ? [] : Object.keys(r.erros)).toEqual(["_geral"]);
+  });
+});
+
+describe("proximosStatus", () => {
+  it("agendado antes do início: confirmar ou cancelar", () =>
+    expect(proximosStatus("agendado", false)).toEqual(["confirmado", "cancelado"]));
+  it("agendado depois do início: também concluir e faltou", () =>
+    expect(proximosStatus("agendado", true)).toEqual(["confirmado", "concluido", "faltou", "cancelado"]));
+  it("confirmado não volta a confirmar", () => expect(proximosStatus("confirmado", true)).toEqual(["concluido", "faltou", "cancelado"]));
+  it("cancelado e faltou podem ser desfeitos", () => {
+    expect(proximosStatus("cancelado", false)).toEqual(["agendado"]);
+    expect(proximosStatus("faltou", true)).toEqual(["agendado"]);
+  });
+  it("concluído é final", () => expect(proximosStatus("concluido", true)).toEqual([]));
+});
+
+describe("lerMudancaDeStatus", () => {
+  const id = "00000000-0000-4000-a000-000000000001";
+  it("aceita status conhecido", () => expect(lerMudancaDeStatus({ id, status: "faltou" })).toEqual({ id, status: "faltou" }));
+  it("recusa status desconhecido ou id inválido", () => {
+    expect(lerMudancaDeStatus({ id, status: "apagado" })).toBeNull();
+    expect(lerMudancaDeStatus({ id: "1", status: "cancelado" })).toBeNull();
   });
 });

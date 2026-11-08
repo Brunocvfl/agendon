@@ -80,3 +80,44 @@ export function Cartao({ children, className = "" }: { children: ReactNode; clas
     </div>
   );
 }
+
+// Lista de escolha controlada (precisa de um Client Component para o onChange).
+export function Selecao({
+  id,
+  rotulo,
+  valor,
+  onChange,
+  opcoes,
+  erro,
+}: {
+  id: string;
+  rotulo: string;
+  valor: string;
+  onChange: (v: string) => void;
+  opcoes: { valor: string; rotulo: string }[];
+  erro?: string;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label htmlFor={id} className="text-sm font-medium text-noite/80">
+        {rotulo}
+      </label>
+      <select
+        id={id}
+        name={id}
+        value={valor}
+        onChange={(e) => onChange(e.target.value)}
+        aria-invalid={erro ? true : undefined}
+        className={`h-11 w-full cursor-pointer rounded-xl border bg-white px-3.5 text-base text-noite outline-none transition-colors focus:border-on focus:ring-2 focus:ring-on/20 ${erro ? "border-red-400" : "border-noite/15"}`}
+      >
+        {opcoes.length === 0 ? <option value="">—</option> : null}
+        {opcoes.map((o) => (
+          <option key={o.valor} value={o.valor}>
+            {o.rotulo}
+          </option>
+        ))}
+      </select>
+      {erro ? <p className="text-sm text-red-600">{erro}</p> : null}
+    </div>
+  );
+}

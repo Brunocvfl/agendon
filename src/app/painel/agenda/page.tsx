@@ -113,7 +113,7 @@ async function Conteudo({ vinculo, searchParams }: { vinculo: Vinculo; searchPar
           </p>
         </Cartao>
       ) : (
-        <Grade colunas={colunas} r={r} agora={agora} dia={dia} podeAgendar={podeAgendar} verCliente={pode(perfil, "ver-clientes")} />
+        <Grade colunas={colunas} r={r} agora={agora} dia={dia} podeAgendar={podeAgendar} />
       )}
     </>
   );
@@ -164,7 +164,6 @@ function Grade(props: {
   agora: number | null;
   dia: string;
   podeAgendar: boolean;
-  verCliente: boolean;
 }) {
   const { colunas, r, agora } = props;
   const altura = (r.ate - r.de) * PX_POR_MIN;
@@ -224,7 +223,6 @@ function Coluna({
   agora,
   dia,
   podeAgendar,
-  verCliente,
 }: {
   coluna: ColunaAgenda;
   altura: number;
@@ -232,7 +230,6 @@ function Coluna({
   agora: number | null;
   dia: string;
   podeAgendar: boolean;
-  verCliente: boolean;
 }) {
   const top = (min: number) => (min - r.de) * PX_POR_MIN;
   const posicoes = ladoALado(c.itens.map((i) => i.periodo));
@@ -297,7 +294,7 @@ function Coluna({
       ))}
 
       {c.itens.map((item, i) => (
-        <Bloco key={item.id} item={item} top={top(item.periodo.de)} posicao={posicoes[i]} verCliente={verCliente} />
+        <Bloco key={item.id} item={item} top={top(item.periodo.de)} posicao={posicoes[i]} />
       ))}
 
       {agora !== null && agora >= r.de && agora <= r.ate ? (
@@ -311,12 +308,10 @@ function Bloco({
   item,
   top,
   posicao,
-  verCliente,
 }: {
   item: ItemAgenda;
   top: number;
   posicao: { coluna: number; colunas: number };
-  verCliente: boolean;
 }) {
   const duracao = item.periodo.ate - item.periodo.de;
   const altura = Math.max(duracao * PX_POR_MIN - 3, 22);
@@ -343,13 +338,14 @@ function Bloco({
   };
   const titulo = `${item.clienteNome} · ${item.servico} · ${hora} · ${NOME_STATUS[item.status]}`;
 
-  return verCliente && item.clienteId ? (
-    <Link href={`/painel/clientes/${item.clienteId}`} title={titulo} className={`${classe} hover:brightness-[0.98]`} style={estilo}>
+  return (
+    <Link
+      href={`/painel/agenda/${item.id}`}
+      title={titulo}
+      className={`${classe} hover:brightness-[0.98] focus-visible:outline-2 focus-visible:outline-on`}
+      style={estilo}
+    >
       {conteudo}
     </Link>
-  ) : (
-    <div title={titulo} className={classe} style={estilo}>
-      {conteudo}
-    </div>
   );
 }

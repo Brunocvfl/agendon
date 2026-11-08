@@ -8,7 +8,8 @@ export type Perfil = Database["public"]["Enums"]["member_role"];
 
 export type Permissao =
   | "ver-agenda-de-todos"
-  | "criar-agendamento" // Profissional: só na própria agenda (a RLS restringe)
+  | "criar-agendamento" // e remarcar. Profissional: só na própria agenda (o banco restringe)
+  | "mudar-status" // confirmar, concluir, faltou, cancelar. Profissional: só na própria agenda
   | "ver-clientes" // inclui histórico e telefone
   | "editar-servicos" // serviços e preços
   | "editar-profissionais" // cadastro e serviços que cada um atende
@@ -19,6 +20,7 @@ export type Permissao =
 const MATRIZ: Record<Permissao, readonly Perfil[]> = {
   "ver-agenda-de-todos": ["dono", "recepcao"],
   "criar-agendamento": ["dono", "recepcao", "profissional"],
+  "mudar-status": ["dono", "recepcao", "profissional"],
   "ver-clientes": ["dono", "recepcao"],
   "editar-servicos": ["dono"],
   "editar-profissionais": ["dono"],
