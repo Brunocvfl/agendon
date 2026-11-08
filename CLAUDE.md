@@ -26,6 +26,12 @@ Matriz de permissões:
 ## Stack
 
 - Front: Next.js 16 (App Router, `src/`) + TypeScript + Tailwind 4, hospedado na Vercel. Ler `AGENTS.md` e a documentação em `node_modules/next/dist/docs/` antes de usar APIs do Next: o antigo `middleware` agora é `src/proxy.ts`, e com `cacheComponents` ligado toda leitura de sessão/cookies fica dentro de `<Suspense>`.
+- Módulos do front-end (termos em `GLOSSARY.md`), use-os em vez de repetir o padrão:
+  - **Permissões** `src/lib/permissoes.ts`: a matriz abaixo em código. `pode(perfil, permissão)`; no servidor, `exigirPermissao(permissão, senão)` (`src/lib/auth.ts`). Mudou a matriz? Mude aqui e no teste.
+  - **Regras de cadastro** `src/lib/regras/*`: leitura e validação puras (`lerServico`, `lerNomeProfissional`, `lerFolga`, `lerSalao`) e os `LIMITES_*` usados pelos formulários. Espelham as restrições do banco.
+  - **Ação do painel** `src/lib/acao.ts`: toda Server Action do painel é `acaoDoPainel({ permissao, ler, executar, mensagens, depois })` ou `comandoDoPainel(...)`. Tradução dos erros do Postgres num lugar só.
+  - **Página protegida** `src/components/pagina-protegida.tsx`: toda página do painel usa `<PaginaProtegida exige=... params=...>{({ vinculo, id }) => ...}</PaginaProtegida>`.
+  - Testes de unidade (Vitest) ao lado do módulo: `npm test`. Testar pela interface do módulo.
 - Supabase no app: `src/lib/supabase/` (`client.ts` para o navegador, `server.ts` para o servidor, `proxy.ts` renova a sessão). Para validar o usuário no servidor, usar `auth.getClaims()`, nunca `getSession()`.
 - Back-end: Supabase (Postgres, Auth, Edge Functions, Storage, pg_cron + fila), região **sa-east-1 (São Paulo)**.
 - WhatsApp: API oficial da Meta (WhatsApp Business Platform), templates aprovados.
@@ -67,6 +73,7 @@ npm run db:start              # sobe o Supabase local (precisa do Docker Desktop
 npm run db:reset              # recria o banco local a partir das migrations
 npm run db:test               # roda os testes pgTAP em supabase/tests/database
 npm run db:stop               # para os containers
+npm test                      # testes de unidade (Vitest) dos módulos do front-end
 npm run db:types              # regenera src/lib/supabase/database.types.ts (rodar após cada migration)
 npx supabase migration new x  # nova migration (nunca editar o banco de produção pelo painel)
 ```
