@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Suspense } from "react";
 import { BotaoLink, Cartao } from "@/components/ui";
-import { exigirVinculo } from "@/lib/auth";
+import { PaginaProtegida } from "@/components/pagina-protegida";
+import type { Vinculo } from "@/lib/auth";
 import { pode } from "@/lib/permissoes";
 import { iniciais } from "@/lib/formato";
 import { listarProfissionais } from "./dados";
@@ -12,15 +12,14 @@ export const metadata: Metadata = { title: "Profissionais · AgendOn" };
 export default function PaginaProfissionais() {
   return (
     <div className="mx-auto max-w-5xl">
-      <Suspense fallback={<h1 className="text-2xl font-semibold sm:text-3xl">Profissionais</h1>}>
-        <Conteudo />
-      </Suspense>
+      <PaginaProtegida carregando={<h1 className="text-2xl font-semibold sm:text-3xl">Profissionais</h1>}>
+        {({ vinculo }) => <Conteudo vinculo={vinculo} />}
+      </PaginaProtegida>
     </div>
   );
 }
 
-async function Conteudo() {
-  const { salao, perfil, membroId } = await exigirVinculo();
+async function Conteudo({ vinculo: { salao, perfil, membroId } }: { vinculo: Vinculo }) {
   const podeCadastrar = pode(perfil, "editar-profissionais");
   const profissionais = await listarProfissionais(salao.id);
 
