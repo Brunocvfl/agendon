@@ -5,6 +5,7 @@ import { PaginaProtegida } from "@/components/pagina-protegida";
 import type { Vinculo } from "@/lib/auth";
 import { dataNoFuso, ehData } from "@/lib/datas";
 import { ehUuid } from "@/lib/ids";
+import { pode } from "@/lib/permissoes";
 import { opcoesAgendamento } from "../dados";
 import { FormAgendamento } from "./form-agendamento";
 
@@ -20,8 +21,8 @@ export default function PaginaNovoAgendamento({ searchParams }: PageProps<"/pain
       </Link>
       <h1 className="mt-4 text-2xl font-semibold sm:text-3xl">Novo agendamento</h1>
       <Cartao className="mt-6">
-        {/* Nesta fase, agendar pelo painel exige escolher o cliente: Dono(a) e Recepção. */}
-        <PaginaProtegida exige="ver-clientes" senao="/painel/agenda" carregando={<div className="h-96" />}>
+        {/* Profissional agenda só na própria agenda (opcoesAgendamento e o banco restringem). */}
+        <PaginaProtegida exige="criar-agendamento" senao="/painel/agenda" carregando={<div className="h-96" />}>
           {({ vinculo }) => <Conteudo vinculo={vinculo} searchParams={searchParams} />}
         </PaginaProtegida>
       </Cartao>
@@ -31,13 +32,23 @@ export default function PaginaNovoAgendamento({ searchParams }: PageProps<"/pain
 
 const umValor = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
 
-async function Conteudo({ vinculo: { salao }, searchParams }: { vinculo: Vinculo; searchParams: Busca }) {
+async function Conteudo({ vinculo, searchParams }: { vinculo: Vinculo; searchParams: Busca }) {
+  const { salao, perfil } = vinculo;
   const sp = await searchParams;
-  const opcoes = await opcoesAgendamento(salao.id);
+  const opcoes = await opcoesAgendamento(vinculo);
 
   const dia = ehData(umValor(sp.dia)) ? umValor(sp.dia) : dataNoFuso(new Date(), salao.fuso);
   const profissional = ehUuid(umValor(sp.profissional)) ? umValor(sp.profissional) : "";
   const hora = /^\d{2}:\d{2}$/.test(umValor(sp.hora)) ? umValor(sp.hora) : "";
+
+  if (!pode(perfil, "ver-agenda-de-todos") && opcoes.profissionais.length === 0) {
+    return (
+      <p className="text-sm text-noite/60">
+        Seu login ainda não está ligado a uma agenda. Peça ao Dono(a) do salão para marcar &quot;sou eu&quot; no seu cadastro
+        de profissional.
+      </p>
+    );
+  }
 
   if (opcoes.profissionais.length === 0 || opcoes.servicos.length === 0) {
     return (
@@ -55,5 +66,5 @@ async function Conteudo({ vinculo: { salao }, searchParams }: { vinculo: Vinculo
     );
   }
 
-  return <FormAgendamento opcoes={opcoes} inicial={{ dia, profissional, hora }} />;
+  return <FormAgendamento opcoes={opcoes} inicial={{ dia, profissional, hora }} buscaPorTelefone={pode(perfil, "ver-clientes")} />;
 }

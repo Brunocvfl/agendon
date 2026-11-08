@@ -167,10 +167,10 @@ select throws_ok(
 -- Profissional (A) do salão I
 select set_config('request.jwt.claims', '{"sub":"60000000-0000-0000-0000-000000000003","role":"authenticated"}', true);
 select throws_ok(
-  $$select public.criar_agendamento('61000000-0000-0000-0000-00000000000a', '62000000-0000-0000-0000-000000000001',
-    '2030-01-08 13:00', '63000000-0000-0000-0000-000000000001')$$,
+  $$select public.criar_agendamento('61000000-0000-0000-0000-00000000000b', '62000000-0000-0000-0000-000000000001',
+    '2030-01-08 15:00', '63000000-0000-0000-0000-000000000001')$$,
   '42501', 'sem_permissao',
-  'Profissional ainda não agenda pelo painel'
+  'Profissional não agenda na agenda de outro'
 );
 select is(
   (select count(*)::int from public.agenda('66666666-0000-0000-0000-000000000001', '2030-01-08', '2030-01-08')

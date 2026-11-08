@@ -67,6 +67,10 @@ export function formatarDiaMes(iso: string, fuso: string) {
   return `${dia} ${mes}`;
 }
 
+export function formatarData(iso: string, fuso: string) {
+  return new Intl.DateTimeFormat("pt-BR", { timeZone: fuso, day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(iso));
+}
+
 export function formatarMesAno(iso: string, fuso: string) {
   const { mes, ano } = partes(iso, fuso, { month: "short", year: "numeric" });
   return `${mes}/${ano}`;

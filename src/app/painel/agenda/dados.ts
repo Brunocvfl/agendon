@@ -86,16 +86,22 @@ export type OpcoesAgendamento = {
   servicos: { id: string; nome: string; duracao: number; preco: number }[];
 };
 
-/** Profissionais ativos com os serviços ativos que cada um faz (para o formulário de novo agendamento). */
-export async function opcoesAgendamento(salonId: string): Promise<OpcoesAgendamento> {
+/**
+ * Profissionais ativos com os serviços ativos que cada um faz (para o formulário de novo agendamento).
+ * Profissional: só a própria agenda.
+ */
+export async function opcoesAgendamento(vinculo: Vinculo): Promise<OpcoesAgendamento> {
+  const salonId = vinculo.salao.id;
   const supabase = await createClient();
+  let consulta = supabase
+    .from("professionals")
+    .select("id, nome, professional_services(service_id)")
+    .eq("salon_id", salonId)
+    .eq("ativo", true)
+    .order("nome");
+  if (!pode(vinculo.perfil, "ver-agenda-de-todos")) consulta = consulta.eq("member_id", vinculo.membroId);
   const [profs, servs] = await Promise.all([
-    supabase
-      .from("professionals")
-      .select("id, nome, professional_services(service_id)")
-      .eq("salon_id", salonId)
-      .eq("ativo", true)
-      .order("nome"),
+    consulta,
     supabase.from("services").select("id, nome, duracao_min, preco").eq("salon_id", salonId).eq("ativo", true).order("nome"),
   ]);
   if (profs.error || servs.error) throw new Error("Falha ao carregar profissionais e serviços.");
