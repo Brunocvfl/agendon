@@ -96,7 +96,7 @@ App (`src/app`): `/entrar`, `/cadastro`, `/auth/callback`, `/criar-salao`, `/pai
 - [x] `supabase init` (se `supabase/config.toml` ainda não existe) e `supabase start`.
 - [x] Rodar `supabase db reset` e `supabase test db` e conferir que tudo passa (12/12, 2026-11-07).
 - [x] Projeto Next.js + TypeScript na raiz, com `@supabase/supabase-js` e `@supabase/ssr`.
-- [ ] Projetos Supabase de staging e produção; variáveis de ambiente (ver `.env.example`). Supabase feito; falta Vercel e auth na nuvem.
+- [x] Projetos Supabase de staging e produção; variáveis de ambiente (ver `.env.example`). Vercel: produção em https://agendon.vercel.app.
 - [x] CI no GitHub Actions: lint, testes de banco, varredura de segredos (`.github/workflows/ci.yml`, repo privado github.com/Brunocvfl/agendon).
 - [x] Tela de login e cadastro do salão (chamando `create_salon`). Falta: "esqueci a senha" e página de termos/privacidade.
 - [ ] Conta Meta Business aberta e verificação do negócio iniciada.
@@ -106,9 +106,11 @@ App (`src/app`): `/entrar`, `/cadastro`, `/auth/callback`, `/criar-salao`, `/pai
 | | Staging | Produção |
 |---|---|---|
 | Supabase (org Code House, Free, sa-east-1) | `agendon-staging` · `lxhdfndnzubjephohhbh` | `agendon-prod` · `sbpndxarmcobcsgllizc` |
-| Vercel | Preview (PRs/branches) | Production (`main`) |
+| Vercel (time Code House, projeto `agendon`, Hobby) | Preview (PRs/branches): `agendon-*-code-house4.vercel.app` | Production (`main`): https://agendon.vercel.app |
 
 - O projeto local está ligado (`supabase link`) ao **staging**. Comandos remotos: `npx supabase db push --remote --yes` (staging) ou `--remote=sbpndxarmcobcsgllizc` (produção). Produção sempre com confirmação explícita.
+- Auth na nuvem vem do `config.toml` (seções `[remotes.staging]` e `[remotes.production]`): `npx supabase config diff --remote=<ref>` para conferir, `config push --remote=<ref> --yes` para aplicar. A base do arquivo foi alinhada aos padrões da nuvem para o diff mostrar só o que é nosso.
+- Variáveis na Vercel: `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (Production = prod, Preview = staging). `NEXT_PUBLIC_SITE_URL` não é usada na nuvem: o link de confirmação usa a origem da requisição, validada pela lista de retorno do Supabase.
 - `supabase test db --remote` não funciona no CLI 3.0 (não acha o `plan()` do pgTAP). Os testes rodam local e no CI; na nuvem, verificar com consultas de leitura (`db query --remote`: RLS em todas as tabelas, zero grants para `anon`) e `db advisors --remote`.
 - Antes do piloto: Supabase produção → Pro (backup diário, sem pausa); Vercel → Pro (Hobby não permite uso comercial); registrar `agendon.com.br` e configurar SMTP no Resend.
 
