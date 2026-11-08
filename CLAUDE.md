@@ -72,6 +72,8 @@ npx supabase migration new x  # nova migration (nunca editar o banco de produç�
 
 Portas locais em 443xx (API 44321, Postgres 44322, Studio 44323, Mailpit 44324), fora da faixa dinâmica do Windows (49152+), que causava conflito com as 543xx padrão.
 
+CI (a cada push na `main` e em todo PR): lint, `typecheck`, build, `npm audit --omit=dev --audit-level=high`, `supabase db start` + `test db` e gitleaks em todo o histórico. As vulnerabilidades moderadas do `npm audit` completo vêm do `eslint-config-next` (só dev); não rodar `npm audit fix --force`, que rebaixa o Next.
+
 ## Estado atual
 
 Migrations em `supabase/migrations/`:
@@ -87,7 +89,7 @@ Testes: `supabase/tests/database/01_isolation.test.sql` (12 testes).
 - [x] Rodar `supabase db reset` e `supabase test db` e conferir que tudo passa (12/12, 2026-11-07).
 - [x] Projeto Next.js + TypeScript na raiz, com `@supabase/supabase-js` e `@supabase/ssr`.
 - [ ] Projetos Supabase de staging e produção; variáveis de ambiente (ver `.env.example`).
-- [ ] CI no GitHub Actions: lint, testes de banco, varredura de segredos.
+- [x] CI no GitHub Actions: lint, testes de banco, varredura de segredos (`.github/workflows/ci.yml`, repo privado github.com/Brunocvfl/agendon).
 - [ ] Tela de login e cadastro do salão (chamando `create_salon`).
 - [ ] Conta Meta Business aberta e verificação do negócio iniciada.
 
