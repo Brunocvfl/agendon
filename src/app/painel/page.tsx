@@ -1,23 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Suspense } from "react";
 import { Cartao } from "@/components/ui";
-import { exigirVinculo, podeEditarCadastro, type Perfil } from "@/lib/auth";
+import { PaginaProtegida } from "@/components/pagina-protegida";
+import type { Vinculo } from "@/lib/auth";
+import { NOME_PERFIL, pode } from "@/lib/permissoes";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Painel · AgendOn" };
 
-const NOME_PERFIL: Record<Perfil, string> = {
-  dono: "Dono(a)",
-  recepcao: "Recepção",
-  profissional: "Profissional",
-};
-
 export default function PaginaPainel() {
   return (
-    <Suspense fallback={<p className="text-sm text-noite/60">Carregando…</p>}>
-      <Inicio />
-    </Suspense>
+    <PaginaProtegida>{({ vinculo }) => <Inicio vinculo={vinculo} />}</PaginaProtegida>
   );
 }
 
@@ -36,10 +29,9 @@ async function progresso(salonId: string) {
   return { servicos, profissionais, horarios };
 }
 
-async function Inicio() {
-  const { salao, perfil } = await exigirVinculo();
+async function Inicio({ vinculo: { salao, perfil } }: { vinculo: Vinculo }) {
   const p = await progresso(salao.id);
-  const dono = podeEditarCadastro(perfil);
+  const dono = pode(perfil, "editar-servicos");
 
   const passos = [
     {

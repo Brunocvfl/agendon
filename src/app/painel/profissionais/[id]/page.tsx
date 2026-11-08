@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { Cartao } from "@/components/ui";
-import { exigirVinculo, podeEditarCadastro, podeEditarHorarios } from "@/lib/auth";
+import { PaginaProtegida } from "@/components/pagina-protegida";
+import type { Vinculo } from "@/lib/auth";
+import { pode } from "@/lib/permissoes";
 import { iniciais } from "@/lib/formato";
 import { DIAS, faixasParaTela, resumoDia } from "@/lib/horarios";
 import { buscarProfissional, listarServicosAtivos } from "../dados";
@@ -14,34 +15,28 @@ import { Folgas } from "./folgas";
 
 export const metadata: Metadata = { title: "Profissional · AgendOn" };
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 export default function PaginaProfissional({ params }: PageProps<"/painel/profissionais/[id]">) {
   return (
     <div className="mx-auto max-w-4xl">
       <Link href="/painel/profissionais" className="text-sm font-medium text-on hover:underline">
         ← Profissionais
       </Link>
-      <Suspense fallback={<p className="mt-4 text-sm text-noite/60">Carregando…</p>}>
-        <Conteudo params={params} />
-      </Suspense>
+      <PaginaProtegida params={params} carregando={<p className="mt-4 text-sm text-noite/60">Carregando…</p>}>
+        {(ctx) => <Conteudo {...ctx} />}
+      </PaginaProtegida>
     </div>
   );
 }
 
-async function Conteudo({ params }: { params: PageProps<"/painel/profissionais/[id]">["params"] }) {
-  const { id } = await params;
-  if (!UUID_RE.test(id)) notFound();
-
-  const { salao, perfil, membroId } = await exigirVinculo();
+async function Conteudo({ vinculo: { salao, perfil, membroId }, id }: { vinculo: Vinculo; id: string }) {
   const [profissional, servicos] = await Promise.all([
     buscarProfissional(salao.id, id),
     listarServicosAtivos(salao.id),
   ]);
   if (!profissional) notFound();
 
-  const editaCadastro = podeEditarCadastro(perfil);
-  const editaHorarios = podeEditarHorarios(perfil);
+  const editaCadastro = pode(perfil, "editar-profissionais");
+  const editaHorarios = pode(perfil, "editar-horarios");
   const dias = faixasParaTela(profissional.faixas);
 
   return (

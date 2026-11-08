@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { Alerta, Botao, Campo } from "@/components/ui";
-import { normalizarSlug } from "@/lib/slug";
+import { LIMITES_SALAO, normalizarSlug } from "@/lib/regras/salao";
 import { criarSalao, type EstadoSalao } from "./actions";
 
 export function FormSalao() {
@@ -21,7 +21,7 @@ export function FormSalao() {
         label="Nome do salão"
         placeholder="Studio Bela Vida"
         autoComplete="organization"
-        maxLength={80}
+        maxLength={LIMITES_SALAO.nome.max}
         required
         value={nome}
         onChange={(e) => {
@@ -38,7 +38,7 @@ export function FormSalao() {
         autoCapitalize="none"
         autoCorrect="off"
         spellCheck={false}
-        maxLength={40}
+        maxLength={LIMITES_SALAO.slug.max}
         required
         value={slug}
         onChange={(e) => {
