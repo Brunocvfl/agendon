@@ -96,10 +96,27 @@ App (`src/app`): `/entrar`, `/cadastro`, `/auth/callback`, `/criar-salao`, `/pai
 - [x] `supabase init` (se `supabase/config.toml` ainda não existe) e `supabase start`.
 - [x] Rodar `supabase db reset` e `supabase test db` e conferir que tudo passa (12/12, 2026-11-07).
 - [x] Projeto Next.js + TypeScript na raiz, com `@supabase/supabase-js` e `@supabase/ssr`.
-- [ ] Projetos Supabase de staging e produção; variáveis de ambiente (ver `.env.example`).
+- [ ] Projetos Supabase de staging e produção; variáveis de ambiente (ver `.env.example`). Supabase feito; falta Vercel e auth na nuvem.
 - [x] CI no GitHub Actions: lint, testes de banco, varredura de segredos (`.github/workflows/ci.yml`, repo privado github.com/Brunocvfl/agendon).
 - [x] Tela de login e cadastro do salão (chamando `create_salon`). Falta: "esqueci a senha" e página de termos/privacidade.
 - [ ] Conta Meta Business aberta e verificação do negócio iniciada.
+
+## Ambientes na nuvem
+
+| | Staging | Produção |
+|---|---|---|
+| Supabase (org Code House, Free, sa-east-1) | `agendon-staging` · `lxhdfndnzubjephohhbh` | `agendon-prod` · `sbpndxarmcobcsgllizc` |
+| Vercel | Preview (PRs/branches) | Production (`main`) |
+
+- O projeto local está ligado (`supabase link`) ao **staging**. Comandos remotos: `npx supabase db push --remote --yes` (staging) ou `--remote=sbpndxarmcobcsgllizc` (produção). Produção sempre com confirmação explícita.
+- `supabase test db --remote` não funciona no CLI 3.0 (não acha o `plan()` do pgTAP). Os testes rodam local e no CI; na nuvem, verificar com consultas de leitura (`db query --remote`: RLS em todas as tabelas, zero grants para `anon`) e `db advisors --remote`.
+- Antes do piloto: Supabase produção → Pro (backup diário, sem pausa); Vercel → Pro (Hobby não permite uso comercial); registrar `agendon.com.br` e configurar SMTP no Resend.
+
+## Pendências técnicas
+
+- Mover `btree_gist` de `public` para `extensions` (aviso do advisor).
+- Separar as policies `*_write` (`for all`) em insert/update/delete, para não somar com as `*_select` (aviso de desempenho do advisor).
+- `message_log.appointment_id` com FK composta `(id, salon_id)`.
 
 ## Decisões em aberto
 
