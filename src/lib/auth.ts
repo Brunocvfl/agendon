@@ -11,8 +11,9 @@ export type Perfil = Database["public"]["Enums"]["member_role"];
 export type Usuario = { id: string; email: string | null };
 
 export type Vinculo = {
+  membroId: string;
   perfil: Perfil;
-  salao: { id: string; nome: string; slug: string };
+  salao: { id: string; nome: string; slug: string; fuso: string };
 };
 
 // Usuário logado, validado pelo JWT (getClaims). Nunca usar getSession() no servidor.
@@ -38,7 +39,7 @@ export const getVinculo = cache(async (): Promise<Vinculo | null> => {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("members")
-    .select("perfil, salons!inner(id, nome, slug)")
+    .select("id, perfil, salons!inner(id, nome, slug, fuso)")
     .eq("user_id", usuario.id)
     .eq("status", "ativo")
     .limit(1)
@@ -46,8 +47,12 @@ export const getVinculo = cache(async (): Promise<Vinculo | null> => {
 
   if (error) throw new Error("Falha ao carregar o salão do usuário.");
   if (!data) return null;
-  return { perfil: data.perfil, salao: data.salons };
+  return { membroId: data.id, perfil: data.perfil, salao: data.salons };
 });
+
+// Atalhos da matriz de permissões (a RLS garante o mesmo no banco).
+export const podeEditarCadastro = (perfil: Perfil) => perfil === "dono";
+export const podeEditarHorarios = (perfil: Perfil) => perfil === "dono" || perfil === "recepcao";
 
 export async function exigirVinculo(): Promise<Vinculo> {
   await exigirUsuario();

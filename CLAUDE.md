@@ -89,9 +89,11 @@ Migrations em `supabase/migrations/`:
 
 5. `20261108000002_services.sql`: regras de serviço (nome único por salão, duração 5–720 min), policies de escrita separadas por ação (sem delete em serviços e profissionais: só desativar) e `btree_gist` em `extensions`.
 
-Testes: `01_isolation` (12), `02_onboarding` (11), `03_services` (14). Os testes não podem depender do banco vazio (use slugs/nomes que não colidem com dados criados à mão).
+6. `20261108000003_professionals.sql`: nome único por salão, vínculo profissional↔login com FK composta (um profissional por login), horários sem sobreposição (exclusão) e funções `salvar_horarios`, `salvar_servicos_profissional` e `adicionar_folga` (SECURITY INVOKER: a RLS vale; checam o perfil e respondem 42501).
 
-App (`src/app`): `/entrar`, `/cadastro`, `/auth/callback`, `/criar-salao`, `/painel`, `/painel/servicos` (lista, `novo`, `[id]`; só Dono(a) edita). Acesso em `src/lib/auth.ts` (`getUsuario`, `getVinculo`, `exigirUsuario`, `exigirVinculo`); o proxy só faz o redirecionamento otimista. O `createClient` do servidor chama `connection()` (exigência do Cache Components para o `Date.now()` do Supabase). Rotas novas do app precisam entrar na lista de `app.slug_reservado`.
+Testes: `01_isolation` (12), `02_onboarding` (11), `03_services` (14), `04_professionals` (20). Os testes não podem depender do banco vazio (use slugs/nomes que não colidem com dados criados à mão).
+
+App (`src/app`): `/entrar`, `/cadastro`, `/auth/callback`, `/criar-salao`, `/painel`, `/painel/servicos` (lista, `novo`, `[id]`; só Dono(a) edita), `/painel/profissionais` (lista, `novo` com "sou eu", `[id]` com dados, serviços, horário semanal com intervalo e folgas; horários e folgas: Dono(a) e Recepção). Horário: `src/lib/horarios.ts` converte faixas do banco ↔ "início, fim e intervalo". Folgas são digitadas no horário do salão e o banco converte para UTC com `salons.fuso`. Acesso em `src/lib/auth.ts` (`getUsuario`, `getVinculo`, `exigirUsuario`, `exigirVinculo`); o proxy só faz o redirecionamento otimista. O `createClient` do servidor chama `connection()` (exigência do Cache Components para o `Date.now()` do Supabase). Rotas novas do app precisam entrar na lista de `app.slug_reservado`.
 
 ## Fase 0: o que falta (nesta ordem)
 

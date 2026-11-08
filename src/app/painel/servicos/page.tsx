@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { Cartao } from "@/components/ui";
+import { BotaoLink, Cartao } from "@/components/ui";
 import { exigirVinculo } from "@/lib/auth";
 import { formatarDuracao, formatarPreco, iniciais } from "@/lib/formato";
 import { listarServicos } from "./dados";
@@ -24,12 +24,7 @@ function Cabecalho({ podeEditar }: { podeEditar: boolean }) {
     <div className="flex flex-wrap items-center justify-between gap-4">
       <h1 className="text-2xl font-semibold sm:text-3xl">Serviços</h1>
       {podeEditar ? (
-        <Link
-          href="/painel/servicos/novo"
-          className="inline-flex h-11 items-center justify-center rounded-xl bg-on px-5 text-sm font-semibold text-white hover:bg-on/90"
-        >
-          + Novo serviço
-        </Link>
+        <BotaoLink href="/painel/servicos/novo">+ Novo serviço</BotaoLink>
       ) : null}
     </div>
   );
@@ -56,7 +51,7 @@ async function Conteudo() {
         ) : (
           <>
             {/* Cabeçalho da tabela (só em telas largas) */}
-            <div className="hidden grid-cols-[1fr_7rem_7rem_8rem_4rem] gap-4 border-b border-noite/8 px-6 py-3 text-xs font-semibold uppercase tracking-wider text-noite/50 md:grid">
+            <div className="hidden grid-cols-[1fr_7rem_7rem_8rem_4rem] gap-4 border-b border-noite/8 px-6 py-3 text-sm text-noite/50 md:grid">
               <span>Serviço</span>
               <span>Duração</span>
               <span>Preço</span>
