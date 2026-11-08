@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { Alerta, Botao, BotaoLink, Campo } from "@/components/ui";
+import { LIMITES_SERVICO } from "@/lib/regras/servico";
 import { salvarServico, type EstadoServico } from "./actions";
 
 type Inicial = { id?: string; nome?: string; duracao?: string; preco?: string };
@@ -19,7 +20,7 @@ export function FormServico({ inicial = {} }: { inicial?: Inicial }) {
         name="nome"
         label="Nome do serviço"
         placeholder="Corte feminino"
-        maxLength={60}
+        maxLength={LIMITES_SERVICO.nome.max}
         required
         defaultValue={valor("nome")}
         erro={estado.erros?.nome}
@@ -32,9 +33,9 @@ export function FormServico({ inicial = {} }: { inicial?: Inicial }) {
           label="Duração (minutos)"
           type="number"
           inputMode="numeric"
-          min={5}
-          max={720}
-          step={5}
+          min={LIMITES_SERVICO.duracao.min}
+          max={LIMITES_SERVICO.duracao.max}
+          step={LIMITES_SERVICO.duracao.passo}
           placeholder="60"
           required
           defaultValue={valor("duracao")}

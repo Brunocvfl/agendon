@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { exigirUsuario } from "@/lib/auth";
-import { normalizarSlug } from "@/lib/slug";
+import { lerSalao } from "@/lib/regras/salao";
 
 export type EstadoSalao = {
   erro?: string;
@@ -14,16 +14,10 @@ export type EstadoSalao = {
 export async function criarSalao(_anterior: EstadoSalao, formData: FormData): Promise<EstadoSalao> {
   await exigirUsuario();
 
-  const nome = String(formData.get("nome") ?? "").trim();
-  const slug = normalizarSlug(String(formData.get("slug") ?? ""));
-  const campos = { nome, slug };
-
-  if (nome.length < 2 || nome.length > 80) {
-    return { erros: { nome: "Informe o nome do salão (2 a 80 caracteres)." }, campos };
-  }
-  if (slug.length < 3 || slug.length > 40) {
-    return { erros: { slug: "O endereço precisa ter de 3 a 40 caracteres." }, campos };
-  }
+  const campos = { nome: String(formData.get("nome") ?? ""), slug: String(formData.get("slug") ?? "") };
+  const lido = lerSalao(campos);
+  if (!lido.ok) return { erros: lido.erros, campos };
+  const { nome, slug } = lido.valor;
 
   const supabase = await createClient();
   const { error } = await supabase.rpc("create_salon", { p_nome: nome, p_slug: slug });
