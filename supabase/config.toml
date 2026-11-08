@@ -245,6 +245,19 @@ otp_expiry = 3600
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
+# E-mails de autenticação em português (valem local e na nuvem).
+[auth.email.template.confirmation]
+subject = "Confirme seu e-mail no AgendOn"
+content_path = "./supabase/templates/confirmacao.html"
+
+[auth.email.template.recovery]
+subject = "Crie uma nova senha no AgendOn"
+content_path = "./supabase/templates/recuperacao.html"
+
+[auth.email.template.email_change]
+subject = "Confirme a troca de e-mail no AgendOn"
+content_path = "./supabase/templates/troca-de-email.html"
+
 # Uncomment to customize email template
 # [auth.email.template.invite]
 # subject = "You have been invited"
@@ -435,8 +448,20 @@ site_url = "https://agendon.vercel.app"
 additional_redirect_urls = ["https://agendon-*-code-house4.vercel.app/**", "http://localhost:3000/**"]
 
 [remotes.staging.auth.rate_limit]
-# Sem SMTP próprio, o Supabase não aceita limite maior que o padrão.
-email_sent = 2
+email_sent = 10
+
+# SMTP do Resend (domínio agendon.app.br, região sa-east-1). Uma chave "Sending
+# access" por ambiente, em .env.local; o `config push` precisa da variável no
+# ambiente (ver CLAUDE.md). Sem SMTP próprio o plano Free não aceita modelos de
+# e-mail personalizados nem limite de envio maior que o padrão.
+[remotes.staging.auth.email.smtp]
+enabled = true
+host = "smtp.resend.com"
+port = 465
+user = "resend"
+pass = "env(RESEND_API_KEY_STAGING)"
+admin_email = "nao-responda@agendon.app.br"
+sender_name = "AgendOn (staging)"
 
 [remotes.production]
 project_id = "sbpndxarmcobcsgllizc"
@@ -446,4 +471,14 @@ site_url = "https://agendon.app.br"
 additional_redirect_urls = ["https://agendon.app.br/**", "https://agendon.vercel.app/**"]
 
 [remotes.production.auth.rate_limit]
-email_sent = 2
+# Por hora. O plano grátis do Resend permite 100 e-mails/dia.
+email_sent = 30
+
+[remotes.production.auth.email.smtp]
+enabled = true
+host = "smtp.resend.com"
+port = 465
+user = "resend"
+pass = "env(RESEND_API_KEY_PROD)"
+admin_email = "nao-responda@agendon.app.br"
+sender_name = "AgendOn"

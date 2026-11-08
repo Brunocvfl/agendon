@@ -36,7 +36,7 @@ Matriz de permissões:
 - Supabase no app: `src/lib/supabase/` (`client.ts` para o navegador, `server.ts` para o servidor, `proxy.ts` renova a sessão). Para validar o usuário no servidor, usar `auth.getClaims()`, nunca `getSession()`.
 - Back-end: Supabase (Postgres, Auth, Edge Functions, Storage, pg_cron + fila), região **sa-east-1 (São Paulo)**.
 - WhatsApp: API oficial da Meta (WhatsApp Business Platform), templates aprovados.
-- Erros: Sentry (sem dados pessoais). E-mail de autenticação: SMTP próprio.
+- Erros: Sentry (sem dados pessoais). E-mail de autenticação: SMTP do Resend (domínio `agendon.app.br`, sa-east-1, plano grátis: 100/dia).
 - Ambientes: local (Supabase CLI), staging e produção, cada um com projeto Supabase próprio.
 
 ## Regras que não se negociam
@@ -132,10 +132,10 @@ App (`src/app`): `/entrar`, `/cadastro`, `/auth/callback`, `/criar-salao`, `/pai
 
 - **Fluxo de entrega:** a `main` vai direto para produção. Mudança com migration: branch + PR (preview usa o staging) → `db push` no staging → testar o preview → `db push` na produção (com confirmação) → merge.
 - O projeto local está ligado (`supabase link`) ao **staging**. Comandos remotos: `npx supabase db push --remote --yes` (staging) ou `--remote=sbpndxarmcobcsgllizc` (produção). Produção sempre com confirmação explícita.
-- Auth na nuvem vem do `config.toml` (seções `[remotes.staging]` e `[remotes.production]`): `npx supabase config diff --remote=<ref>` para conferir, `config push --remote=<ref> --yes` para aplicar. A base do arquivo foi alinhada aos padrões da nuvem para o diff mostrar só o que é nosso.
+- Auth na nuvem vem do `config.toml` (seções `[remotes.staging]` e `[remotes.production]`): `npx supabase config diff --remote=<ref>` para conferir, `config push --remote=<ref> --yes` para aplicar. A base do arquivo foi alinhada aos padrões da nuvem para o diff mostrar só o que é nosso. O SMTP (Resend, `smtp.resend.com`, remetente `nao-responda@agendon.app.br`) lê `RESEND_API_KEY_STAGING`/`RESEND_API_KEY_PROD` (chaves "Sending access", em `.env.local`); antes do `config diff|push`, carregue-as no shell: `set -a; . <(grep -E '^RESEND_API_KEY_' .env.local | tr -d ''); set +a`. Modelos de e-mail em português em `supabase/templates/` (o plano Free só aceita modelos com SMTP próprio).
 - Variáveis na Vercel: `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (Production = prod, Preview = staging). `NEXT_PUBLIC_SITE_URL` não é usada na nuvem: o link de confirmação usa a origem da requisição, validada pela lista de retorno do Supabase.
 - `supabase test db --remote` não funciona no CLI 3.0 (não acha o `plan()` do pgTAP). Os testes rodam local e no CI; na nuvem, verificar com consultas de leitura (`db query --remote`: RLS em todas as tabelas, zero grants para `anon`) e `db advisors --remote`.
-- Antes do piloto: Supabase produção → Pro (backup diário, sem pausa, e ligar a proteção contra senhas vazadas — aviso `auth_leaked_password_protection` do advisor); Vercel → Pro (Hobby não permite uso comercial); configurar SMTP no Resend (remetente em `agendon.app.br`).
+- Antes do piloto: Supabase produção → Pro (backup diário, sem pausa, e ligar a proteção contra senhas vazadas — aviso `auth_leaked_password_protection` do advisor); Vercel → Pro (Hobby não permite uso comercial).
 
 ## Pendências técnicas
 
