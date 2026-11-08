@@ -3,13 +3,14 @@
 import { useActionState } from "react";
 import { Alerta, Botao, BotaoLink, Campo } from "@/components/ui";
 import { LIMITES_SERVICO } from "@/lib/regras/servico";
-import { salvarServico, type EstadoServico } from "./actions";
+import { salvarServico, type EstadoForm } from "./actions";
 
 type Inicial = { id?: string; nome?: string; duracao?: string; preco?: string };
 
 export function FormServico({ inicial = {} }: { inicial?: Inicial }) {
-  const [estado, acao, pendente] = useActionState<EstadoServico, FormData>(salvarServico, {});
-  const valor = (campo: keyof NonNullable<EstadoServico["campos"]>) => estado.campos?.[campo] ?? inicial[campo] ?? "";
+  const [estado, acao, pendente] = useActionState<EstadoForm, FormData>(salvarServico, {});
+  // Depois de um erro, mostra o que foi digitado; senão, o valor salvo.
+  const valor = (campo: "nome" | "duracao" | "preco") => estado.campos?.[campo] ?? inicial[campo] ?? "";
 
   return (
     <form action={acao} className="flex flex-col gap-4" noValidate>
