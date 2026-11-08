@@ -6,7 +6,7 @@ Plano completo (arquitetura, segurança, LGPD, cronograma): https://claude.ai/ar
 
 ## Produto (MVP)
 
-- **Cliente final** (página pública `agendon.com.br/nome-do-salao`, sem login, mobile first): escolhe serviço, profissional (ou "qualquer um"), horário livre, informa nome e WhatsApp e confirma. Recebe confirmação e lembrete no WhatsApp e pode cancelar ou remarcar pelo link.
+- **Cliente final** (página pública `agendon.app.br/nome-do-salao`, sem login, mobile first): escolhe serviço, profissional (ou "qualquer um"), horário livre, informa nome e WhatsApp e confirma. Recebe confirmação e lembrete no WhatsApp e pode cancelar ou remarcar pelo link.
 - **Salão** (painel, com login): cadastro do salão, serviços (nome, duração, preço), profissionais (serviços, horários, folgas), agenda do dia/semana com agendamento manual, status (agendado, confirmado, concluído, faltou, cancelado), clientes com histórico, lembretes por WhatsApp, equipe e acessos.
 - **Perfis fixos no MVP:** Dono(a), Recepção, Profissional.
 - **Fora do MVP:** pagamento online, comissões, estoque, fidelidade, app nativo, multi-unidade, relatórios financeiros, SMS/e-mail como canais, pós-atendimento, permissões personalizadas.
@@ -118,7 +118,7 @@ App (`src/app`): `/entrar`, `/cadastro`, `/auth/callback`, `/criar-salao`, `/pai
 - [x] `supabase init` (se `supabase/config.toml` ainda não existe) e `supabase start`.
 - [x] Rodar `supabase db reset` e `supabase test db` e conferir que tudo passa (12/12, 2026-11-07).
 - [x] Projeto Next.js + TypeScript na raiz, com `@supabase/supabase-js` e `@supabase/ssr`.
-- [x] Projetos Supabase de staging e produção; variáveis de ambiente (ver `.env.example`). Vercel: produção em https://agendon.vercel.app.
+- [x] Projetos Supabase de staging e produção; variáveis de ambiente (ver `.env.example`). Vercel: produção em https://agendon.app.br (também https://agendon.vercel.app).
 - [x] CI no GitHub Actions: lint, testes de banco, varredura de segredos (`.github/workflows/ci.yml`, repo privado github.com/Brunocvfl/agendon).
 - [x] Tela de login e cadastro do salão (chamando `create_salon`). Falta: "esqueci a senha" e página de termos/privacidade.
 - [ ] Conta Meta Business aberta e verificação do negócio iniciada.
@@ -128,14 +128,14 @@ App (`src/app`): `/entrar`, `/cadastro`, `/auth/callback`, `/criar-salao`, `/pai
 | | Staging | Produção |
 |---|---|---|
 | Supabase (org Code House, Free, sa-east-1) | `agendon-staging` · `lxhdfndnzubjephohhbh` | `agendon-prod` · `sbpndxarmcobcsgllizc` |
-| Vercel (time Code House, projeto `agendon`, Hobby) | Preview (PRs/branches): `agendon-*-code-house4.vercel.app` | Production (`main`): https://agendon.vercel.app |
+| Vercel (time Code House, projeto `agendon`, Hobby) | Preview (PRs/branches): `agendon-*-code-house4.vercel.app` | Production (`main`): https://agendon.app.br (`www` redireciona; `agendon.vercel.app` continua no ar) |
 
 - **Fluxo de entrega:** a `main` vai direto para produção. Mudança com migration: branch + PR (preview usa o staging) → `db push` no staging → testar o preview → `db push` na produção (com confirmação) → merge.
 - O projeto local está ligado (`supabase link`) ao **staging**. Comandos remotos: `npx supabase db push --remote --yes` (staging) ou `--remote=sbpndxarmcobcsgllizc` (produção). Produção sempre com confirmação explícita.
 - Auth na nuvem vem do `config.toml` (seções `[remotes.staging]` e `[remotes.production]`): `npx supabase config diff --remote=<ref>` para conferir, `config push --remote=<ref> --yes` para aplicar. A base do arquivo foi alinhada aos padrões da nuvem para o diff mostrar só o que é nosso.
 - Variáveis na Vercel: `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (Production = prod, Preview = staging). `NEXT_PUBLIC_SITE_URL` não é usada na nuvem: o link de confirmação usa a origem da requisição, validada pela lista de retorno do Supabase.
 - `supabase test db --remote` não funciona no CLI 3.0 (não acha o `plan()` do pgTAP). Os testes rodam local e no CI; na nuvem, verificar com consultas de leitura (`db query --remote`: RLS em todas as tabelas, zero grants para `anon`) e `db advisors --remote`.
-- Antes do piloto: Supabase produção → Pro (backup diário, sem pausa, e ligar a proteção contra senhas vazadas — aviso `auth_leaked_password_protection` do advisor); Vercel → Pro (Hobby não permite uso comercial); registrar `agendon.com.br` e configurar SMTP no Resend.
+- Antes do piloto: Supabase produção → Pro (backup diário, sem pausa, e ligar a proteção contra senhas vazadas — aviso `auth_leaked_password_protection` do advisor); Vercel → Pro (Hobby não permite uso comercial); configurar SMTP no Resend (remetente em `agendon.app.br`).
 
 ## Pendências técnicas
 
@@ -143,6 +143,7 @@ App (`src/app`): `/entrar`, `/cadastro`, `/auth/callback`, `/criar-salao`, `/pai
 
 ## Decisões tomadas
 
+- Domínio: `agendon.app.br` (comprado em 2026-11-08), no lugar de `agendon.com.br`.
 - WhatsApp do cliente é obrigatório também no cadastro pelo painel (2026-11-08).
 - Agendamento manual pelo painel pode ser feito fora do expediente ou numa folga (encaixe), com aviso e confirmação; sobreposição com outro agendamento continua proibida. A página pública só oferece horários livres (2026-11-08).
 - Profissional vê o nome do cliente na própria agenda, nunca o telefone: resolvido pela função `agenda()` (2026-11-08).

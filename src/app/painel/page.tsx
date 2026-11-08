@@ -66,7 +66,7 @@ async function Inicio({ vinculo: { salao, perfil } }: { vinculo: Vinculo }) {
       <p className="text-sm text-noite/60">{NOME_PERFIL[perfil]}</p>
       <h1 className="text-2xl font-semibold sm:text-3xl">{salao.nome}</h1>
       <p className="mt-1 break-words text-sm text-noite/60">
-        Página de agendamento: <span className="font-medium text-noite">agendon.com.br/{salao.slug}</span>
+        Página de agendamento: <span className="font-medium text-noite">agendon.app.br/{salao.slug}</span>
       </p>
 
       <Cartao className="mt-8">

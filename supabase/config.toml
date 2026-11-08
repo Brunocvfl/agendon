@@ -442,8 +442,8 @@ email_sent = 2
 project_id = "sbpndxarmcobcsgllizc"
 
 [remotes.production.auth]
-site_url = "https://agendon.vercel.app"
-additional_redirect_urls = ["https://agendon.vercel.app/**"]
+site_url = "https://agendon.app.br"
+additional_redirect_urls = ["https://agendon.app.br/**", "https://agendon.vercel.app/**"]
 
 [remotes.production.auth.rate_limit]
 email_sent = 2

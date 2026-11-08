@@ -50,7 +50,7 @@ export function FormSalao() {
         ajuda={
           <>
             Seus clientes vão agendar em{" "}
-            <span className="font-medium text-noite">agendon.com.br/{slug || "seu-salao"}</span>
+            <span className="font-medium text-noite">agendon.app.br/{slug || "seu-salao"}</span>
           </>
         }
       />
