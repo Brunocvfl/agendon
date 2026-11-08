@@ -308,6 +308,11 @@ isOneToOne: false
               "cliente_id": string,"cliente_nome": string,"cliente_telefone": string,"criado_em": string,"fim": string,"id": string,"inicio": string,"origem": Database["public"]['Enums']["appointment_origin"],"preco": number,"professional_id": string,"profissional": string,"salon_id": string,"service_id": string,"servico": string,"status": Database["public"]['Enums']["appointment_status"]
             }[]
                            },
+"buscar_clientes_por_nome":
+{ Args: { "p_busca": string,"p_limite"?: number,"p_salon": string }; Returns: {
+              "id": string,"nome": string,"ultimo_atendimento": string
+            }[]
+                           },
 "create_salon":
 { Args: { "p_nome": string,"p_slug": string }; Returns: string
                            },

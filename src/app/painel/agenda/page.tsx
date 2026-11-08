@@ -36,8 +36,8 @@ async function Conteudo({ vinculo, searchParams }: { vinculo: Vinculo; searchPar
   const hoje = dataNoFuso(new Date(), salao.fuso);
   const pedido = umValor(sp.dia);
   const dia = ehData(pedido) ? pedido : hoje;
-  // Agendar pelo painel, nesta fase: quem escolhe o cliente (Dono(a) e Recepção).
-  const podeAgendar = pode(perfil, "criar-agendamento") && pode(perfil, "ver-clientes");
+  // Profissional agenda só na própria agenda, que é a única coluna que ele vê.
+  const podeAgendar = pode(perfil, "criar-agendamento");
 
   const colunas = await carregarAgenda(vinculo, dia);
   const todos = colunas.flatMap((c) => c.itens);

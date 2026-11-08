@@ -2,8 +2,9 @@
 
 import { acaoDoPainel, texto, type EstadoForm } from "@/lib/acao";
 import { exigirPermissao } from "@/lib/auth";
+import { pode } from "@/lib/permissoes";
 import { ehData } from "@/lib/datas";
-import { formatarTelefone } from "@/lib/formato";
+import { formatarData, formatarTelefone } from "@/lib/formato";
 import { ehUuid } from "@/lib/ids";
 import { lerAgendamento, lerMudancaDeStatus, lerRemarcacao } from "@/lib/regras/agendamento";
 import { invalido, valido } from "@/lib/regras/resultado";
@@ -11,9 +12,8 @@ import { createClient } from "@/lib/supabase/server";
 
 export type { EstadoForm };
 
-// Nesta fase, agendar pelo painel exige escolher o cliente (ver telefone e histórico):
-// Dono(a) e Recepção. O banco (criar_agendamento) confere o mesmo.
-const PERMISSAO = "ver-clientes" as const;
+// Dono(a) e Recepção agendam em qualquer agenda; Profissional, só na própria (o banco confere).
+const PERMISSAO = "criar-agendamento" as const;
 const VOLTAR = "/painel/agenda";
 
 const ERROS_DE_HORARIO = {
@@ -54,9 +54,11 @@ export const criarAgendamento = acaoDoPainel({
       if (e.message?.includes("fora_do_expediente")) return ERROS_DE_HORARIO.fora;
       if (e.message?.includes("servico_nao_atendido")) return { campo: "servico", msg: ERROS_DE_HORARIO.servico.msg };
       if (e.message?.includes("clients_")) return { campo: "telefone", msg: "Confira o nome e o WhatsApp do cliente." };
+      if (e.message?.includes("cliente_nao_encontrado")) return { campo: "cliente", msg: "Cliente não encontrado. Busque de novo." };
       return "Algum dado não foi aceito. Confira e tente de novo.";
     },
     "nao-encontrado": { campo: "profissional", msg: "Profissional não encontrado ou inativo." },
+    "sem-permissao": { campo: "profissional", msg: "Você só pode agendar na sua própria agenda." },
   },
   depois: { ir: (_id, a) => `/painel/agenda?dia=${a.dia}` },
 });
@@ -115,16 +117,26 @@ export const mudarStatus = acaoDoPainel({
   depois: { ok: "Status atualizado." },
 });
 
-export type ClienteEncontrado = { id: string; nome: string; telefone: string };
+/** `detalhe`: WhatsApp para quem vê clientes; para o Profissional, só a última visita (sem telefone). */
+export type ClienteEncontrado = { id: string; nome: string; detalhe: string };
 
 /** Busca de cliente no formulário de agendamento (nome ou WhatsApp). */
 export async function buscarClientes(busca: string): Promise<ClienteEncontrado[]> {
-  const { salao } = await exigirPermissao(PERMISSAO, VOLTAR);
+  const { salao, perfil } = await exigirPermissao(PERMISSAO, VOLTAR);
   const termo = String(busca ?? "").trim().slice(0, 80);
   if (termo.length < 2) return [];
   const supabase = await createClient();
-  const { data } = await supabase.rpc("listar_clientes", { p_salon: salao.id, p_busca: termo, p_limite: 8 });
-  return (data ?? []).map((c) => ({ id: c.id, nome: c.nome, telefone: formatarTelefone(c.telefone) }));
+  if (pode(perfil, "ver-clientes")) {
+    const { data } = await supabase.rpc("listar_clientes", { p_salon: salao.id, p_busca: termo, p_limite: 8 });
+    return (data ?? []).map((c) => ({ id: c.id, nome: c.nome, detalhe: formatarTelefone(c.telefone) }));
+  }
+  // Profissional: busca só por nome, sem telefone.
+  const { data } = await supabase.rpc("buscar_clientes_por_nome", { p_salon: salao.id, p_busca: termo, p_limite: 8 });
+  return (data ?? []).map((c) => ({
+    id: c.id,
+    nome: c.nome,
+    detalhe: c.ultimo_atendimento ? `última visita ${formatarData(c.ultimo_atendimento, salao.fuso)}` : "sem visitas",
+  }));
 }
 
 /**

@@ -101,11 +101,13 @@ Migrations em `supabase/migrations/`:
 
 7. `20261108000004_clients.sql`: WhatsApp obrigatório (E.164, único por salão; nulo só em cliente anonimizado), limites de nome (2–80) e observações (500), policies por ação sem delete (eliminação será por anonimização) e `listar_clientes(salão, busca, limite, offset)` com busca por nome ou dígitos do WhatsApp, visitas, faltas, último atendimento e total (SECURITY INVOKER).
 
-8. `20261108000005_appointments.sql`: `appointments.preco` (preço no momento do agendamento), `app.dentro_do_expediente`, `criar_agendamento` (horário local do salão; duração e preço do serviço ou do ajuste do profissional; cliente existente ou novo por nome + WhatsApp, reaproveitando o WhatsApp já cadastrado; fora do expediente/folga só com `p_encaixe`; só Dono(a) e Recepção por enquanto), `horarios_livres` (de 15 em 15 min, a partir de agora) e `agenda(salão, de, até)` (SECURITY DEFINER: Profissional vê só a própria agenda, com o nome do cliente e sem telefone/id).
+8. `20261108000005_appointments.sql`: `appointments.preco` (preço no momento do agendamento), `app.dentro_do_expediente`, `criar_agendamento` (horário local do salão; duração e preço do serviço ou do ajuste do profissional; cliente existente ou novo por nome + WhatsApp, reaproveitando o WhatsApp já cadastrado; fora do expediente/folga só com `p_encaixe`; Profissional só na própria agenda desde a migration 10), `horarios_livres` (de 15 em 15 min, a partir de agora) e `agenda(salão, de, até)` (SECURITY DEFINER: Profissional vê só a própria agenda, com o nome do cliente e sem telefone/id).
 
 9. `20261108000006_status.sql`: UPDATE direto em `appointments` revogado (sem policy de update): status e horário só mudam por `mudar_status` e `remarcar_agendamento` (SECURITY DEFINER, checam `app.pode_mexer_no_agendamento`). Transições: agendado→confirmado; agendado/confirmado→cancelado; concluído/faltou só depois do início; cancelado/faltou→agendado (23P01 se o horário foi ocupado); concluído é final. Remarcar: só agendado/confirmado, troca dia/hora/profissional (mantém serviço, cliente e preço; outro profissional = duração dele), volta para agendado, encaixe como na criação; Profissional só dentro da própria agenda. `horarios_livres(..., p_ignorar)` e `agendamento(id)` (mesmas regras de leitura de `agenda()`).
 
-Testes: `01_isolation` (12), `02_onboarding` (11), `03_services` (14), `04_professionals` (20), `05_clients` (21), `06_appointments` (23, datas fixas em 2030 para não depender do dia), `07_status` (30). Os testes não podem depender do banco vazio (use slugs/nomes que não colidem com dados criados à mão nem com o seed).
+10. `20261108000007_profissional_agenda.sql`: `buscar_clientes_por_nome(salão, busca, limite)` (SECURITY DEFINER, qualquer membro: só nome, id e último atendimento concluído; não busca por telefone) e `criar_agendamento` como SECURITY DEFINER com `app.pode_mexer_no_agendamento` (Profissional agenda e cadastra cliente novo só na própria agenda; cliente por id precisa ser do salão e não anonimizado: `cliente_nao_encontrado`).
+
+Testes: `01_isolation` (12), `02_onboarding` (11), `03_services` (14), `04_professionals` (20), `05_clients` (21), `06_appointments` (23, datas fixas em 2030 para não depender do dia), `07_status` (30), `08_profissional_agenda` (17). Os testes não podem depender do banco vazio (use slugs/nomes que não colidem com dados criados à mão nem com o seed).
 
 Seed local (`supabase/seed.sql`, roda no `db:reset`; o `db push` não envia): salão "Studio Teste" com logins `dono@`, `recepcao@` e `profissional@agendon.test` (senha no arquivo), serviços, profissionais com horário, clientes e histórico.
 
@@ -137,7 +139,6 @@ App (`src/app`): `/entrar`, `/cadastro`, `/auth/callback`, `/criar-salao`, `/pai
 
 ## Pendências técnicas
 
-- Profissional criar agendamento na própria agenda (a matriz permite): precisa de uma busca de cliente que devolva só o nome. Hoje `criar_agendamento` aceita só Dono(a) e Recepção.
 - `message_log.appointment_id` com FK composta `(id, salon_id)`.
 
 ## Decisões tomadas
@@ -146,6 +147,7 @@ App (`src/app`): `/entrar`, `/cadastro`, `/auth/callback`, `/criar-salao`, `/pai
 - Agendamento manual pelo painel pode ser feito fora do expediente ou numa folga (encaixe), com aviso e confirmação; sobreposição com outro agendamento continua proibida. A página pública só oferece horários livres (2026-11-08).
 - Profissional vê o nome do cliente na própria agenda, nunca o telefone: resolvido pela função `agenda()` (2026-11-08).
 - Status: regras simples (ver migration 9); Profissional muda status e remarca só na própria agenda; remarcar troca dia, hora e profissional, nunca serviço ou cliente (2026-11-08).
+- Profissional agenda na própria agenda: busca de cliente só pelo nome, mostrando a última visita (nenhuma parte do telefone); pode cadastrar cliente novo com nome + WhatsApp (WhatsApp já cadastrado vai para o cliente existente) (2026-11-08).
 
 ## Decisões em aberto
 

@@ -7,12 +7,17 @@ import type { OpcoesAgendamento } from "../dados";
 import { buscarClientes, criarAgendamento, type ClienteEncontrado, type EstadoForm } from "../actions";
 import { EscolhaHorario } from "../escolha-horario";
 
-type Props = { opcoes: OpcoesAgendamento; inicial: { dia: string; profissional: string; hora: string } };
+type Props = {
+  opcoes: OpcoesAgendamento;
+  inicial: { dia: string; profissional: string; hora: string };
+  /** Dono(a) e Recepção buscam também pelo WhatsApp; Profissional, só pelo nome. */
+  buscaPorTelefone: boolean;
+};
 
 const CAMPO =
   "h-11 w-full rounded-xl border bg-white px-3.5 text-base text-noite outline-none transition-colors focus:border-on focus:ring-2 focus:ring-on/20";
 
-export function FormAgendamento({ opcoes, inicial }: Props) {
+export function FormAgendamento({ opcoes, inicial, buscaPorTelefone }: Props) {
   const [estado, acao, pendente] = useActionState<EstadoForm, FormData>(criarAgendamento, {});
   const erros = estado.erros ?? {};
 
@@ -131,7 +136,7 @@ export function FormAgendamento({ opcoes, inicial }: Props) {
             <input type="hidden" name="clienteId" value={cliente.id} />
             <div className="min-w-0">
               <p className="truncate font-medium">{cliente.nome}</p>
-              <p className="text-sm text-noite/60">{cliente.telefone}</p>
+              <p className="text-sm text-noite/60">{cliente.detalhe}</p>
             </div>
             <button type="button" onClick={() => setCliente(null)} className="text-sm font-medium text-on hover:underline">
               Trocar
@@ -140,7 +145,7 @@ export function FormAgendamento({ opcoes, inicial }: Props) {
         ) : (
           <div className="relative">
             <label htmlFor="busca-cliente" className="sr-only">
-              Buscar cliente por nome ou WhatsApp
+              {buscaPorTelefone ? "Buscar cliente por nome ou WhatsApp" : "Buscar cliente pelo nome"}
             </label>
             <input
               id="busca-cliente"
@@ -150,7 +155,7 @@ export function FormAgendamento({ opcoes, inicial }: Props) {
                 setBusca(e.target.value);
                 if (e.target.value.trim().length < 2) setResultados([]);
               }}
-              placeholder="Buscar por nome ou WhatsApp"
+              placeholder={buscaPorTelefone ? "Buscar por nome ou WhatsApp" : "Buscar pelo nome"}
               autoComplete="off"
               aria-invalid={erros.cliente ? true : undefined}
               className={`${CAMPO} ${erros.cliente ? "border-red-400" : "border-noite/15"}`}
@@ -169,7 +174,7 @@ export function FormAgendamento({ opcoes, inicial }: Props) {
                       className="flex w-full items-center justify-between gap-3 border-b border-noite/8 bg-white px-4 py-2.5 text-left last:border-b-0 hover:bg-fundo"
                     >
                       <span className="truncate font-medium">{c.nome}</span>
-                      <span className="shrink-0 text-sm tabular-nums text-noite/60">{c.telefone}</span>
+                      <span className="shrink-0 text-sm tabular-nums text-noite/60">{c.detalhe}</span>
                     </button>
                   </li>
                 ))}
