@@ -5,6 +5,7 @@ import { lerServico } from "./servico";
 import { lerNomeProfissional } from "./profissional";
 import { lerFolga } from "./folga";
 import { lerCliente, lerTelefone } from "./cliente";
+import { lerAgendamento } from "./agendamento";
 import { lerSalao, normalizarSlug, SLUGS_RESERVADOS } from "./salao";
 
 describe("lerServico", () => {
@@ -120,5 +121,32 @@ describe("lerCliente", () => {
   it("aponta cada campo inválido", () => {
     const r = lerCliente({ nome: "A", telefone: "123", observacoes: "x".repeat(501) });
     expect(r.ok ? [] : Object.keys(r.erros).sort()).toEqual(["nome", "observacoes", "telefone"]);
+  });
+});
+
+describe("lerAgendamento", () => {
+  const base = {
+    profissional: "00000000-0000-4000-e000-000000000001",
+    servico: "00000000-0000-4000-d000-000000000001",
+    dia: "2026-11-10",
+    hora: "09:30",
+  };
+  it("cliente existente", () =>
+    expect(lerAgendamento({ ...base, modoCliente: "existente", clienteId: "00000000-0000-4000-f000-000000000001" })).toEqual({
+      ok: true,
+      valor: { profissional: base.profissional, servico: base.servico, dia: base.dia, inicio: "2026-11-10T09:30", cliente: { id: "00000000-0000-4000-f000-000000000001" }, encaixe: false },
+    }));
+  it("cliente novo normaliza o WhatsApp", () => {
+    const r = lerAgendamento({ ...base, modoCliente: "novo", nome: " Ana  Paula ", telefone: "(11) 98765-4321", encaixe: true });
+    expect(r.ok && r.valor.cliente).toEqual({ nome: "Ana Paula", telefone: "+5511987654321" });
+    expect(r.ok && r.valor.encaixe).toBe(true);
+  });
+  it("aponta o que falta", () => {
+    const r = lerAgendamento({ dia: "2026-02-30", hora: "25:00", modoCliente: "existente" });
+    expect(r.ok ? [] : Object.keys(r.erros).sort()).toEqual(["cliente", "dia", "hora", "profissional", "servico"]);
+  });
+  it("cliente novo com WhatsApp inválido", () => {
+    const r = lerAgendamento({ ...base, modoCliente: "novo", nome: "Ana", telefone: "123" });
+    expect(r.ok ? [] : Object.keys(r.erros)).toEqual(["telefone"]);
   });
 });

@@ -3,11 +3,11 @@
 // - "horario": um dia, de horaInicio a horaFim.
 // O resultado é sempre { inicio, fim } no horário do salão ("2026-12-01T14:00"), com fim exclusivo;
 // a conversão para UTC é feita no banco (adicionar_folga) com o fuso do salão.
+import { ehData, somarDias } from "@/lib/datas";
 import { invalido, limparTexto, valido, type Resultado } from "./resultado";
 
 export const LIMITES_FOLGA = { motivo: { max: 80 } } as const;
 
-const DATA_RE = /^\d{4}-\d{2}-\d{2}$/;
 const HORA_RE = /^\d{2}:\d{2}$/;
 
 export type ModoFolga = "dia" | "horario";
@@ -22,14 +22,10 @@ export type EntradaFolga = {
 };
 export type FolgaValida = { inicio: string; fim: string; motivo: string };
 
-const dataValida = (d: string) => DATA_RE.test(d) && !Number.isNaN(Date.parse(`${d}T00:00:00Z`)) && proximoDia(d, 0) === d;
+const dataValida = ehData;
 
-// Soma dias a uma data "AAAA-MM-DD" sem fuso (o Date em UTC serve só para a aritmética do calendário).
-export function proximoDia(data: string, dias = 1) {
-  const d = new Date(`${data}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + dias);
-  return d.toISOString().slice(0, 10);
-}
+/** Soma dias a uma data "AAAA-MM-DD" (mantido para quem já importava daqui). */
+export const proximoDia = (data: string, dias = 1) => somarDias(data, dias);
 
 export function lerFolga(entrada: EntradaFolga): Resultado<FolgaValida> {
   const motivo = limparTexto(entrada.motivo).slice(0, LIMITES_FOLGA.motivo.max);
