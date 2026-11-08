@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { Alerta, Botao, Campo } from "@/components/ui";
+import { LIMITES_FOLGA } from "@/lib/regras/folga";
 import { adicionarFolga, removerFolga, type EstadoForm } from "../actions";
 
 type Folga = { id: string; inicio: string; fim: string; motivo: string | null };
@@ -57,7 +58,7 @@ export function Folgas({ id, folgas, fuso, podeEditar }: Props) {
             name="motivo"
             label="Descrição (opcional)"
             placeholder="Férias, compromisso…"
-            maxLength={80}
+            maxLength={LIMITES_FOLGA.motivo.max}
             ajuda="Evite detalhes pessoais (por exemplo, motivo de saúde)."
           />
           <div className="grid gap-4 sm:grid-cols-2">

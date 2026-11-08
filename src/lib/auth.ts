@@ -4,9 +4,9 @@ import "server-only";
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import type { Database } from "@/lib/supabase/database.types";
+import { pode, type Perfil, type Permissao } from "@/lib/permissoes";
 
-export type Perfil = Database["public"]["Enums"]["member_role"];
+export type { Perfil, Permissao };
 
 export type Usuario = { id: string; email: string | null };
 
@@ -50,13 +50,16 @@ export const getVinculo = cache(async (): Promise<Vinculo | null> => {
   return { membroId: data.id, perfil: data.perfil, salao: data.salons };
 });
 
-// Atalhos da matriz de permissões (a RLS garante o mesmo no banco).
-export const podeEditarCadastro = (perfil: Perfil) => perfil === "dono";
-export const podeEditarHorarios = (perfil: Perfil) => perfil === "dono" || perfil === "recepcao";
-
 export async function exigirVinculo(): Promise<Vinculo> {
   await exigirUsuario();
   const vinculo = await getVinculo();
   if (!vinculo) redirect("/criar-salao");
+  return vinculo;
+}
+
+// Vínculo com a permissão pedida; sem ela, manda para `senao` (uma tela que o perfil pode ver).
+export async function exigirPermissao(permissao: Permissao, senao = "/painel"): Promise<Vinculo> {
+  const vinculo = await exigirVinculo();
+  if (!pode(vinculo.perfil, permissao)) redirect(senao);
   return vinculo;
 }

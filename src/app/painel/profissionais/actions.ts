@@ -1,158 +1,111 @@
 "use server";
 
-import { redirect } from "next/navigation";
-import { refresh } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
-import { exigirVinculo, podeEditarCadastro, podeEditarHorarios } from "@/lib/auth";
+import { acaoDoPainel, comandoDoPainel, ERRO_GERAL, texto, type EstadoForm } from "@/lib/acao";
+import { ehUuid } from "@/lib/ids";
 import { DIAS, telaParaFaixas, type DiaTela } from "@/lib/horarios";
+import { lerFolga } from "@/lib/regras/folga";
+import { lerNomeProfissional } from "@/lib/regras/profissional";
+import { invalido, valido } from "@/lib/regras/resultado";
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export type { EstadoForm };
 
-export type EstadoForm = {
-  erro?: string;
-  ok?: string;
-  erros?: Record<string, string>;
-};
+const VOLTAR = "/painel/profissionais";
+const SEM_ID = invalido({ [ERRO_GERAL]: "Profissional inválido. Recarregue a página." });
+const NOME_REPETIDO = { campo: "nome", msg: "Já existe um profissional com esse nome." };
 
-async function exigir(regra: (p: Parameters<typeof podeEditarCadastro>[0]) => boolean) {
-  const vinculo = await exigirVinculo();
-  if (!regra(vinculo.perfil)) redirect("/painel/profissionais");
-  return vinculo;
-}
+// --- Cadastro (editar-profissionais) ------------------------------------------
 
-function lerId(formData: FormData, campo = "id") {
-  const id = String(formData.get(campo) ?? "");
-  return UUID_RE.test(id) ? id : null;
-}
+export const criarProfissional = acaoDoPainel({
+  permissao: "editar-profissionais",
+  senao: VOLTAR,
+  ler: (fd, vinculo) => {
+    const nome = lerNomeProfissional(texto(fd, "nome"));
+    if (!nome.ok) return nome;
+    return valido({ nome: nome.valor, member_id: fd.get("sou_eu") === "on" ? vinculo.membroId : null });
+  },
+  executar: (dados, { supabase, vinculo }) =>
+    supabase
+      .from("professionals")
+      .insert({ ...dados, salon_id: vinculo.salao.id })
+      .select("id")
+      .single(),
+  mensagens: {
+    // Dois índices únicos: um login só vira um profissional; nome não se repete no salão.
+    duplicado: (e) => (e.message?.includes("member") ? "Você já está cadastrado(a) como profissional." : NOME_REPETIDO),
+  },
+  depois: { ir: (p: { id: string }) => `${VOLTAR}/${p.id}` },
+});
 
-// --- Cadastro (só Dono(a)) -------------------------------------------------
+export const salvarDados = acaoDoPainel({
+  permissao: "editar-profissionais",
+  senao: VOLTAR,
+  ler: (fd) => {
+    if (!ehUuid(texto(fd, "id"))) return SEM_ID;
+    const nome = lerNomeProfissional(texto(fd, "nome"));
+    return nome.ok ? valido({ id: texto(fd, "id"), nome: nome.valor, ativo: fd.get("ativo") === "on" }) : nome;
+  },
+  executar: ({ id, ...dados }, { supabase, vinculo }) =>
+    supabase.from("professionals").update(dados).eq("id", id).eq("salon_id", vinculo.salao.id),
+  mensagens: { duplicado: NOME_REPETIDO },
+  depois: { ok: "Dados salvos." },
+});
 
-export async function criarProfissional(_a: EstadoForm, formData: FormData): Promise<EstadoForm> {
-  const { salao, membroId } = await exigir(podeEditarCadastro);
-  const nome = String(formData.get("nome") ?? "").trim().replace(/\s+/g, " ");
-  const souEu = formData.get("sou_eu") === "on";
+export const salvarServicos = acaoDoPainel({
+  permissao: "editar-profissionais",
+  senao: VOLTAR,
+  ler: (fd) =>
+    ehUuid(texto(fd, "id"))
+      ? valido({ id: texto(fd, "id"), servicos: fd.getAll("servico").filter(ehUuid) })
+      : SEM_ID,
+  executar: ({ id, servicos }, { supabase }) =>
+    supabase.rpc("salvar_servicos_profissional", { p_professional: id, p_servicos: servicos }),
+  depois: { ok: "Serviços salvos." },
+});
 
-  if (nome.length < 2 || nome.length > 60) return { erros: { nome: "Use de 2 a 60 caracteres." } };
+// --- Horário semanal e folgas (editar-horarios) -------------------------------
 
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("professionals")
-    .insert({ salon_id: salao.id, nome, member_id: souEu ? membroId : null })
-    .select("id")
-    .single();
-
-  if (error) {
-    if (error.code === "23505" && error.message.includes("member")) {
-      return { erro: "Você já está cadastrado(a) como profissional." };
+export const salvarHorarios = acaoDoPainel({
+  permissao: "editar-horarios",
+  senao: VOLTAR,
+  erroDeLeitura: "Confira os dias marcados.",
+  ler: (fd) => {
+    if (!ehUuid(texto(fd, "id"))) return SEM_ID;
+    const dias: DiaTela[] = DIAS.map(({ n }) => ({
+      dia: n,
+      trabalha: fd.get(`d${n}_trabalha`) === "on",
+      inicio: texto(fd, `d${n}_inicio`),
+      fim: texto(fd, `d${n}_fim`),
+      intervaloInicio: texto(fd, `d${n}_ii`),
+      intervaloFim: texto(fd, `d${n}_if`),
+    }));
+    const { faixas, erros } = telaParaFaixas(dias);
+    if (Object.keys(erros).length > 0) {
+      return invalido(Object.fromEntries(Object.entries(erros).map(([dia, msg]) => [`d${dia}`, msg])));
     }
-    if (error.code === "23505") return { erros: { nome: "Já existe um profissional com esse nome." } };
-    return { erro: "Não foi possível salvar agora. Tente de novo em instantes." };
-  }
+    return valido({ id: texto(fd, "id"), faixas });
+  },
+  executar: ({ id, faixas }, { supabase }) => supabase.rpc("salvar_horarios", { p_professional: id, p_horarios: faixas }),
+  mensagens: { conflito: "Há horários que se sobrepõem no mesmo dia." },
+  depois: { ok: "Horários salvos." },
+});
 
-  redirect(`/painel/profissionais/${data.id}`);
-}
-
-export async function salvarDados(_a: EstadoForm, formData: FormData): Promise<EstadoForm> {
-  const { salao } = await exigir(podeEditarCadastro);
-  const id = lerId(formData);
-  const nome = String(formData.get("nome") ?? "").trim().replace(/\s+/g, " ");
-  const ativo = formData.get("ativo") === "on";
-  if (!id) return { erro: "Profissional inválido." };
-  if (nome.length < 2 || nome.length > 60) return { erros: { nome: "Use de 2 a 60 caracteres." } };
-
-  const supabase = await createClient();
-  const { error } = await supabase.from("professionals").update({ nome, ativo }).eq("id", id).eq("salon_id", salao.id);
-  if (error) {
-    if (error.code === "23505") return { erros: { nome: "Já existe um profissional com esse nome." } };
-    return { erro: "Não foi possível salvar agora." };
-  }
-  refresh();
-  return { ok: "Dados salvos." };
-}
-
-export async function salvarServicos(_a: EstadoForm, formData: FormData): Promise<EstadoForm> {
-  await exigir(podeEditarCadastro);
-  const id = lerId(formData);
-  if (!id) return { erro: "Profissional inválido." };
-  const servicos = formData.getAll("servico").map(String).filter((s) => UUID_RE.test(s));
-
-  const supabase = await createClient();
-  const { error } = await supabase.rpc("salvar_servicos_profissional", {
-    p_professional: id,
-    p_servicos: servicos,
-  });
-  if (error) return { erro: "Não foi possível salvar os serviços." };
-  refresh();
-  return { ok: "Serviços salvos." };
-}
-
-// --- Horários e folgas (Dono(a) e Recepção) --------------------------------
-
-export async function salvarHorarios(_a: EstadoForm, formData: FormData): Promise<EstadoForm> {
-  await exigir(podeEditarHorarios);
-  const id = lerId(formData);
-  if (!id) return { erro: "Profissional inválido." };
-
-  const dias: DiaTela[] = DIAS.map(({ n }) => ({
-    dia: n,
-    trabalha: formData.get(`d${n}_trabalha`) === "on",
-    inicio: String(formData.get(`d${n}_inicio`) ?? ""),
-    fim: String(formData.get(`d${n}_fim`) ?? ""),
-    intervaloInicio: String(formData.get(`d${n}_ii`) ?? ""),
-    intervaloFim: String(formData.get(`d${n}_if`) ?? ""),
-  }));
-
-  const { faixas, erros } = telaParaFaixas(dias);
-  if (Object.keys(erros).length > 0) {
-    return {
-      erro: "Confira os dias marcados.",
-      erros: Object.fromEntries(Object.entries(erros).map(([dia, msg]) => [`d${dia}`, msg])),
-    };
-  }
-
-  const supabase = await createClient();
-  const { error } = await supabase.rpc("salvar_horarios", { p_professional: id, p_horarios: faixas });
-  if (error) {
-    if (error.code === "23P01") return { erro: "Há horários sobrepostos no mesmo dia." };
-    return { erro: "Não foi possível salvar os horários." };
-  }
-  refresh();
-  return { ok: "Horários salvos." };
-}
-
-const DATA_HORA_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
-
-export async function adicionarFolga(_a: EstadoForm, formData: FormData): Promise<EstadoForm> {
-  await exigir(podeEditarHorarios);
-  const id = lerId(formData);
-  if (!id) return { erro: "Profissional inválido." };
-
-  const motivo = String(formData.get("motivo") ?? "").trim().slice(0, 80);
-  const inicio = String(formData.get("inicio") ?? "");
-  const fim = String(formData.get("fim") ?? "");
-  if (!DATA_HORA_RE.test(inicio) || !DATA_HORA_RE.test(fim)) {
-    return { erros: { periodo: "Informe o começo e o fim." } };
-  }
-  if (fim <= inicio) return { erros: { periodo: "O fim precisa ser depois do começo." } };
-
-  const supabase = await createClient();
+export const adicionarFolga = acaoDoPainel({
+  permissao: "editar-horarios",
+  senao: VOLTAR,
+  ler: (fd) => {
+    if (!ehUuid(texto(fd, "id"))) return SEM_ID;
+    const folga = lerFolga({ inicio: texto(fd, "inicio"), fim: texto(fd, "fim"), motivo: texto(fd, "motivo") });
+    return folga.ok ? valido({ id: texto(fd, "id"), ...folga.valor }) : folga;
+  },
   // Os horários vão como "horário do salão"; o banco converte para UTC com o fuso do salão.
-  const { error } = await supabase.rpc("adicionar_folga", {
-    p_professional: id,
-    p_inicio: inicio,
-    p_fim: fim,
-    p_motivo: motivo,
-  });
-  if (error) return { erro: "Não foi possível salvar a folga." };
-  refresh();
-  return { ok: "Folga adicionada." };
-}
+  executar: ({ id, inicio, fim, motivo }, { supabase }) =>
+    supabase.rpc("adicionar_folga", { p_professional: id, p_inicio: inicio, p_fim: fim, p_motivo: motivo }),
+  depois: { ok: "Folga adicionada." },
+});
 
-export async function removerFolga(formData: FormData) {
-  const { salao } = await exigir(podeEditarHorarios);
-  const id = lerId(formData);
-  if (!id) return;
-  const supabase = await createClient();
-  await supabase.from("time_off").delete().eq("id", id).eq("salon_id", salao.id);
-  refresh();
-}
+export const removerFolga = comandoDoPainel({
+  permissao: "editar-horarios",
+  senao: VOLTAR,
+  ler: (fd) => (ehUuid(texto(fd, "id")) ? texto(fd, "id") : null),
+  executar: (id, { supabase, vinculo }) => supabase.from("time_off").delete().eq("id", id).eq("salon_id", vinculo.salao.id),
+});
