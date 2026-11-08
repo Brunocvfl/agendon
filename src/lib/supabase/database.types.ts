@@ -182,11 +182,11 @@ isOneToOne: false
                   }
                   Relationships: [
                     {
-      foreignKeyName: "professionals_member_id_fkey"
-      columns: ["member_id"]
+      foreignKeyName: "professionals_member_fk"
+      columns: ["member_id","salon_id"]
 isOneToOne: false
       referencedRelation: "members"
-      referencedColumns: ["id"]
+      referencedColumns: ["id","salon_id"]
     },{
       foreignKeyName: "professionals_salon_id_fkey"
       columns: ["salon_id"]
@@ -295,8 +295,17 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "create_salon":
+            "adicionar_folga":
+{ Args: { "p_fim": string,"p_inicio": string,"p_motivo": string,"p_professional": string }; Returns: string
+                           },
+"create_salon":
 { Args: { "p_nome": string,"p_slug": string }; Returns: string
+                           },
+"salvar_horarios":
+{ Args: { "p_horarios": Json,"p_professional": string }; Returns: undefined
+                           },
+"salvar_servicos_profissional":
+{ Args: { "p_professional": string,"p_servicos": (string)[] }; Returns: undefined
                            }
           }
           Enums: {

@@ -9,7 +9,7 @@ const MENU = [
   { href: "/painel/agenda", rotulo: "Agenda", pronto: false },
   { href: "/painel/clientes", rotulo: "Clientes", pronto: false },
   { href: "/painel/servicos", rotulo: "Serviços", pronto: true },
-  { href: "/painel/profissionais", rotulo: "Profissionais", pronto: false },
+  { href: "/painel/profissionais", rotulo: "Profissionais", pronto: true },
   { href: "/painel/lembretes", rotulo: "Lembretes", pronto: false },
   { href: "/painel/link", rotulo: "Link de agendamento", pronto: false },
   { href: "/painel/configuracoes", rotulo: "Configurações", pronto: false },

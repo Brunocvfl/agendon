@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { Cartao } from "@/components/ui";
 import { exigirUsuario, getVinculo } from "@/lib/auth";
 import { FormSalao } from "./form-salao";
+import { sair } from "@/app/(acesso)/actions";
 
 export const metadata: Metadata = { title: "Cadastre seu salão · AgendOn" };
 
@@ -27,7 +28,17 @@ export default function PaginaCriarSalao() {
 }
 
 async function Guarda() {
-  await exigirUsuario();
+  const usuario = await exigirUsuario();
   if (await getVinculo()) redirect("/painel");
-  return <FormSalao />;
+  return (
+    <>
+      <FormSalao />
+      <form action={sair} className="mt-6 text-center text-sm text-noite/60">
+        Entrou como {usuario.email ?? "outra conta"}.{" "}
+        <button type="submit" className="font-semibold text-on hover:underline">
+          Sair
+        </button>
+      </form>
+    </>
+  );
 }
