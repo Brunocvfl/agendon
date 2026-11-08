@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+/* Marca AgendOn: use as classes do Tailwind (bg-on, text-noite, text-confirmado, bg-fundo...). */
+@theme inline {
+  --color-on: #2f5bff;
+  --color-noite: #0f1b4d;
+  --color-confirmado: #19c37d;
+  --color-fundo: #f7f8fc;
+  --font-sans: var(--font-sora), ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background: var(--color-fundo);
+  color: var(--color-noite);
+}

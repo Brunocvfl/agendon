@@ -25,7 +25,8 @@ Matriz de permissões:
 
 ## Stack
 
-- Front: Next.js (React) + TypeScript, hospedado na Vercel.
+- Front: Next.js 16 (App Router, `src/`) + TypeScript + Tailwind 4, hospedado na Vercel. Ler `AGENTS.md` e a documentação em `node_modules/next/dist/docs/` antes de usar APIs do Next: o antigo `middleware` agora é `src/proxy.ts`, e com `cacheComponents` ligado toda leitura de sessão/cookies fica dentro de `<Suspense>`.
+- Supabase no app: `src/lib/supabase/` (`client.ts` para o navegador, `server.ts` para o servidor, `proxy.ts` renova a sessão). Para validar o usuário no servidor, usar `auth.getClaims()`, nunca `getSession()`.
 - Back-end: Supabase (Postgres, Auth, Edge Functions, Storage, pg_cron + fila), região **sa-east-1 (São Paulo)**.
 - WhatsApp: API oficial da Meta (WhatsApp Business Platform), templates aprovados.
 - Erros: Sentry (sem dados pessoais). E-mail de autenticação: SMTP próprio.
@@ -40,7 +41,7 @@ Matriz de permissões:
 - Toda migration nova que mexe em tabela ou policy precisa de teste de isolamento em `supabase/tests/database/`.
 
 **Segredos e acesso**
-- A chave `service_role` e os tokens da Meta ficam só em variáveis de ambiente do servidor/Edge Functions. Nunca no front, nunca no Git.
+- A chave secreta do Supabase (`SUPABASE_SECRET_KEY`, `sb_secret_...`, sucessora da `service_role`) e os tokens da Meta ficam só em variáveis de ambiente do servidor/Edge Functions. Nunca no front, nunca no Git.
 - A página pública nunca acessa tabelas direto. Ela usa funções RPC específicas (listar serviços, listar horários, criar agendamento) com `security definer`, `set search_path = ''` e validação de entrada.
 - A tabela `anon` não tem permissão em nada. Limite de taxa e CAPTCHA na criação pública de agendamento.
 - Webhooks da Meta: validar a assinatura, gravar o evento e responder rápido; processar de forma assíncrona e idempotente.
@@ -84,7 +85,7 @@ Testes: `supabase/tests/database/01_isolation.test.sql` (12 testes).
 
 - [x] `supabase init` (se `supabase/config.toml` ainda não existe) e `supabase start`.
 - [x] Rodar `supabase db reset` e `supabase test db` e conferir que tudo passa (12/12, 2026-11-07).
-- [ ] Projeto Next.js + TypeScript na raiz, com `@supabase/supabase-js` e `@supabase/ssr`.
+- [x] Projeto Next.js + TypeScript na raiz, com `@supabase/supabase-js` e `@supabase/ssr`.
 - [ ] Projetos Supabase de staging e produção; variáveis de ambiente (ver `.env.example`).
 - [ ] CI no GitHub Actions: lint, testes de banco, varredura de segredos.
 - [ ] Tela de login e cadastro do salão (chamando `create_salon`).
