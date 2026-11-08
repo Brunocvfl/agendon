@@ -110,3 +110,68 @@ export async function opcoesAgendamento(salonId: string): Promise<OpcoesAgendame
     servicos: (servs.data ?? []).map((s) => ({ id: s.id, nome: s.nome, duracao: s.duracao_min, preco: Number(s.preco) })),
   };
 }
+
+export type Agendamento = {
+  id: string;
+  profissionalId: string;
+  profissional: string;
+  servicoId: string;
+  servico: string;
+  inicio: string;
+  fim: string;
+  status: Status;
+  origem: Database["public"]["Enums"]["appointment_origin"];
+  preco: number;
+  criadoEm: string;
+  /** Só para quem vê clientes (Dono(a) e Recepção). */
+  clienteId: string | null;
+  clienteNome: string;
+  clienteTelefone: string | null;
+};
+
+/** Um agendamento (null se não existe ou se o perfil não pode vê-lo: Profissional, só os da própria agenda). */
+export async function carregarAgendamento(id: string): Promise<Agendamento | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("agendamento", { p_appointment: id }).maybeSingle();
+  if (error) throw new Error("Falha ao carregar o agendamento.");
+  if (!data) return null;
+  return {
+    id: data.id,
+    profissionalId: data.professional_id,
+    profissional: data.profissional,
+    servicoId: data.service_id,
+    servico: data.servico,
+    inicio: data.inicio,
+    fim: data.fim,
+    status: data.status,
+    origem: data.origem,
+    preco: Number(data.preco),
+    criadoEm: data.criado_em,
+    clienteId: data.cliente_id ?? null,
+    clienteNome: data.cliente_nome,
+    clienteTelefone: data.cliente_telefone ?? null,
+  };
+}
+
+/**
+ * Para quem o agendamento pode ir na remarcação: o profissional atual e os ativos que fazem o serviço.
+ * Profissional: só a própria agenda.
+ */
+export async function profissionaisParaRemarcar(
+  vinculo: Vinculo,
+  ag: Pick<Agendamento, "servicoId" | "profissionalId">,
+): Promise<{ id: string; nome: string }[]> {
+  const supabase = await createClient();
+  let consulta = supabase
+    .from("professionals")
+    .select("id, nome, professional_services(service_id)")
+    .eq("salon_id", vinculo.salao.id)
+    .eq("ativo", true)
+    .order("nome");
+  if (!pode(vinculo.perfil, "ver-agenda-de-todos")) consulta = consulta.eq("member_id", vinculo.membroId);
+  const { data, error } = await consulta;
+  if (error) throw new Error("Falha ao carregar os profissionais.");
+  return (data ?? [])
+    .filter((p) => p.id === ag.profissionalId || p.professional_services.some((ps) => ps.service_id === ag.servicoId))
+    .map((p) => ({ id: p.id, nome: p.nome }));
+}

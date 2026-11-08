@@ -17,6 +17,7 @@ Matriz de permissões:
 |---|---|---|---|
 | Ver a agenda de todos | sim | sim | não (só a própria) |
 | Criar e remarcar agendamentos | sim | sim | sim (só na própria agenda) |
+| Mudar status (confirmar, concluir, faltou, cancelar) | sim | sim | sim (só na própria agenda) |
 | Ver clientes, histórico e telefone | sim | sim | não |
 | Editar serviços e preços | sim | não | não |
 | Editar horários e folgas | sim | sim | não |
@@ -102,11 +103,13 @@ Migrations em `supabase/migrations/`:
 
 8. `20261108000005_appointments.sql`: `appointments.preco` (preço no momento do agendamento), `app.dentro_do_expediente`, `criar_agendamento` (horário local do salão; duração e preço do serviço ou do ajuste do profissional; cliente existente ou novo por nome + WhatsApp, reaproveitando o WhatsApp já cadastrado; fora do expediente/folga só com `p_encaixe`; só Dono(a) e Recepção por enquanto), `horarios_livres` (de 15 em 15 min, a partir de agora) e `agenda(salão, de, até)` (SECURITY DEFINER: Profissional vê só a própria agenda, com o nome do cliente e sem telefone/id).
 
-Testes: `01_isolation` (12), `02_onboarding` (11), `03_services` (14), `04_professionals` (20), `05_clients` (21), `06_appointments` (23, datas fixas em 2030 para não depender do dia). Os testes não podem depender do banco vazio (use slugs/nomes que não colidem com dados criados à mão nem com o seed).
+9. `20261108000006_status.sql`: UPDATE direto em `appointments` revogado (sem policy de update): status e horário só mudam por `mudar_status` e `remarcar_agendamento` (SECURITY DEFINER, checam `app.pode_mexer_no_agendamento`). Transições: agendado→confirmado; agendado/confirmado→cancelado; concluído/faltou só depois do início; cancelado/faltou→agendado (23P01 se o horário foi ocupado); concluído é final. Remarcar: só agendado/confirmado, troca dia/hora/profissional (mantém serviço, cliente e preço; outro profissional = duração dele), volta para agendado, encaixe como na criação; Profissional só dentro da própria agenda. `horarios_livres(..., p_ignorar)` e `agendamento(id)` (mesmas regras de leitura de `agenda()`).
+
+Testes: `01_isolation` (12), `02_onboarding` (11), `03_services` (14), `04_professionals` (20), `05_clients` (21), `06_appointments` (23, datas fixas em 2030 para não depender do dia), `07_status` (30). Os testes não podem depender do banco vazio (use slugs/nomes que não colidem com dados criados à mão nem com o seed).
 
 Seed local (`supabase/seed.sql`, roda no `db:reset`; o `db push` não envia): salão "Studio Teste" com logins `dono@`, `recepcao@` e `profissional@agendon.test` (senha no arquivo), serviços, profissionais com horário, clientes e histórico.
 
-App (`src/app`): `/entrar`, `/cadastro`, `/auth/callback`, `/criar-salao`, `/painel`, `/painel/servicos` (lista, `novo`, `[id]`; só Dono(a) edita), `/painel/profissionais` (lista, `novo` com "sou eu", `[id]` com dados, serviços, horário semanal com intervalo e folgas; horários e folgas: Dono(a) e Recepção). `/painel/agenda` (dia com colunas por profissional, expediente, intervalo, folgas, linha de agora, resumo e atalhos de 30 em 30 min para agendar; Profissional vê só a própria coluna), `/painel/agenda/novo` (profissional, serviço, dia/hora com horários livres, cliente buscado ou novo, encaixe com confirmação, 23P01 oferece os livres). Grade: `src/lib/agenda.ts`; datas no fuso: `src/lib/datas.ts`; regra: `lerAgendamento`. `/painel/clientes` (lista com busca e paginação, `novo`, `[id]` com dados, histórico e "Chamar no WhatsApp"; só Dono(a) e Recepção; o item do menu some para quem não tem `ver-clientes`). Telefone: `lerTelefone` (`src/lib/regras/cliente.ts`) normaliza para E.164 (sem "+", número brasileiro); `formatarTelefone` exibe. Horário: `src/lib/horarios.ts` converte faixas do banco ↔ "início, fim e intervalo". Folgas: "Dia inteiro" (de/até, fim exclusivo às 00:00 do dia seguinte) ou "Horário" (um dia, seletor de 15 min); são digitadas no horário do salão e o banco converte para UTC com `salons.fuso`. Acesso em `src/lib/auth.ts` (`getUsuario`, `getVinculo`, `exigirUsuario`, `exigirVinculo`); o proxy só faz o redirecionamento otimista. O `createClient` do servidor chama `connection()` (exigência do Cache Components para o `Date.now()` do Supabase). Rotas novas do app precisam entrar na lista de `app.slug_reservado`.
+App (`src/app`): `/entrar`, `/cadastro`, `/auth/callback`, `/criar-salao`, `/painel`, `/painel/servicos` (lista, `novo`, `[id]`; só Dono(a) edita), `/painel/profissionais` (lista, `novo` com "sou eu", `[id]` com dados, serviços, horário semanal com intervalo e folgas; horários e folgas: Dono(a) e Recepção). `/painel/agenda` (dia com colunas por profissional, expediente, intervalo, folgas, linha de agora, resumo e atalhos de 30 em 30 min para agendar; Profissional vê só a própria coluna), `/painel/agenda/novo` (profissional, serviço, dia/hora com horários livres, cliente buscado ou novo, encaixe com confirmação, 23P01 oferece os livres). Clicar num agendamento abre `/painel/agenda/[id]` (detalhes e botões de status, de `proximosStatus`) e `/painel/agenda/[id]/remarcar`; dia/hora/livres/encaixe ficam em `escolha-horario.tsx`, usado pelos dois formulários. Grade: `src/lib/agenda.ts`; datas no fuso: `src/lib/datas.ts`; regra: `lerAgendamento`. `/painel/clientes` (lista com busca e paginação, `novo`, `[id]` com dados, histórico e "Chamar no WhatsApp"; só Dono(a) e Recepção; o item do menu some para quem não tem `ver-clientes`). Telefone: `lerTelefone` (`src/lib/regras/cliente.ts`) normaliza para E.164 (sem "+", número brasileiro); `formatarTelefone` exibe. Horário: `src/lib/horarios.ts` converte faixas do banco ↔ "início, fim e intervalo". Folgas: "Dia inteiro" (de/até, fim exclusivo às 00:00 do dia seguinte) ou "Horário" (um dia, seletor de 15 min); são digitadas no horário do salão e o banco converte para UTC com `salons.fuso`. Acesso em `src/lib/auth.ts` (`getUsuario`, `getVinculo`, `exigirUsuario`, `exigirVinculo`); o proxy só faz o redirecionamento otimista. O `createClient` do servidor chama `connection()` (exigência do Cache Components para o `Date.now()` do Supabase). Rotas novas do app precisam entrar na lista de `app.slug_reservado`.
 
 ## Fase 0: o que falta (nesta ordem)
 
@@ -135,7 +138,6 @@ App (`src/app`): `/entrar`, `/cadastro`, `/auth/callback`, `/criar-salao`, `/pai
 ## Pendências técnicas
 
 - Profissional criar agendamento na própria agenda (a matriz permite): precisa de uma busca de cliente que devolva só o nome. Hoje `criar_agendamento` aceita só Dono(a) e Recepção.
-- Mudar status (confirmar, concluir, faltou, cancelar) e remarcar pelo painel: próxima fatia.
 - `message_log.appointment_id` com FK composta `(id, salon_id)`.
 
 ## Decisões tomadas
@@ -143,6 +145,7 @@ App (`src/app`): `/entrar`, `/cadastro`, `/auth/callback`, `/criar-salao`, `/pai
 - WhatsApp do cliente é obrigatório também no cadastro pelo painel (2026-11-08).
 - Agendamento manual pelo painel pode ser feito fora do expediente ou numa folga (encaixe), com aviso e confirmação; sobreposição com outro agendamento continua proibida. A página pública só oferece horários livres (2026-11-08).
 - Profissional vê o nome do cliente na própria agenda, nunca o telefone: resolvido pela função `agenda()` (2026-11-08).
+- Status: regras simples (ver migration 9); Profissional muda status e remarca só na própria agenda; remarcar troca dia, hora e profissional, nunca serviço ou cliente (2026-11-08).
 
 ## Decisões em aberto
 

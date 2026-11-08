@@ -5,7 +5,8 @@ import { exigirPermissao } from "@/lib/auth";
 import { ehData } from "@/lib/datas";
 import { formatarTelefone } from "@/lib/formato";
 import { ehUuid } from "@/lib/ids";
-import { lerAgendamento } from "@/lib/regras/agendamento";
+import { lerAgendamento, lerMudancaDeStatus, lerRemarcacao } from "@/lib/regras/agendamento";
+import { invalido, valido } from "@/lib/regras/resultado";
 import { createClient } from "@/lib/supabase/server";
 
 export type { EstadoForm };
@@ -14,6 +15,12 @@ export type { EstadoForm };
 // Dono(a) e Recepção. O banco (criar_agendamento) confere o mesmo.
 const PERMISSAO = "ver-clientes" as const;
 const VOLTAR = "/painel/agenda";
+
+const ERROS_DE_HORARIO = {
+  conflito: { campo: "hora", msg: "Esse horário já está ocupado para este profissional. Escolha um dos horários livres." },
+  fora: { campo: "encaixe", msg: "Fora do expediente ou numa folga do profissional." },
+  servico: { campo: "profissional", msg: "Este profissional não faz esse serviço." },
+} as const;
 
 export const criarAgendamento = acaoDoPainel({
   permissao: PERMISSAO,
@@ -42,20 +49,70 @@ export const criarAgendamento = acaoDoPainel({
         : { p_cliente_nome: a.cliente.nome, p_cliente_telefone: a.cliente.telefone }),
     }),
   mensagens: {
-    conflito: { campo: "hora", msg: "Esse horário já está ocupado para este profissional. Escolha um dos horários livres." },
+    conflito: ERROS_DE_HORARIO.conflito,
     invalido: (e) => {
-      if (e.message?.includes("fora_do_expediente")) {
-        return { campo: "encaixe", msg: "Fora do expediente ou numa folga do profissional." };
-      }
-      if (e.message?.includes("servico_nao_atendido")) {
-        return { campo: "servico", msg: "Este profissional não faz esse serviço." };
-      }
+      if (e.message?.includes("fora_do_expediente")) return ERROS_DE_HORARIO.fora;
+      if (e.message?.includes("servico_nao_atendido")) return { campo: "servico", msg: ERROS_DE_HORARIO.servico.msg };
       if (e.message?.includes("clients_")) return { campo: "telefone", msg: "Confira o nome e o WhatsApp do cliente." };
       return "Algum dado não foi aceito. Confira e tente de novo.";
     },
     "nao-encontrado": { campo: "profissional", msg: "Profissional não encontrado ou inativo." },
   },
   depois: { ir: (_id, a) => `/painel/agenda?dia=${a.dia}` },
+});
+
+/** Remarca: novo dia, hora e, se quiser, outro profissional (Profissional: só na própria agenda). */
+export const remarcarAgendamento = acaoDoPainel({
+  permissao: "criar-agendamento",
+  senao: VOLTAR,
+  ler: (fd) =>
+    lerRemarcacao({
+      id: texto(fd, "id"),
+      profissional: texto(fd, "profissional"),
+      dia: texto(fd, "dia"),
+      hora: texto(fd, "hora"),
+      encaixe: texto(fd, "encaixe") === "on",
+    }),
+  executar: (r, { supabase }) =>
+    supabase.rpc("remarcar_agendamento", {
+      p_appointment: r.id,
+      p_professional: r.profissional,
+      p_inicio: r.inicio,
+      p_encaixe: r.encaixe,
+    }),
+  mensagens: {
+    conflito: ERROS_DE_HORARIO.conflito,
+    invalido: (e) => {
+      if (e.message?.includes("fora_do_expediente")) return ERROS_DE_HORARIO.fora;
+      if (e.message?.includes("servico_nao_atendido")) return ERROS_DE_HORARIO.servico;
+      if (e.message?.includes("transicao_invalida")) return "Só agendamentos agendados ou confirmados podem ser remarcados.";
+      return "Algum dado não foi aceito. Confira e tente de novo.";
+    },
+    "sem-permissao": "Você só pode remarcar dentro da sua própria agenda.",
+    "nao-encontrado": "Agendamento ou profissional não encontrado. Recarregue a página.",
+  },
+  depois: { ir: (_d, r) => `/painel/agenda?dia=${r.dia}` },
+});
+
+/** Confirmar, concluir, faltou, cancelar ou desfazer (volta para agendado). */
+export const mudarStatus = acaoDoPainel({
+  permissao: "mudar-status",
+  senao: VOLTAR,
+  ler: (fd) => {
+    const v = lerMudancaDeStatus({ id: texto(fd, "id"), status: texto(fd, "status") });
+    return v ? valido(v) : invalido({ _geral: "Recarregue a página e tente de novo." });
+  },
+  executar: (v, { supabase }) => supabase.rpc("mudar_status", { p_appointment: v.id, p_status: v.status }),
+  mensagens: {
+    conflito: "O horário já foi ocupado por outro agendamento. Para atender este cliente, crie um agendamento novo.",
+    invalido: (e) =>
+      e.message?.includes("ainda_nao_comecou")
+        ? "Concluído e faltou só podem ser marcados a partir do horário de início."
+        : "Este status não pode ser aplicado agora. Recarregue a página.",
+    "sem-permissao": "Você só pode mudar agendamentos da sua própria agenda.",
+    "nao-encontrado": "Agendamento não encontrado. Recarregue a página.",
+  },
+  depois: { ok: "Status atualizado." },
 });
 
 export type ClienteEncontrado = { id: string; nome: string; telefone: string };
@@ -70,12 +127,21 @@ export async function buscarClientes(busca: string): Promise<ClienteEncontrado[]
   return (data ?? []).map((c) => ({ id: c.id, nome: c.nome, telefone: formatarTelefone(c.telefone) }));
 }
 
-/** Horários livres ("HH:MM", horário do salão) de um profissional para um serviço num dia. */
-export async function horariosLivres(profissional: string, servico: string, dia: string): Promise<string[]> {
-  const { salao } = await exigirPermissao(PERMISSAO, VOLTAR);
+/**
+ * Horários livres ("HH:MM", horário do salão) de um profissional para um serviço num dia.
+ * `ignorar`: o agendamento que está sendo remarcado (não ocupa o próprio horário).
+ * Profissional só enxerga a própria agenda (RLS), e é só nela que remarca.
+ */
+export async function horariosLivres(profissional: string, servico: string, dia: string, ignorar?: string): Promise<string[]> {
+  const { salao } = await exigirPermissao("criar-agendamento", VOLTAR);
   if (!ehUuid(profissional) || !ehUuid(servico) || !ehData(dia)) return [];
   const supabase = await createClient();
-  const { data } = await supabase.rpc("horarios_livres", { p_professional: profissional, p_service: servico, p_dia: dia });
+  const { data } = await supabase.rpc("horarios_livres", {
+    p_professional: profissional,
+    p_service: servico,
+    p_dia: dia,
+    ...(ignorar && ehUuid(ignorar) ? { p_ignorar: ignorar } : {}),
+  });
   const hora = new Intl.DateTimeFormat("en-GB", { timeZone: salao.fuso, hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
   return (data ?? []).map((h) => hora.format(new Date(h)));
 }

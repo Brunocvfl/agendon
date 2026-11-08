@@ -1,6 +1,8 @@
-// Regras do Agendamento feito pelo painel. O banco (criar_agendamento) confere o resto:
-// serviço que o profissional faz, expediente/folga (encaixe) e conflito de horário (23P01).
+// Regras do Agendamento feito pelo painel. O banco (criar_agendamento, remarcar_agendamento,
+// mudar_status) confere o resto: serviço que o profissional faz, expediente/folga (encaixe),
+// conflito de horário (23P01) e quem pode mexer em qual agenda.
 import { ehData } from "@/lib/datas";
+import type { Database } from "@/lib/supabase/database.types";
 import { ehUuid } from "@/lib/ids";
 import { lerCliente } from "./cliente";
 import { invalido, valido, type ErrosPorCampo, type Resultado } from "./resultado";
@@ -37,10 +39,8 @@ export function lerAgendamento(e: EntradaAgendamento): Resultado<AgendamentoVali
   const dia = e.dia ?? "";
   const hora = e.hora ?? "";
 
-  if (!ehUuid(profissional)) erros.profissional = "Escolha o profissional.";
+  lerHorario(erros, profissional, dia, hora);
   if (!ehUuid(servico)) erros.servico = "Escolha o serviço.";
-  if (!ehData(dia)) erros.dia = "Escolha o dia.";
-  if (!HORA_RE.test(hora)) erros.hora = "Escolha o horário.";
 
   let cliente: AgendamentoValido["cliente"] | null = null;
   if (e.modoCliente === "novo") {
@@ -55,4 +55,66 @@ export function lerAgendamento(e: EntradaAgendamento): Resultado<AgendamentoVali
 
   if (Object.keys(erros).length > 0 || !cliente) return invalido(erros);
   return valido({ profissional, servico, dia, inicio: `${dia}T${hora}`, cliente, encaixe: Boolean(e.encaixe) });
+}
+
+function lerHorario(erros: ErrosPorCampo, profissional: string, dia: string, hora: string) {
+  if (!ehUuid(profissional)) erros.profissional = "Escolha o profissional.";
+  if (!ehData(dia)) erros.dia = "Escolha o dia.";
+  if (!HORA_RE.test(hora)) erros.hora = "Escolha o horário.";
+}
+
+// --- Remarcação ---------------------------------------------------------------
+
+export type EntradaRemarcacao = { id?: string; profissional?: string; dia?: string; hora?: string; encaixe?: boolean };
+export type RemarcacaoValida = { id: string; profissional: string; dia: string; inicio: string; encaixe: boolean };
+
+/** Novo dia, hora e (opcionalmente) profissional. Serviço, cliente e preço não mudam. */
+export function lerRemarcacao(e: EntradaRemarcacao): Resultado<RemarcacaoValida> {
+  const erros: ErrosPorCampo = {};
+  const id = e.id ?? "";
+  const profissional = e.profissional ?? "";
+  const dia = e.dia ?? "";
+  const hora = e.hora ?? "";
+  if (!ehUuid(id)) erros._geral = "Agendamento não encontrado. Recarregue a página.";
+  lerHorario(erros, profissional, dia, hora);
+  if (Object.keys(erros).length > 0) return invalido(erros);
+  return valido({ id, profissional, dia, inicio: `${dia}T${hora}`, encaixe: Boolean(e.encaixe) });
+}
+
+// --- Status -------------------------------------------------------------------
+
+export type Status = Database["public"]["Enums"]["appointment_status"];
+
+const STATUS: readonly Status[] = ["agendado", "confirmado", "concluido", "faltou", "cancelado"];
+const ehStatus = (s: string): s is Status => (STATUS as readonly string[]).includes(s);
+
+/**
+ * Para quais status um agendamento pode ir (espelho de mudar_status no banco):
+ * agendado → confirmado; agendado/confirmado → cancelado, e concluído/faltou só depois do início;
+ * cancelado/faltou → agendado (desfazer). Concluído é final.
+ */
+export function proximosStatus(status: Status, comecou: boolean): Status[] {
+  switch (status) {
+    case "agendado":
+    case "confirmado":
+      return [
+        ...(status === "agendado" ? (["confirmado"] as const) : []),
+        ...(comecou ? (["concluido", "faltou"] as const) : []),
+        "cancelado",
+      ];
+    case "cancelado":
+    case "faltou":
+      return ["agendado"];
+    case "concluido":
+      return [];
+  }
+}
+
+/** Só agendamentos ainda de pé (agendado ou confirmado) são remarcados. */
+export const podeRemarcar = (status: Status) => status === "agendado" || status === "confirmado";
+
+export function lerMudancaDeStatus(e: { id?: string; status?: string }): { id: string; status: Status } | null {
+  const id = e.id ?? "";
+  const status = e.status ?? "";
+  return ehUuid(id) && ehStatus(status) ? { id, status } : null;
 }

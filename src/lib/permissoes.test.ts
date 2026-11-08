@@ -5,6 +5,7 @@ import { pode, type Perfil, type Permissao } from "./permissoes";
 const ESPERADO: [Permissao, boolean, boolean, boolean][] = [
   ["ver-agenda-de-todos", true, true, false],
   ["criar-agendamento", true, true, true],
+  ["mudar-status", true, true, true],
   ["ver-clientes", true, true, false],
   ["editar-servicos", true, false, false],
   ["editar-profissionais", true, false, false],

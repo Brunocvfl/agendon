@@ -303,6 +303,11 @@ isOneToOne: false
               "cliente_id": string,"cliente_nome": string,"cliente_telefone": string,"fim": string,"id": string,"inicio": string,"origem": Database["public"]['Enums']["appointment_origin"],"preco": number,"professional_id": string,"servico": string,"status": Database["public"]['Enums']["appointment_status"]
             }[]
                            },
+"agendamento":
+{ Args: { "p_appointment": string }; Returns: {
+              "cliente_id": string,"cliente_nome": string,"cliente_telefone": string,"criado_em": string,"fim": string,"id": string,"inicio": string,"origem": Database["public"]['Enums']["appointment_origin"],"preco": number,"professional_id": string,"profissional": string,"salon_id": string,"service_id": string,"servico": string,"status": Database["public"]['Enums']["appointment_status"]
+            }[]
+                           },
 "create_salon":
 { Args: { "p_nome": string,"p_slug": string }; Returns: string
                            },
@@ -310,12 +315,18 @@ isOneToOne: false
 { Args: { "p_client"?: string,"p_cliente_nome"?: string,"p_cliente_telefone"?: string,"p_encaixe"?: boolean,"p_inicio": string,"p_professional": string,"p_service": string }; Returns: string
                            },
 "horarios_livres":
-{ Args: { "p_dia": string,"p_professional": string,"p_service": string }; Returns: string[]
+{ Args: { "p_dia": string,"p_ignorar"?: string,"p_professional": string,"p_service": string }; Returns: string[]
                            },
 "listar_clientes":
 { Args: { "p_busca"?: string,"p_limite"?: number,"p_offset"?: number,"p_salon": string }; Returns: {
               "criado_em": string,"faltas": number,"id": string,"nome": string,"telefone": string,"total": number,"ultimo_atendimento": string,"visitas": number
             }[]
+                           },
+"mudar_status":
+{ Args: { "p_appointment": string,"p_status": Database["public"]['Enums']["appointment_status"] }; Returns: undefined
+                           },
+"remarcar_agendamento":
+{ Args: { "p_appointment": string,"p_encaixe"?: boolean,"p_inicio": string,"p_professional": string }; Returns: undefined
                            },
 "salvar_horarios":
 { Args: { "p_horarios": Json,"p_professional": string }; Returns: undefined
