@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { startTransition, useActionState, useState, type FormEvent } from "react";
 import { SeletorHora } from "@/components/seletor-hora";
 import { Alerta, Botao, Campo } from "@/components/ui";
 import { LIMITES_FOLGA, proximoDia, type ModoFolga } from "@/lib/regras/folga";
@@ -44,6 +44,20 @@ function formatarPeriodo(inicio: string, fim: string, fuso: string) {
 
 export function Folgas({ id, folgas, fuso, podeEditar }: Props) {
   const [estado, acao, pendente] = useActionState<EstadoForm, FormData>(adicionarFolga, {});
+  // Envio sem o reset automático do <form action>: o reset levaria os <select> controlados para a
+  // primeira opção (05:00) sem mudar o estado. Num erro, nada se perde; após o sucesso, os campos
+  // são remontados (versao) e voltam ao padrão.
+  const [versao, setVersao] = useState(0);
+  const [ultimo, setUltimo] = useState(estado);
+  if (estado !== ultimo) {
+    setUltimo(estado);
+    if (estado.ok) setVersao((v) => v + 1);
+  }
+  const enviar = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    startTransition(() => acao(fd));
+  };
 
   return (
     <div className="mt-4 flex flex-col gap-4">
@@ -71,7 +85,7 @@ export function Folgas({ id, folgas, fuso, podeEditar }: Props) {
       )}
 
       {podeEditar ? (
-        <form action={acao} className="flex flex-col gap-4 border-t border-noite/8 pt-4" noValidate>
+        <form onSubmit={enviar} className="flex flex-col gap-4 border-t border-noite/8 pt-4" noValidate>
           <p className="text-sm font-medium">Adicionar folga ou bloqueio</p>
           {estado.erro ? <Alerta tipo="erro">{estado.erro}</Alerta> : null}
           {estado.ok ? <Alerta tipo="sucesso">{estado.ok}</Alerta> : null}
@@ -83,8 +97,9 @@ export function Folgas({ id, folgas, fuso, podeEditar }: Props) {
             placeholder="Férias, compromisso…"
             maxLength={LIMITES_FOLGA.motivo.max}
             ajuda="Evite detalhes pessoais (por exemplo, motivo de saúde)."
+            key={`motivo-${versao}`}
           />
-          <Periodo fuso={fuso} erro={estado.erros?.periodo} />
+          <Periodo key={`periodo-${versao}`} fuso={fuso} erro={estado.erros?.periodo} />
           <div className="flex justify-end">
             <Botao type="submit" variante="secundario" disabled={pendente}>
               {pendente ? "Adicionando…" : "Adicionar"}
