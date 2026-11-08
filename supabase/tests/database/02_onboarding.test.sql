@@ -41,12 +41,12 @@ select throws_ok(
   'nome em branco é recusado'
 );
 select lives_ok(
-  $$select public.create_salon('  Studio Bela Vida  ', '  Studio-Bela-Vida ')$$,
+  $$select public.create_salon('  Studio Teste PgTap  ', '  Teste-PgTap-Onboarding ')$$,
   'salão válido é criado'
 );
 select results_eq(
   $$select nome, slug from public.salons$$,
-  $$values ('Studio Bela Vida'::text, 'studio-bela-vida'::text)$$,
+  $$values ('Studio Teste PgTap'::text, 'teste-pgtap-onboarding'::text)$$,
   'nome e slug são normalizados (trim e minúsculas)'
 );
 select is(
@@ -63,7 +63,7 @@ select throws_ok(
 -- Segunda usuária tenta o mesmo slug
 select set_config('request.jwt.claims', '{"sub":"d0000000-0000-0000-0000-000000000002","role":"authenticated"}', true);
 select throws_ok(
-  $$select public.create_salon('Bela Vida 2', 'studio-bela-vida')$$,
+  $$select public.create_salon('Outro Teste', 'teste-pgtap-onboarding')$$,
   '23505', null,
   'slug já usado por outro salão é recusado'
 );

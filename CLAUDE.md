@@ -87,9 +87,11 @@ Migrations em `supabase/migrations/`:
 3. `..._create_salon.sql`: função de onboarding `create_salon`.
 4. `20261108000001_onboarding.sql`: slugs reservados (`app.slug_reservado`), tamanho de slug/nome e um salão por usuário no MVP. `create_salon` devolve mensagens estáveis (`ja_tem_salao`, `slug_reservado`, `slug_invalido`, `nome_invalido`; slug em uso = `23505`).
 
-Testes: `01_isolation.test.sql` (12) e `02_onboarding.test.sql` (11).
+5. `20261108000002_services.sql`: regras de serviço (nome único por salão, duração 5–720 min), policies de escrita separadas por ação (sem delete em serviços e profissionais: só desativar) e `btree_gist` em `extensions`.
 
-App (`src/app`): `/entrar`, `/cadastro`, `/auth/callback`, `/criar-salao`, `/painel`. Acesso em `src/lib/auth.ts` (`getUsuario`, `getVinculo`, `exigirUsuario`, `exigirVinculo`); o proxy só faz o redirecionamento otimista. O `createClient` do servidor chama `connection()` (exigência do Cache Components para o `Date.now()` do Supabase). Rotas novas do app precisam entrar na lista de `app.slug_reservado`.
+Testes: `01_isolation` (12), `02_onboarding` (11), `03_services` (14). Os testes não podem depender do banco vazio (use slugs/nomes que não colidem com dados criados à mão).
+
+App (`src/app`): `/entrar`, `/cadastro`, `/auth/callback`, `/criar-salao`, `/painel`, `/painel/servicos` (lista, `novo`, `[id]`; só Dono(a) edita). Acesso em `src/lib/auth.ts` (`getUsuario`, `getVinculo`, `exigirUsuario`, `exigirVinculo`); o proxy só faz o redirecionamento otimista. O `createClient` do servidor chama `connection()` (exigência do Cache Components para o `Date.now()` do Supabase). Rotas novas do app precisam entrar na lista de `app.slug_reservado`.
 
 ## Fase 0: o que falta (nesta ordem)
 
@@ -108,6 +110,7 @@ App (`src/app`): `/entrar`, `/cadastro`, `/auth/callback`, `/criar-salao`, `/pai
 | Supabase (org Code House, Free, sa-east-1) | `agendon-staging` · `lxhdfndnzubjephohhbh` | `agendon-prod` · `sbpndxarmcobcsgllizc` |
 | Vercel (time Code House, projeto `agendon`, Hobby) | Preview (PRs/branches): `agendon-*-code-house4.vercel.app` | Production (`main`): https://agendon.vercel.app |
 
+- **Fluxo de entrega:** a `main` vai direto para produção. Mudança com migration: branch + PR (preview usa o staging) → `db push` no staging → testar o preview → `db push` na produção (com confirmação) → merge.
 - O projeto local está ligado (`supabase link`) ao **staging**. Comandos remotos: `npx supabase db push --remote --yes` (staging) ou `--remote=sbpndxarmcobcsgllizc` (produção). Produção sempre com confirmação explícita.
 - Auth na nuvem vem do `config.toml` (seções `[remotes.staging]` e `[remotes.production]`): `npx supabase config diff --remote=<ref>` para conferir, `config push --remote=<ref> --yes` para aplicar. A base do arquivo foi alinhada aos padrões da nuvem para o diff mostrar só o que é nosso.
 - Variáveis na Vercel: `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (Production = prod, Preview = staging). `NEXT_PUBLIC_SITE_URL` não é usada na nuvem: o link de confirmação usa a origem da requisição, validada pela lista de retorno do Supabase.
@@ -116,8 +119,6 @@ App (`src/app`): `/entrar`, `/cadastro`, `/auth/callback`, `/criar-salao`, `/pai
 
 ## Pendências técnicas
 
-- Mover `btree_gist` de `public` para `extensions` (aviso do advisor).
-- Separar as policies `*_write` (`for all`) em insert/update/delete, para não somar com as `*_select` (aviso de desempenho do advisor).
 - `message_log.appointment_id` com FK composta `(id, salon_id)`.
 
 ## Decisões em aberto
