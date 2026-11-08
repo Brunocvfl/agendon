@@ -115,7 +115,7 @@ App (`src/app`): `/entrar`, `/cadastro`, `/auth/callback`, `/criar-salao`, `/pai
 - Auth na nuvem vem do `config.toml` (seções `[remotes.staging]` e `[remotes.production]`): `npx supabase config diff --remote=<ref>` para conferir, `config push --remote=<ref> --yes` para aplicar. A base do arquivo foi alinhada aos padrões da nuvem para o diff mostrar só o que é nosso.
 - Variáveis na Vercel: `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (Production = prod, Preview = staging). `NEXT_PUBLIC_SITE_URL` não é usada na nuvem: o link de confirmação usa a origem da requisição, validada pela lista de retorno do Supabase.
 - `supabase test db --remote` não funciona no CLI 3.0 (não acha o `plan()` do pgTAP). Os testes rodam local e no CI; na nuvem, verificar com consultas de leitura (`db query --remote`: RLS em todas as tabelas, zero grants para `anon`) e `db advisors --remote`.
-- Antes do piloto: Supabase produção → Pro (backup diário, sem pausa); Vercel → Pro (Hobby não permite uso comercial); registrar `agendon.com.br` e configurar SMTP no Resend.
+- Antes do piloto: Supabase produção → Pro (backup diário, sem pausa, e ligar a proteção contra senhas vazadas — aviso `auth_leaked_password_protection` do advisor); Vercel → Pro (Hobby não permite uso comercial); registrar `agendon.com.br` e configurar SMTP no Resend.
 
 ## Pendências técnicas
 
