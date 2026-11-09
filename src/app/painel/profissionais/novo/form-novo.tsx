@@ -27,13 +27,13 @@ export function FormNovoProfissional({ podeSerEu }: { podeSerEu: boolean }) {
           <input type="checkbox" name="sou_eu" className="mt-0.5 size-4 accent-on" />
           <span>
             <span className="font-medium">Sou eu: também atendo clientes</span>
-            <span className="block text-noite/60">
+            <span className="block text-noite/65">
               Liga este profissional ao seu login. Útil para quem trabalha sozinho(a).
             </span>
           </span>
         </label>
       ) : null}
-      <p className="text-sm text-noite/60">Depois de salvar, você define os serviços, o horário e as folgas.</p>
+      <p className="text-sm text-noite/65">Depois de salvar, você define os serviços, o horário e as folgas.</p>
       <div className="mt-2 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
         <BotaoLink href="/painel/profissionais" variante="secundario">
           Cancelar

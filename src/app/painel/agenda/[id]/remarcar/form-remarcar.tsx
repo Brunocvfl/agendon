@@ -56,7 +56,7 @@ export function FormRemarcar({ id, servico, profissionais, inicial }: Props) {
         recarregar={estado}
       />
 
-      <p className="text-sm text-noite/55">
+      <p className="text-sm text-noite/65">
         Serviço, cliente e preço continuam os mesmos. Depois de remarcar, o status volta para agendado.
         {profissional !== inicial.profissional ? " Com outro profissional, vale a duração do serviço para ele." : ""}
       </p>

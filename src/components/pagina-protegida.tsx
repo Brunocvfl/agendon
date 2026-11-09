@@ -20,7 +20,7 @@ type Props = {
 
 export function PaginaProtegida({ carregando, ...props }: Props) {
   return (
-    <Suspense fallback={carregando ?? <p className="text-sm text-noite/60">Carregando…</p>}>
+    <Suspense fallback={carregando ?? <p className="text-sm text-noite/65">Carregando…</p>}>
       <Protegida {...props} />
     </Suspense>
   );

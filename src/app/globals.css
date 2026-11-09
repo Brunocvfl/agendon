@@ -1,10 +1,13 @@
 @import "tailwindcss";
 
-/* Marca AgendOn: use as classes do Tailwind (bg-on, text-noite, text-confirmado, bg-fundo...). */
+/* Marca AgendOn: use as classes do Tailwind (bg-on, text-noite, text-confirmado-escuro, bg-fundo...).
+   Texto em text-noite/65 ou mais escuro (abaixo disso não passa nos 4,5:1 da WCAG). */
 @theme inline {
   --color-on: #2f5bff;
   --color-noite: #0f1b4d;
   --color-confirmado: #19c37d;
+  /* Verde para texto e para fundo com texto branco: o #19C37D dá só 2,3:1 com o branco (WCAG pede 4,5:1). */
+  --color-confirmado-escuro: #0e7a4d;
   --color-fundo: #f7f8fc;
   --font-sans: var(--font-sora), ui-sans-serif, system-ui, sans-serif;
 }

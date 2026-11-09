@@ -48,10 +48,10 @@ export function ListaMenu({ pathname, perfil = null }: { pathname: string | null
         })}
       </ul>
       <div>
-        <p className="px-4 text-xs font-medium text-white/40">Em breve</p>
+        <p className="px-4 text-xs font-medium text-white/60">Em breve</p>
         <ul className="mt-1 flex flex-col">
           {EM_BREVE.map((rotulo) => (
-            <li key={rotulo} className="px-4 py-1.5 text-sm text-white/35">
+            <li key={rotulo} className="px-4 py-1.5 text-sm text-white/60">
               {rotulo}
             </li>
           ))}

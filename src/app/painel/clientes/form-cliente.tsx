@@ -63,7 +63,7 @@ export function FormCliente({ inicial = {} }: { inicial?: Inicial }) {
           aria-describedby="observacoes-ajuda"
           className={`rounded-xl border bg-white px-3.5 py-2.5 text-base text-noite outline-none transition-colors placeholder:text-noite/35 focus:border-on focus:ring-2 focus:ring-on/20 ${erroObs ? "border-red-400" : "border-noite/15"}`}
         />
-        <p id="observacoes-ajuda" className={`text-sm ${erroObs ? "text-red-600" : "text-noite/55"}`}>
+        <p id="observacoes-ajuda" className={`text-sm ${erroObs ? "text-red-600" : "text-noite/65"}`}>
           {erroObs ?? "Não registre dados de saúde, documentos ou outros dados sensíveis."}
         </p>
       </div>

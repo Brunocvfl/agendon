@@ -63,16 +63,16 @@ async function Inicio({ vinculo: { salao, perfil } }: { vinculo: Vinculo }) {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <p className="text-sm text-noite/60">{NOME_PERFIL[perfil]}</p>
+      <p className="text-sm text-noite/65">{NOME_PERFIL[perfil]}</p>
       <h1 className="text-2xl font-semibold sm:text-3xl">{salao.nome}</h1>
-      <p className="mt-1 break-words text-sm text-noite/60">
+      <p className="mt-1 break-words text-sm text-noite/65">
         Página de agendamento: <span className="font-medium text-noite">agendon.app.br/{salao.slug}</span>
       </p>
 
       <Cartao className="mt-8">
         <div className="flex items-baseline justify-between gap-4">
           <h2 className="text-lg font-semibold">Deixe o salão pronto para agendar</h2>
-          <span className="shrink-0 text-sm tabular-nums text-noite/60">
+          <span className="shrink-0 text-sm tabular-nums text-noite/65">
             {feitos} de {passos.length}
           </span>
         </div>
@@ -98,11 +98,11 @@ async function Inicio({ vinculo: { salao, perfil } }: { vinculo: Vinculo }) {
                   )}
                 </span>
                 <span className="min-w-0">
-                  <span className={`block font-medium ${passo.feito ? "text-noite/55 line-through decoration-noite/30" : ""}`}>
+                  <span className={`block font-medium ${passo.feito ? "text-noite/65 line-through decoration-noite/30" : ""}`}>
                     {passo.titulo}
                     <span className="sr-only">{passo.feito ? " (feito)" : ""}</span>
                   </span>
-                  <span className="block text-sm text-noite/60">{passo.texto}</span>
+                  <span className="block text-sm text-noite/65">{passo.texto}</span>
                 </span>
               </>
             );

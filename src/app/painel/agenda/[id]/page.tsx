@@ -24,11 +24,11 @@ export default function PaginaAgendamento({ params }: PageProps<"/painel/agenda/
 }
 
 const ESTILO_STATUS: Record<Status, string> = {
-  confirmado: "bg-confirmado/15 text-[#0E7A4D]",
+  confirmado: "bg-confirmado/15 text-confirmado-escuro",
   agendado: "bg-on/10 text-on",
   concluido: "bg-noite/8 text-noite/70",
   faltou: "bg-red-50 text-red-700",
-  cancelado: "bg-noite/5 text-noite/50",
+  cancelado: "bg-noite/5 text-noite/65",
 };
 
 async function Conteudo({ vinculo, id }: { vinculo: Vinculo; id: string }) {
@@ -97,7 +97,7 @@ async function Conteudo({ vinculo, id }: { vinculo: Vinculo; id: string }) {
         <Cartao className="mt-4">
           <h2 className="font-semibold">Ações</h2>
           {!comecou && podeRemarcar(ag.status) ? (
-            <p className="mt-1 text-sm text-noite/55">Concluir e marcar falta ficam disponíveis a partir do horário de início.</p>
+            <p className="mt-1 text-sm text-noite/65">Concluir e marcar falta ficam disponíveis a partir do horário de início.</p>
           ) : null}
           <AcoesStatus id={ag.id} acoes={acoes}>
             {remarcar ? (
@@ -108,7 +108,7 @@ async function Conteudo({ vinculo, id }: { vinculo: Vinculo; id: string }) {
           </AcoesStatus>
         </Cartao>
       ) : (
-        <p className="mt-4 text-sm text-noite/55">Atendimento concluído. Não há mais ações para este agendamento.</p>
+        <p className="mt-4 text-sm text-noite/65">Atendimento concluído. Não há mais ações para este agendamento.</p>
       )}
     </>
   );
@@ -117,7 +117,7 @@ async function Conteudo({ vinculo, id }: { vinculo: Vinculo; id: string }) {
 function Item({ rotulo, children }: { rotulo: string; children: React.ReactNode }) {
   return (
     <div>
-      <dt className="text-sm text-noite/55">{rotulo}</dt>
+      <dt className="text-sm text-noite/65">{rotulo}</dt>
       <dd className="mt-0.5 font-medium">{children}</dd>
     </div>
   );

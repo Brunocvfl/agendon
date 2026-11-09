@@ -136,7 +136,7 @@ export function FormAgendamento({ opcoes, inicial, buscaPorTelefone }: Props) {
             <input type="hidden" name="clienteId" value={cliente.id} />
             <div className="min-w-0">
               <p className="truncate font-medium">{cliente.nome}</p>
-              <p className="text-sm text-noite/60">{cliente.detalhe}</p>
+              <p className="text-sm text-noite/65">{cliente.detalhe}</p>
             </div>
             <button type="button" onClick={() => setCliente(null)} className="text-sm font-medium text-on hover:underline">
               Trocar
@@ -174,13 +174,13 @@ export function FormAgendamento({ opcoes, inicial, buscaPorTelefone }: Props) {
                       className="flex w-full items-center justify-between gap-3 border-b border-noite/8 bg-white px-4 py-2.5 text-left last:border-b-0 hover:bg-fundo"
                     >
                       <span className="truncate font-medium">{c.nome}</span>
-                      <span className="shrink-0 text-sm tabular-nums text-noite/60">{c.detalhe}</span>
+                      <span className="shrink-0 text-sm tabular-nums text-noite/65">{c.detalhe}</span>
                     </button>
                   </li>
                 ))}
               </ul>
             ) : busca.trim().length >= 2 ? (
-              <p className="mt-2 text-sm text-noite/55">
+              <p className="mt-2 text-sm text-noite/65">
                 Nenhum cliente encontrado.{" "}
                 <button type="button" onClick={() => setModoCliente("novo")} className="font-medium text-on hover:underline">
                   Cadastrar cliente novo

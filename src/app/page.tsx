@@ -6,7 +6,7 @@ import { BotaoLink } from "@/components/ui";
 export default function Home() {
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-8 px-4 py-16 text-center">
-      <Image src="/logo-agendon.png" alt="AgendOn" width={4092} height={1230} priority className="h-auto w-64" />
+      <Image src="/logo-agendon.png" alt="AgendOn" width={256} height={77} priority className="h-auto w-64" />
       <div className="max-w-md">
         <h1 className="text-2xl font-semibold sm:text-3xl">Agenda online para o seu salão</h1>
         <p className="mt-3 text-noite/65">
@@ -21,7 +21,7 @@ export default function Home() {
           Entrar
         </BotaoLink>
       </div>
-      <nav className="flex gap-4 text-sm text-noite/55">
+      <nav className="flex gap-4 text-sm text-noite/65">
         <Link href="/termos" className="hover:text-on">
           Termos de Uso
         </Link>

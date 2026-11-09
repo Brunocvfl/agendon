@@ -22,7 +22,7 @@ async function Conteudo() {
   const usuario = await exigirUsuario();
   return (
     <>
-      <p className="mt-1 break-words text-sm text-noite/60">Conta: {usuario.email ?? "sua conta"}</p>
+      <p className="mt-1 break-words text-sm text-noite/65">Conta: {usuario.email ?? "sua conta"}</p>
       <FormNovaSenha />
     </>
   );

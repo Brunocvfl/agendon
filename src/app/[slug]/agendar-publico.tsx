@@ -57,21 +57,21 @@ export function AgendarPublico({ slug, pagina, hoje }: Props) {
     const c = estado.confirmacao;
     return (
       <section className="rounded-2xl bg-white p-6 shadow-sm" aria-live="polite">
-        <div className="flex size-12 items-center justify-center rounded-full bg-confirmado/15 text-2xl text-[#0E7A4D]">
+        <div className="flex size-12 items-center justify-center rounded-full bg-confirmado/15 text-2xl text-confirmado-escuro">
           ✓
         </div>
         <h2 className="mt-4 text-xl font-semibold">Agendamento feito!</h2>
         <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
-          <dt className="text-noite/60">Serviço</dt>
+          <dt className="text-noite/65">Serviço</dt>
           <dd className="font-medium">{c.servico}</dd>
-          <dt className="text-noite/60">Profissional</dt>
+          <dt className="text-noite/65">Profissional</dt>
           <dd className="font-medium">{c.profissional}</dd>
-          <dt className="text-noite/60">Quando</dt>
+          <dt className="text-noite/65">Quando</dt>
           <dd className="font-medium">
             <span className="capitalize">{rotuloData(dataNoFuso(c.inicio, fuso))}</span>, às{" "}
             {paraHora(minutosNoFuso(c.inicio, fuso))}
           </dd>
-          <dt className="text-noite/60">Valor</dt>
+          <dt className="text-noite/65">Valor</dt>
           <dd className="font-medium">{formatarPreco(c.preco)}</dd>
         </dl>
         <p className="mt-5 text-sm text-noite/70">
@@ -103,7 +103,7 @@ export function AgendarPublico({ slug, pagina, hoje }: Props) {
                 }}
               >
                 <span className="font-medium">{s.nome}</span>
-                <span className="text-sm text-noite/60">
+                <span className="text-sm text-noite/65">
                   {formatarDuracao(s.duracao_min)} · {faixaDePreco(pagina, s.id, s.preco)}
                 </span>
               </Opcao>
@@ -122,7 +122,7 @@ export function AgendarPublico({ slug, pagina, hoje }: Props) {
                   onClick={() => escolherProfissional("")}
                 >
                   <span className="font-medium">Qualquer profissional</span>
-                  <span className="text-sm text-noite/60">Mostra mais horários</span>
+                  <span className="text-sm text-noite/65">Mostra mais horários</span>
                 </Opcao>
               </li>
             ) : null}
@@ -132,7 +132,7 @@ export function AgendarPublico({ slug, pagina, hoje }: Props) {
                 <li key={p.id}>
                   <Opcao selecionada={profissional === p.id} onClick={() => escolherProfissional(p.id)}>
                     <span className="font-medium">{p.nome}</span>
-                    <span className="text-sm text-noite/60">
+                    <span className="text-sm text-noite/65">
                       {formatarDuracao(s.duracao_min)} · {formatarPreco(s.preco)}
                     </span>
                   </Opcao>
@@ -175,12 +175,19 @@ export function AgendarPublico({ slug, pagina, hoje }: Props) {
             ) : null}
           </div>
 
+          {/* O horário foi ocupado por outra pessoa: o passo 4 some, então o aviso fica aqui. */}
+          {estado.ocupado && estado.erro && !inicio ? (
+            <div className="mt-3">
+              <Alerta tipo="erro">{estado.erro}</Alerta>
+            </div>
+          ) : null}
+
           {dia ? (
             <div className="mt-3" aria-live="polite">
               {carregando || horarios === null ? (
-                <p className="text-sm text-noite/60">Buscando horários…</p>
+                <p className="text-sm text-noite/65">Buscando horários…</p>
               ) : horarios.length === 0 ? (
-                <p className="text-sm text-noite/60">Sem horários livres neste dia. Tente outro.</p>
+                <p className="text-sm text-noite/65">Sem horários livres neste dia. Tente outro.</p>
               ) : (
                 <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
                   {horarios.map((h) => (
@@ -203,7 +210,7 @@ export function AgendarPublico({ slug, pagina, hoje }: Props) {
               )}
             </div>
           ) : (
-            <p className="mt-1 text-sm text-noite/60">Escolha um dia para ver os horários.</p>
+            <p className="mt-1 text-sm text-noite/65">Escolha um dia para ver os horários.</p>
           )}
         </Passo>
       ) : null}
@@ -254,7 +261,7 @@ export function AgendarPublico({ slug, pagina, hoje }: Props) {
             <Botao type="submit" disabled={enviando} className="w-full">
               {enviando ? "Agendando…" : "Confirmar agendamento"}
             </Botao>
-            <p className="text-xs text-noite/55">
+            <p className="text-xs text-noite/65">
               Seus dados são usados pelo {pagina.salao.nome} para cuidar do seu agendamento. Saiba mais na{" "}
               <Link href="/privacidade" target="_blank" className="underline">
                 Política de Privacidade

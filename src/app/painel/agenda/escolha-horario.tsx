@@ -62,7 +62,7 @@ export function EscolhaHorario({ profissional, servico, ignorar, dia, onDia, hor
           <span className="text-sm font-medium text-noite/80">Horário</span>
           <SeletorHora name="hora" rotulo="Horário" valor={hora} onChange={onHora} />
         </div>
-        {info ? <p className="pb-2.5 text-sm text-noite/55">{info}</p> : null}
+        {info ? <p className="pb-2.5 text-sm text-noite/65">{info}</p> : null}
       </div>
       {erros.dia || erros.hora ? (
         <p role="alert" className="text-sm text-red-600">
@@ -71,7 +71,7 @@ export function EscolhaHorario({ profissional, servico, ignorar, dia, onDia, hor
       ) : null}
 
       <div>
-        <p className="text-sm text-noite/60">
+        <p className="text-sm text-noite/65">
           Livres em {dia ? rotuloData(dia) : "—"}
           {horas === null ? "…" : horas.length === 0 ? ": nenhum horário livre neste dia." : ":"}
         </p>
