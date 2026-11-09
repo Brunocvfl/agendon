@@ -29,7 +29,7 @@ Matriz de permissões:
 - Front: Next.js 16 (App Router, `src/`) + TypeScript + Tailwind 4, hospedado na Vercel. Ler `AGENTS.md` e a documentação em `node_modules/next/dist/docs/` antes de usar APIs do Next: o antigo `middleware` agora é `src/proxy.ts`, e com `cacheComponents` ligado toda leitura de sessão/cookies fica dentro de `<Suspense>`.
 - Módulos do front-end (termos em `GLOSSARY.md`), use-os em vez de repetir o padrão:
   - **Permissões** `src/lib/permissoes.ts`: a matriz abaixo em código. `pode(perfil, permissão)`; no servidor, `exigirPermissao(permissão, senão)` (`src/lib/auth.ts`). Mudou a matriz? Mude aqui e no teste.
-  - **Regras de cadastro** `src/lib/regras/*`: leitura e validação puras (`lerServico`, `lerNomeProfissional`, `lerFolga`, `lerSalao`) e os `LIMITES_*` usados pelos formulários. Espelham as restrições do banco.
+  - **Regras de cadastro** `src/lib/regras/*`: leitura e validação puras (`lerServico`, `lerNomeProfissional`, `lerFolga`, `lerSalao`, `erroDaSenha`) e os `LIMITES_*` usados pelos formulários. Espelham as restrições do banco.
   - **Ação do painel** `src/lib/acao.ts`: toda Server Action do painel é `acaoDoPainel({ permissao, ler, executar, mensagens, depois })` ou `comandoDoPainel(...)`. Tradução dos erros do Postgres num lugar só.
   - **Página protegida** `src/components/pagina-protegida.tsx`: toda página do painel usa `<PaginaProtegida exige=... params=...>{({ vinculo, id }) => ...}</PaginaProtegida>`.
   - Testes de unidade (Vitest) ao lado do módulo: `npm test`. Testar pela interface do módulo.
@@ -148,6 +148,8 @@ App (`src/app`): `/entrar` (com "Esqueci a senha" e reenvio da confirmação se 
 ## Decisões tomadas
 
 - Domínio: `agendon.app.br` (comprado em 2026-11-08), no lugar de `agendon.com.br`.
+- Senha: mínimo de 10 caracteres, com maiúscula, minúscula e número (`password_requirements = "lower_upper_letters_digits"` no Auth; `src/lib/regras/senha.ts` espelha e `CampoSenhaNova` mostra os requisitos). Bloqueio de senha vazada quando a produção for Pro (2026-11-09).
+- Login com Google e Microsoft (contas pessoais e de trabalho), além de e-mail e senha (2026-11-09).
 - WhatsApp do cliente é obrigatório também no cadastro pelo painel (2026-11-08).
 - Agendamento manual pelo painel pode ser feito fora do expediente ou numa folga (encaixe), com aviso e confirmação; sobreposição com outro agendamento continua proibida. A página pública só oferece horários livres (2026-11-08).
 - Profissional vê o nome do cliente na própria agenda, nunca o telefone: resolvido pela função `agenda()` (2026-11-08).

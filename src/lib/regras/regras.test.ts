@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { lerServico } from "./servico";
@@ -78,10 +78,14 @@ describe("lerSalao", () => {
     expect(lerSalao({ nome: "Studio", slug: "ab" }).ok).toBe(false);
   });
   it("lista de reservados é igual à do banco (migration de onboarding)", () => {
-    const sql = readFileSync(
-      fileURLToPath(new URL("../../../supabase/migrations/20261108000001_onboarding.sql", import.meta.url)),
-      "utf8",
-    );
+    // A definição que vale é a da migration mais recente que recria app.slug_reservado.
+    const pasta = fileURLToPath(new URL("../../../supabase/migrations/", import.meta.url));
+    const sql = readdirSync(pasta)
+      .filter((f) => f.endsWith(".sql"))
+      .sort()
+      .map((f) => readFileSync(`${pasta}${f}`, "utf8"))
+      .filter((conteudo) => conteudo.includes("function app.slug_reservado"))
+      .at(-1)!;
     const bloco = sql.match(/select p_slug = any \(array\[([\s\S]*?)\]\)/)?.[1] ?? "";
     const doBanco = [...bloco.matchAll(/'([^']+)'/g)].map((m) => m[1]).sort();
     expect([...SLUGS_RESERVADOS].sort()).toEqual(doBanco);
