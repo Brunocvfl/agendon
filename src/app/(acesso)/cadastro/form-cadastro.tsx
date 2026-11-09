@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { Alerta, Botao, Campo } from "@/components/ui";
 import { cadastrar, type EstadoForm } from "../actions";
+import { ReenviarConfirmacao } from "../reenviar-confirmacao";
 
 export function FormCadastro() {
   const [estado, acao, pendente] = useActionState<EstadoForm, FormData>(cadastrar, {});
@@ -11,6 +12,7 @@ export function FormCadastro() {
     return (
       <div className="mt-6">
         <Alerta tipo="sucesso">{estado.sucesso}</Alerta>
+        {estado.campos?.email ? <ReenviarConfirmacao email={estado.campos.email} /> : null}
       </div>
     );
   }

@@ -9,6 +9,8 @@ export type EstadoForm = {
   erro?: string;
   sucesso?: string;
   campos?: { email?: string };
+  /** Login recusado porque o e-mail ainda não foi confirmado: a tela oferece reenviar o link. */
+  naoConfirmado?: boolean;
 };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -29,6 +31,11 @@ function mensagemAuth(code: string | undefined) {
       return "Confirme seu e-mail antes de entrar. Procure o link que enviamos.";
     case "weak_password":
       return "Senha fraca. Use pelo menos 8 caracteres.";
+    case "same_password":
+      return "A nova senha precisa ser diferente da atual.";
+    case "session_not_found":
+    case "session_expired":
+      return "Sua sessão expirou. Peça um novo link de troca de senha.";
     case "over_email_send_rate_limit":
     case "over_request_rate_limit":
       return "Muitas tentativas. Aguarde alguns minutos e tente de novo.";
@@ -46,6 +53,11 @@ async function urlDoSite() {
   return h.get("origin") ?? "http://localhost:3000";
 }
 
+// Link dos e-mails de autenticação: passa pelo callback (troca o código pela sessão) e segue para `destino`.
+async function linkDeRetorno(destino: string) {
+  return `${await urlDoSite()}/auth/callback?next=${encodeURIComponent(destino)}`;
+}
+
 export async function entrar(_anterior: EstadoForm, formData: FormData): Promise<EstadoForm> {
   const { email, senha } = lerCampos(formData);
   if (!EMAIL_RE.test(email) || !senha) {
@@ -54,7 +66,9 @@ export async function entrar(_anterior: EstadoForm, formData: FormData): Promise
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
-  if (error) return { erro: mensagemAuth(error.code), campos: { email } };
+  if (error) {
+    return { erro: mensagemAuth(error.code), campos: { email }, naoConfirmado: error.code === "email_not_confirmed" };
+  }
 
   redirect(destinoSeguro(String(formData.get("next") ?? "")));
 }
@@ -68,14 +82,62 @@ export async function cadastrar(_anterior: EstadoForm, formData: FormData): Prom
   const { error } = await supabase.auth.signUp({
     email,
     password: senha,
-    options: { emailRedirectTo: `${await urlDoSite()}/auth/callback?next=/criar-salao` },
+    options: { emailRedirectTo: await linkDeRetorno("/criar-salao") },
   });
   if (error) return { erro: mensagemAuth(error.code), campos: { email } };
 
   // Mesma resposta para e-mail novo ou já cadastrado: não revela quem tem conta.
   return {
     sucesso: `Enviamos um link de confirmação para ${email}. Abra o e-mail neste mesmo navegador para continuar.`,
+    campos: { email },
   };
+}
+
+// Reenvia o link de confirmação do cadastro. Mesma resposta exista a conta ou não.
+export async function reenviarConfirmacao(_anterior: EstadoForm, formData: FormData): Promise<EstadoForm> {
+  const { email } = lerCampos(formData);
+  if (!EMAIL_RE.test(email)) return { erro: "Informe um e-mail válido.", campos: { email } };
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email,
+    options: { emailRedirectTo: await linkDeRetorno("/criar-salao") },
+  });
+  if (error && error.code !== "user_not_found") return { erro: mensagemAuth(error.code), campos: { email } };
+
+  return { sucesso: `Se houver um cadastro pendente para ${email}, um novo link chegará em instantes.`, campos: { email } };
+}
+
+// Pede o link de troca de senha. Mesma resposta exista a conta ou não.
+export async function esqueciSenha(_anterior: EstadoForm, formData: FormData): Promise<EstadoForm> {
+  const { email } = lerCampos(formData);
+  if (!EMAIL_RE.test(email)) return { erro: "Informe um e-mail válido.", campos: { email } };
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: await linkDeRetorno("/nova-senha"),
+  });
+  if (error && error.code !== "user_not_found") return { erro: mensagemAuth(error.code), campos: { email } };
+
+  return {
+    sucesso: `Se houver uma conta com ${email}, enviamos um link para criar uma nova senha. Abra o e-mail neste mesmo navegador.`,
+    campos: { email },
+  };
+}
+
+// Define a nova senha de quem chegou pelo link do e-mail (já com sessão).
+export async function definirNovaSenha(_anterior: EstadoForm, formData: FormData): Promise<EstadoForm> {
+  const senha = String(formData.get("senha") ?? "");
+  const confirmacao = String(formData.get("confirmacao") ?? "");
+  if (senha.length < 8) return { erro: "A senha precisa ter pelo menos 8 caracteres." };
+  if (senha !== confirmacao) return { erro: "As duas senhas não são iguais." };
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.updateUser({ password: senha });
+  if (error) return { erro: mensagemAuth(error.code) };
+
+  redirect("/painel");
 }
 
 export async function sair() {
