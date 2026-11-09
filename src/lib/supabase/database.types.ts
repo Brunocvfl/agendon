@@ -308,6 +308,11 @@ isOneToOne: false
               "cliente_id": string,"cliente_nome": string,"cliente_telefone": string,"criado_em": string,"fim": string,"id": string,"inicio": string,"origem": Database["public"]['Enums']["appointment_origin"],"preco": number,"professional_id": string,"profissional": string,"salon_id": string,"service_id": string,"servico": string,"status": Database["public"]['Enums']["appointment_status"]
             }[]
                            },
+"agendar_publico":
+{ Args: { "p_inicio": string,"p_nome": string,"p_optin": boolean,"p_origem": string,"p_professional": string,"p_service": string,"p_slug": string,"p_telefone": string }; Returns: {
+              "fim": string,"id": string,"inicio": string,"preco": number,"profissional": string,"servico": string
+            }[]
+                           },
 "buscar_clientes_por_nome":
 { Args: { "p_busca": string,"p_limite"?: number,"p_salon": string }; Returns: {
               "id": string,"nome": string,"ultimo_atendimento": string
@@ -322,6 +327,9 @@ isOneToOne: false
 "horarios_livres":
 { Args: { "p_dia": string,"p_ignorar"?: string,"p_professional": string,"p_service": string }; Returns: string[]
                            },
+"horarios_publicos":
+{ Args: { "p_dia": string,"p_professional": string,"p_service": string,"p_slug": string }; Returns: string[]
+                           },
 "listar_clientes":
 { Args: { "p_busca"?: string,"p_limite"?: number,"p_offset"?: number,"p_salon": string }; Returns: {
               "criado_em": string,"faltas": number,"id": string,"nome": string,"telefone": string,"total": number,"ultimo_atendimento": string,"visitas": number
@@ -329,6 +337,9 @@ isOneToOne: false
                            },
 "mudar_status":
 { Args: { "p_appointment": string,"p_status": Database["public"]['Enums']["appointment_status"] }; Returns: undefined
+                           },
+"pagina_publica":
+{ Args: { "p_slug": string }; Returns: Json
                            },
 "remarcar_agendamento":
 { Args: { "p_appointment": string,"p_encaixe"?: boolean,"p_inicio": string,"p_professional": string }; Returns: undefined
