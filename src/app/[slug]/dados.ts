@@ -1,6 +1,7 @@
 // Dados da página pública de um salão (função pagina_publica no banco).
 import "server-only";
 import { cache } from "react";
+import type { EnderecoSalao } from "@/lib/regras/salao";
 import { clientePublico } from "@/lib/supabase/publico";
 
 export type ServicoPublico = { id: string; nome: string; duracao_min: number; preco: number };
@@ -10,7 +11,14 @@ export type ProfissionalPublico = {
   servicos: { id: string; duracao_min: number; preco: number }[];
 };
 export type PaginaPublica = {
-  salao: { nome: string; endereco: string | null; fuso: string };
+  salao: {
+    nome: string;
+    fuso: string;
+    whatsapp: string | null;
+    instagram: string | null;
+    logo_path: string | null;
+    endereco: EnderecoSalao;
+  };
   servicos: ServicoPublico[];
   profissionais: ProfissionalPublico[];
 };

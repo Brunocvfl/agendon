@@ -197,14 +197,14 @@ isOneToOne: false
                   ]
                 },"salons": {
                   Row: {
-                    "created_at": string,"endereco": string | null,"fuso": string,"id": string,"nome": string,"plano": string,"slug": string,"status": string
+                    "bairro": string | null,"cep": string | null,"cidade": string | null,"complemento": string | null,"created_at": string,"email": string | null,"fuso": string,"id": string,"instagram": string | null,"logo_path": string | null,"logradouro": string | null,"nome": string,"numero": string | null,"plano": string,"slug": string,"status": string,"uf": string | null,"whatsapp": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"endereco"?: string | null,"fuso"?: string,"id"?: string,"nome": string,"plano"?: string,"slug": string,"status"?: string
+                    "bairro"?: string | null,"cep"?: string | null,"cidade"?: string | null,"complemento"?: string | null,"created_at"?: string,"email"?: string | null,"fuso"?: string,"id"?: string,"instagram"?: string | null,"logo_path"?: string | null,"logradouro"?: string | null,"nome": string,"numero"?: string | null,"plano"?: string,"slug": string,"status"?: string,"uf"?: string | null,"whatsapp"?: string | null
                   }
                   Update: {
-                    "created_at"?: string,"endereco"?: string | null,"fuso"?: string,"id"?: string,"nome"?: string,"plano"?: string,"slug"?: string,"status"?: string
+                    "bairro"?: string | null,"cep"?: string | null,"cidade"?: string | null,"complemento"?: string | null,"created_at"?: string,"email"?: string | null,"fuso"?: string,"id"?: string,"instagram"?: string | null,"logo_path"?: string | null,"logradouro"?: string | null,"nome"?: string,"numero"?: string | null,"plano"?: string,"slug"?: string,"status"?: string,"uf"?: string | null,"whatsapp"?: string | null
                   }
                   Relationships: [
                     

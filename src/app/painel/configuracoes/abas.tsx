@@ -1,13 +1,15 @@
 import Link from "next/link";
 
-// Abas de Configurações (wireframe 9). Por enquanto só "Equipe e acessos" existe.
+// Abas de Configurações (wireframes 8 e 9). "Plano e cobrança" ainda não existe.
 const ABAS = [
-  { rotulo: "Dados do salão", href: null },
+  { rotulo: "Dados do salão", href: "/painel/configuracoes/dados" },
   { rotulo: "Plano e cobrança", href: null },
   { rotulo: "Equipe e acessos", href: "/painel/configuracoes/equipe" },
 ] as const;
 
-export function AbasConfiguracoes({ ativa }: { ativa: "Equipe e acessos" }) {
+type Aba = (typeof ABAS)[number]["rotulo"];
+
+export function AbasConfiguracoes({ ativa }: { ativa: Aba }) {
   return (
     <nav aria-label="Configurações" className="mt-4 overflow-x-auto border-b border-noite/10">
       <ul className="flex gap-6 whitespace-nowrap">

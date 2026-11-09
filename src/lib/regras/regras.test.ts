@@ -6,7 +6,7 @@ import { lerNomeProfissional } from "./profissional";
 import { lerFolga } from "./folga";
 import { lerCliente, lerTelefone } from "./cliente";
 import { lerAgendamento, lerAgendamentoPublico, lerMudancaDeStatus, lerRemarcacao, proximosStatus } from "./agendamento";
-import { lerSalao, normalizarSlug, SLUGS_RESERVADOS } from "./salao";
+import { formatarEndereco, lerDadosSalao, lerInstagram, lerSalao, normalizarSlug, SLUGS_RESERVADOS } from "./salao";
 import { lerConvite, lerMembro } from "./equipe";
 
 describe("lerServico", () => {
@@ -256,5 +256,43 @@ describe("lerConvite e lerMembro", () => {
   it("só e-mail inválido", () => {
     const r = lerConvite({ nome: "Ana", email: "ana@", perfil: "dono" });
     expect(r.ok ? {} : r.erros).toEqual({ email: "Informe um e-mail válido." });
+  });
+});
+
+describe("lerDadosSalao", () => {
+  const base = { nome: "Studio Bela Vida", fuso: "America/Sao_Paulo" };
+  it("só nome e fuso: o resto vira null", () => {
+    const r = lerDadosSalao(base);
+    expect(r.ok && r.valor).toEqual({
+      nome: "Studio Bela Vida", fuso: "America/Sao_Paulo", whatsapp: null, email: null, instagram: null,
+      cep: null, logradouro: null, numero: null, complemento: null, bairro: null, cidade: null, uf: null,
+    });
+  });
+  it("normaliza contatos e endereço", () => {
+    const r = lerDadosSalao({
+      ...base, whatsapp: "(11) 98765-4321", email: " Contato@Bela.com.BR ", instagram: "@studio.bela",
+      cep: "01001-000", logradouro: " Rua  das Flores ", numero: "120", bairro: "Centro", cidade: "São Paulo", uf: "sp",
+    });
+    expect(r.ok && r.valor).toMatchObject({
+      whatsapp: "+5511987654321", email: "contato@bela.com.br", instagram: "studio.bela",
+      cep: "01001000", logradouro: "Rua das Flores", uf: "SP",
+    });
+  });
+  it("aponta cada campo inválido", () => {
+    const r = lerDadosSalao({ nome: "S", fuso: "Europe/Lisbon", whatsapp: "123", email: "x@", instagram: "a b", cep: "123", uf: "XX" });
+    expect(Object.keys(r.ok ? {} : r.erros).sort()).toEqual(["cep", "email", "fuso", "instagram", "nome", "uf", "whatsapp"]);
+  });
+  it("lerInstagram aceita o link do perfil", () => {
+    expect(lerInstagram("https://www.instagram.com/studio.bela/")).toBe("studio.bela");
+    expect(lerInstagram("@")).toBeNull();
+  });
+});
+
+describe("formatarEndereco", () => {
+  it("junta só as partes preenchidas", () => {
+    expect(formatarEndereco({ logradouro: "Rua das Flores", numero: "120", bairro: "Centro", cidade: "São Paulo", uf: "SP" }))
+      .toBe("Rua das Flores, 120 - Centro - São Paulo/SP");
+    expect(formatarEndereco({ cidade: "Recife", uf: "PE" })).toBe("Recife/PE");
+    expect(formatarEndereco({})).toBeNull();
   });
 });
