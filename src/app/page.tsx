@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { BotaoLink } from "@/components/ui";
 
 // Página inicial provisória. A landing page de verdade vem depois do MVP.
@@ -20,6 +21,14 @@ export default function Home() {
           Entrar
         </BotaoLink>
       </div>
+      <nav className="flex gap-4 text-sm text-noite/55">
+        <Link href="/termos" className="hover:text-on">
+          Termos de Uso
+        </Link>
+        <Link href="/privacidade" className="hover:text-on">
+          Privacidade
+        </Link>
+      </nav>
     </main>
   );
 }

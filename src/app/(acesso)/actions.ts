@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { destinoSeguro } from "@/lib/destino";
 import { erroDaSenha } from "@/lib/regras/senha";
+import { VERSAO_DOCUMENTOS } from "@/lib/legal";
 
 export type EstadoForm = {
   erro?: string;
@@ -79,12 +80,19 @@ export async function cadastrar(_anterior: EstadoForm, formData: FormData): Prom
   if (!EMAIL_RE.test(email)) return { erro: "Informe um e-mail válido.", campos: { email } };
   const erroSenha = erroDaSenha(senha);
   if (erroSenha) return { erro: erroSenha, campos: { email } };
+  if (formData.get("aceite") !== "sim") {
+    return { erro: "Para criar a conta, aceite os Termos de Uso e a Política de Privacidade.", campos: { email } };
+  }
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signUp({
     email,
     password: senha,
-    options: { emailRedirectTo: await linkDeRetorno("/criar-salao") },
+    options: {
+      emailRedirectTo: await linkDeRetorno("/criar-salao"),
+      // Registro do aceite (versão dos documentos e momento, pelo relógio do servidor).
+      data: { termos_versao: VERSAO_DOCUMENTOS, termos_aceitos_em: new Date().toISOString() },
+    },
   });
   if (error) return { erro: mensagemAuth(error.code), campos: { email } };
 

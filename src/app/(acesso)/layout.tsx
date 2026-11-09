@@ -9,6 +9,14 @@ export default function LayoutAcesso({ children }: { children: ReactNode }) {
         <Image src="/logo-agendon.png" alt="AgendOn" width={4092} height={1230} priority className="h-auto w-48" />
       </Link>
       <div className="w-full max-w-md">{children}</div>
+      <nav className="mt-8 flex gap-4 text-sm text-noite/55">
+        <Link href="/termos" className="hover:text-on">
+          Termos de Uso
+        </Link>
+        <Link href="/privacidade" className="hover:text-on">
+          Privacidade
+        </Link>
+      </nav>
     </main>
   );
 }
