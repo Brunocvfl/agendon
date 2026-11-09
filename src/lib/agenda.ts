@@ -41,10 +41,16 @@ export function semAtendimento(faixas: Periodo[], r: Periodo): (Periodo & { tipo
   return lacunas;
 }
 
-/** Instantes (ISO) -> período em minutos dentro do dia `dia` no fuso do salão (corta o que passa da meia-noite). */
+/**
+ * Instantes (ISO) -> período em minutos dentro do dia `dia` no fuso do salão (corta o que passa da meia-noite).
+ * Fora do dia: período vazio ({ de: 0, ate: 0 }).
+ */
 export function periodoNoDia(inicio: string, fim: string, dia: string, fuso: string): Periodo {
-  const de = dataNoFuso(inicio, fuso) < dia ? 0 : minutosNoFuso(inicio, fuso);
-  const ate = dataNoFuso(fim, fuso) > dia ? DIA : minutosNoFuso(fim, fuso);
+  const diaInicio = dataNoFuso(inicio, fuso);
+  const diaFim = dataNoFuso(fim, fuso);
+  if (diaInicio > dia || diaFim < dia) return { de: 0, ate: 0 };
+  const de = diaInicio < dia ? 0 : minutosNoFuso(inicio, fuso);
+  const ate = diaFim > dia ? DIA : minutosNoFuso(fim, fuso);
   return { de, ate: Math.max(ate, de) };
 }
 

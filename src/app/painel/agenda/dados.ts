@@ -21,18 +21,30 @@ export type ItemAgenda = {
   clienteNome: string;
 };
 
+/** Uma coluna da grade: um profissional num dia. */
 export type ColunaAgenda = {
-  id: string;
+  chave: string;
+  profissionalId: string;
   nome: string;
+  dia: string;
   faixas: Periodo[];
   folgas: (Periodo & { motivo: string | null })[];
   itens: ItemAgenda[];
 };
 
-/** Agenda de um dia: colunas por profissional (Profissional vê só a própria), com expediente, folgas e agendamentos. */
-export async function carregarAgenda(vinculo: Vinculo, dia: string): Promise<ColunaAgenda[]> {
+export type Agenda = {
+  /** Profissionais ativos que o perfil vê (para o filtro). Profissional: só a própria agenda. */
+  profissionais: { id: string; nome: string }[];
+  /** Uma coluna por profissional e por dia, nessa ordem (a página filtra o profissional). */
+  colunas: ColunaAgenda[];
+};
+
+/** Agenda de um ou mais dias seguidos (`dias` em ordem), com expediente, folgas e agendamentos. */
+export async function carregarAgenda(vinculo: Vinculo, dias: string[]): Promise<Agenda> {
   const { salao, perfil, membroId } = vinculo;
   const supabase = await createClient();
+  const primeiro = dias[0];
+  const ultimo = dias[dias.length - 1];
 
   let consulta = supabase
     .from("professionals")
@@ -42,43 +54,56 @@ export async function carregarAgenda(vinculo: Vinculo, dia: string): Promise<Col
     .order("nome");
   if (!pode(perfil, "ver-agenda-de-todos")) consulta = consulta.eq("member_id", membroId);
 
-  // Folgas: busca com folga de um dia para cada lado (UTC) e recorta no dia do salão.
+  // Folgas: busca com folga de um dia para cada lado (UTC) e recorta em cada dia do salão.
   const [profs, folgas, agenda] = await Promise.all([
     consulta,
     supabase
       .from("time_off")
       .select("professional_id, inicio, fim, motivo")
       .eq("salon_id", salao.id)
-      .lt("inicio", `${somarDias(dia, 2)}T00:00:00Z`)
-      .gt("fim", `${somarDias(dia, -1)}T00:00:00Z`),
-    supabase.rpc("agenda", { p_salon: salao.id, p_de: dia, p_ate: dia }),
+      .lt("inicio", `${somarDias(ultimo, 2)}T00:00:00Z`)
+      .gt("fim", `${somarDias(primeiro, -1)}T00:00:00Z`),
+    supabase.rpc("agenda", { p_salon: salao.id, p_de: primeiro, p_ate: ultimo }),
   ]);
   if (profs.error || folgas.error || agenda.error) throw new Error("Falha ao carregar a agenda.");
 
-  const dow = diaDaSemana(dia);
-  return (profs.data ?? []).map((p) => ({
-    id: p.id,
-    nome: p.nome,
-    faixas: faixasEmMinutos(p.working_hours.filter((w) => w.dia_semana === dow)),
-    folgas: (folgas.data ?? [])
-      .filter((f) => f.professional_id === p.id)
-      .map((f) => ({ ...periodoNoDia(f.inicio, f.fim, dia, salao.fuso), motivo: f.motivo }))
-      .filter((f) => f.ate > f.de),
-    itens: (agenda.data ?? [])
-      .filter((a) => a.professional_id === p.id)
-      .map((a) => ({
-        id: a.id,
-        profissionalId: a.professional_id,
-        periodo: periodoNoDia(a.inicio, a.fim, dia, salao.fuso),
-        inicio: a.inicio,
-        fim: a.fim,
-        status: a.status,
-        preco: Number(a.preco),
-        servico: a.servico,
-        clienteId: a.cliente_id ?? null,
-        clienteNome: a.cliente_nome,
-      })),
-  }));
+  const todos = profs.data ?? [];
+  const naoVazio = <T extends Periodo>(p: T) => p.ate > p.de;
+
+  return {
+    profissionais: todos.map((p) => ({ id: p.id, nome: p.nome })),
+    colunas: todos.flatMap((p) =>
+      dias.map((dia) => {
+        const dow = diaDaSemana(dia);
+        return {
+          chave: `${p.id}-${dia}`,
+          profissionalId: p.id,
+          nome: p.nome,
+          dia,
+          faixas: faixasEmMinutos(p.working_hours.filter((w) => w.dia_semana === dow)),
+          folgas: (folgas.data ?? [])
+            .filter((f) => f.professional_id === p.id)
+            .map((f) => ({ ...periodoNoDia(f.inicio, f.fim, dia, salao.fuso), motivo: f.motivo }))
+            .filter(naoVazio),
+          itens: (agenda.data ?? [])
+            .filter((a) => a.professional_id === p.id)
+            .map((a) => ({
+              id: a.id,
+              profissionalId: a.professional_id,
+              periodo: periodoNoDia(a.inicio, a.fim, dia, salao.fuso),
+              inicio: a.inicio,
+              fim: a.fim,
+              status: a.status,
+              preco: Number(a.preco),
+              servico: a.servico,
+              clienteId: a.cliente_id ?? null,
+              clienteNome: a.cliente_nome,
+            }))
+            .filter((i) => naoVazio(i.periodo)),
+        };
+      }),
+    ),
+  };
 }
 
 export type OpcoesAgendamento = {

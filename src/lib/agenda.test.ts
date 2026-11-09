@@ -1,6 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { faixasEmMinutos, ladoALado, periodoNoDia, regua, semAtendimento } from "./agenda";
-import { dataNoFuso, diaDaSemana, ehData, minutosNoFuso, paraHora, rotuloData, somarDias } from "./datas";
+import {
+  dataNoFuso,
+  diaDaSemana,
+  ehData,
+  inicioDaSemana,
+  minutosNoFuso,
+  paraHora,
+  rotuloData,
+  rotuloSemana,
+  somarDias,
+} from "./datas";
 
 const SP = "America/Sao_Paulo";
 
@@ -21,6 +31,16 @@ describe("datas", () => {
   });
   it("paraHora", () => expect(paraHora(570)).toBe("09:30"));
   it("rotuloData", () => expect(rotuloData("2026-11-11")).toBe("qua, 11 nov"));
+  it("inicioDaSemana: segunda", () => {
+    expect(inicioDaSemana("2026-11-09")).toBe("2026-11-09"); // segunda
+    expect(inicioDaSemana("2026-11-11")).toBe("2026-11-09");
+    expect(inicioDaSemana("2026-11-15")).toBe("2026-11-09"); // domingo fecha a semana
+    expect(inicioDaSemana("2027-01-01")).toBe("2026-12-28");
+  });
+  it("rotuloSemana", () => {
+    expect(rotuloSemana("2026-11-09")).toBe("9–15 nov");
+    expect(rotuloSemana("2026-11-30")).toBe("30 nov – 6 dez");
+  });
 });
 
 describe("regua", () => {
@@ -49,6 +69,14 @@ describe("periodoNoDia", () => {
     expect(periodoNoDia("2026-11-10T12:00:00Z", "2026-11-10T13:00:00Z", "2026-11-10", SP)).toEqual({ de: 540, ate: 600 }));
   it("corta o que passa da meia-noite", () =>
     expect(periodoNoDia("2026-11-11T02:00:00Z", "2026-11-11T04:00:00Z", "2026-11-10", SP)).toEqual({ de: 1380, ate: 1440 }));
+  it("começa na véspera", () =>
+    expect(periodoNoDia("2026-11-10T02:00:00Z", "2026-11-10T04:00:00Z", "2026-11-10", SP)).toEqual({ de: 0, ate: 60 }));
+  it("cobre o dia inteiro", () =>
+    expect(periodoNoDia("2026-11-09T03:00:00Z", "2026-11-12T03:00:00Z", "2026-11-10", SP)).toEqual({ de: 0, ate: 1440 }));
+  it("em outro dia: vazio", () => {
+    expect(periodoNoDia("2026-11-11T13:00:00Z", "2026-11-11T15:00:00Z", "2026-11-10", SP)).toEqual({ de: 0, ate: 0 });
+    expect(periodoNoDia("2026-11-09T13:00:00Z", "2026-11-09T15:00:00Z", "2026-11-10", SP)).toEqual({ de: 0, ate: 0 });
+  });
 });
 
 describe("ladoALado", () => {
