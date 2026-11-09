@@ -13,8 +13,9 @@ const PRONTAS: { href: string; rotulo: string; exige?: Permissao }[] = [
   { href: "/painel/clientes", rotulo: "Clientes", exige: "ver-clientes" },
   { href: "/painel/servicos", rotulo: "Serviços" },
   { href: "/painel/profissionais", rotulo: "Profissionais" },
+  { href: "/painel/configuracoes", rotulo: "Configurações", exige: "gerenciar-salao" },
 ];
-const EM_BREVE = ["Lembretes", "Link de agendamento", "Configurações"];
+const EM_BREVE = ["Lembretes", "Link de agendamento"];
 
 const ehAtivo = (href: string, pathname: string | null) =>
   pathname !== null && (href === "/painel" ? pathname === "/painel" : pathname.startsWith(href));

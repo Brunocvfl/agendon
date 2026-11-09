@@ -50,6 +50,19 @@ export const getVinculo = cache(async (): Promise<Vinculo | null> => {
   return { membroId: data.id, perfil: data.perfil, salao: data.salons };
 });
 
+export type Acesso = { salaoNome: string; perfil: Perfil; status: "ativo" | "convidado" | "inativo"; nome: string | null };
+
+// Vínculo em qualquer situação (convite pendente, desativado): para mandar o convidado ao aceite e
+// explicar a quem foi desativado por que não entra. Não dá acesso a nada.
+export const getAcesso = cache(async (): Promise<Acesso | null> => {
+  if (!(await getUsuario())) return null;
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("meu_acesso").maybeSingle();
+  if (error) throw new Error("Falha ao carregar o acesso do usuário.");
+  if (!data) return null;
+  return { salaoNome: data.salao_nome, perfil: data.perfil, status: data.status as Acesso["status"], nome: data.nome };
+});
+
 export async function exigirVinculo(): Promise<Vinculo> {
   await exigirUsuario();
   const vinculo = await getVinculo();

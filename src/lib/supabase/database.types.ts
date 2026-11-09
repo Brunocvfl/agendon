@@ -79,14 +79,14 @@ isOneToOne: false
                   ]
                 },"members": {
                   Row: {
-                    "created_at": string,"id": string,"perfil": Database["public"]['Enums']["member_role"],"salon_id": string,"status": string,"user_id": string
+                    "created_at": string,"id": string,"nome": string | null,"perfil": Database["public"]['Enums']["member_role"],"salon_id": string,"status": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"id"?: string,"perfil": Database["public"]['Enums']["member_role"],"salon_id": string,"status"?: string,"user_id": string
+                    "created_at"?: string,"id"?: string,"nome"?: string | null,"perfil": Database["public"]['Enums']["member_role"],"salon_id": string,"status"?: string,"user_id": string
                   }
                   Update: {
-                    "created_at"?: string,"id"?: string,"perfil"?: Database["public"]['Enums']["member_role"],"salon_id"?: string,"status"?: string,"user_id"?: string
+                    "created_at"?: string,"id"?: string,"nome"?: string | null,"perfil"?: Database["public"]['Enums']["member_role"],"salon_id"?: string,"status"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -295,7 +295,10 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "adicionar_folga":
+            "aceitar_convite":
+{ Args: Record<PropertyKey, never>; Returns: string
+                           },
+"adicionar_folga":
 { Args: { "p_fim": string,"p_inicio": string,"p_motivo": string,"p_professional": string }; Returns: string
                            },
 "agenda":
@@ -324,6 +327,14 @@ isOneToOne: false
 "criar_agendamento":
 { Args: { "p_client"?: string,"p_cliente_nome"?: string,"p_cliente_telefone"?: string,"p_encaixe"?: boolean,"p_inicio": string,"p_professional": string,"p_service": string }; Returns: string
                            },
+"email_em_uso":
+{ Args: { "p_email": string }; Returns: boolean
+                           },
+"equipe":
+{ Args: { "p_salon": string }; Returns: {
+              "convidado_em": string,"email": string,"id": string,"nome": string,"perfil": Database["public"]['Enums']["member_role"],"profissional_id": string,"profissional_nome": string,"status": string,"ultimo_acesso": string,"user_id": string
+            }[]
+                           },
 "horarios_livres":
 { Args: { "p_dia": string,"p_ignorar"?: string,"p_professional": string,"p_service": string }; Returns: string[]
                            },
@@ -333,6 +344,11 @@ isOneToOne: false
 "listar_clientes":
 { Args: { "p_busca"?: string,"p_limite"?: number,"p_offset"?: number,"p_salon": string }; Returns: {
               "criado_em": string,"faltas": number,"id": string,"nome": string,"telefone": string,"total": number,"ultimo_atendimento": string,"visitas": number
+            }[]
+                           },
+"meu_acesso":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "nome": string,"perfil": Database["public"]['Enums']["member_role"],"salao_nome": string,"status": string
             }[]
                            },
 "mudar_status":
