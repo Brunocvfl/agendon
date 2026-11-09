@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { destinoSeguro } from "@/lib/destino";
+import { erroDaSenha } from "@/lib/regras/senha";
 
 export type EstadoForm = {
   erro?: string;
@@ -30,7 +31,7 @@ function mensagemAuth(code: string | undefined) {
     case "email_not_confirmed":
       return "Confirme seu e-mail antes de entrar. Procure o link que enviamos.";
     case "weak_password":
-      return "Senha fraca. Use pelo menos 8 caracteres.";
+      return "Senha fraca. Use pelo menos 10 caracteres, com letra maiúscula, minúscula e número.";
     case "same_password":
       return "A nova senha precisa ser diferente da atual.";
     case "session_not_found":
@@ -76,7 +77,8 @@ export async function entrar(_anterior: EstadoForm, formData: FormData): Promise
 export async function cadastrar(_anterior: EstadoForm, formData: FormData): Promise<EstadoForm> {
   const { email, senha } = lerCampos(formData);
   if (!EMAIL_RE.test(email)) return { erro: "Informe um e-mail válido.", campos: { email } };
-  if (senha.length < 8) return { erro: "A senha precisa ter pelo menos 8 caracteres.", campos: { email } };
+  const erroSenha = erroDaSenha(senha);
+  if (erroSenha) return { erro: erroSenha, campos: { email } };
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signUp({
@@ -130,8 +132,8 @@ export async function esqueciSenha(_anterior: EstadoForm, formData: FormData): P
 export async function definirNovaSenha(_anterior: EstadoForm, formData: FormData): Promise<EstadoForm> {
   const senha = String(formData.get("senha") ?? "");
   const confirmacao = String(formData.get("confirmacao") ?? "");
-  if (senha.length < 8) return { erro: "A senha precisa ter pelo menos 8 caracteres." };
-  if (senha !== confirmacao) return { erro: "As duas senhas não são iguais." };
+  const erroSenha = erroDaSenha(senha, confirmacao);
+  if (erroSenha) return { erro: erroSenha };
 
   const supabase = await createClient();
   const { error } = await supabase.auth.updateUser({ password: senha });

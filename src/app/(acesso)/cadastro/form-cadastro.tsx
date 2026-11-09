@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { Alerta, Botao, Campo } from "@/components/ui";
 import { cadastrar, type EstadoForm } from "../actions";
 import { ReenviarConfirmacao } from "../reenviar-confirmacao";
+import { CampoSenhaNova } from "@/components/campo-senha-nova";
 
 export function FormCadastro() {
   const [estado, acao, pendente] = useActionState<EstadoForm, FormData>(cadastrar, {});
@@ -30,16 +31,7 @@ export function FormCadastro() {
         required
         defaultValue={estado.campos?.email}
       />
-      <Campo
-        id="senha"
-        name="senha"
-        type="password"
-        label="Senha"
-        autoComplete="new-password"
-        minLength={8}
-        required
-        ajuda="Mínimo de 8 caracteres."
-      />
+      <CampoSenhaNova />
       <Botao type="submit" disabled={pendente} className="mt-2 w-full">
         {pendente ? "Criando conta…" : "Criar conta"}
       </Botao>
