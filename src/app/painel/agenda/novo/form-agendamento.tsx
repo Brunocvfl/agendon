@@ -173,7 +173,13 @@ export function FormAgendamento({ opcoes, inicial, buscaPorTelefone }: Props) {
             />
             {/* Resumo para o leitor de tela; a lista em si não é anunciada a cada tecla. */}
             <p aria-live="polite" className="sr-only">
-              {resultados === null ? "Buscando…" : temTermo ? `${resultados.length} encontrados` : ""}
+              {resultados === null ? "Buscando…" : temTermo
+                  ? resultados.length === 0
+                    ? "Nenhum cliente encontrado"
+                    : resultados.length === 1
+                      ? "1 cliente encontrado"
+                      : `${resultados.length} clientes encontrados`
+                  : ""}
             </p>
             {resultados === null ? (
               <p className="mt-2 text-sm text-noite/65">Buscando…</p>
