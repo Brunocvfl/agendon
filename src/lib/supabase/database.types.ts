@@ -110,11 +110,11 @@ isOneToOne: false
                   }
                   Relationships: [
                     {
-      foreignKeyName: "message_log_appointment_id_fkey"
-      columns: ["appointment_id"]
+      foreignKeyName: "message_log_appointment_fkey"
+      columns: ["appointment_id","salon_id"]
 isOneToOne: false
       referencedRelation: "appointments"
-      referencedColumns: ["id"]
+      referencedColumns: ["id","salon_id"]
     },{
       foreignKeyName: "message_log_salon_id_fkey"
       columns: ["salon_id"]
