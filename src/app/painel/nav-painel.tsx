@@ -92,7 +92,7 @@ export function MenuCelular({ conta, perfil }: { conta: ReactNode; perfil: Perfi
           // Toque no fundo escuro (fora da gaveta) fecha.
           if (e.target === dialogo.current) dialogo.current?.close();
         }}
-        className="fixed inset-y-0 left-0 m-0 h-dvh max-h-none w-[min(20rem,85vw)] max-w-none bg-noite p-0 text-white backdrop:bg-noite/60 open:flex open:flex-col"
+        className="fixed inset-y-0 left-0 m-0 h-dvh max-h-none w-[min(20rem,85vw)] max-w-none overflow-y-auto overscroll-contain bg-noite p-0 text-white backdrop:bg-noite/60 open:flex open:flex-col"
       >
         <div className="flex items-center justify-between px-5 py-4">
           <span className="text-lg font-semibold tracking-tight">

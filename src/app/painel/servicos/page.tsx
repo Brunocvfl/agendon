@@ -50,8 +50,8 @@ async function Conteudo({ vinculo: { salao, perfil } }: { vinculo: Vinculo }) {
           </div>
         ) : (
           <>
-            {/* Cabeçalho da tabela (só em telas largas) */}
-            <div className="hidden grid-cols-[1fr_7rem_7rem_8rem_4rem] gap-4 border-b border-noite/8 px-6 py-3 text-sm text-noite/65 md:grid">
+            {/* Cabeçalho da tabela (só em telas largas e só visual: cada célula leva o próprio rótulo) */}
+            <div aria-hidden className="hidden grid-cols-[1fr_7rem_7rem_8rem_4rem] gap-4 border-b border-noite/8 px-6 py-3 text-sm text-noite/65 md:grid">
               <span>Serviço</span>
               <span>Duração</span>
               <span>Preço</span>
@@ -78,11 +78,21 @@ async function Conteudo({ vinculo: { salao, perfil } }: { vinculo: Vinculo }) {
                       {formatarDuracao(s.duracao_min)} · {formatarPreco(s.preco)}
                     </p>
                   </div>
-                  <span className="hidden text-sm md:block">{formatarDuracao(s.duracao_min)}</span>
-                  <span className="hidden text-sm md:block">{formatarPreco(s.preco)}</span>
+                  <span className="hidden text-sm md:block">
+                    <span className="sr-only">Duração: </span>
+                    {formatarDuracao(s.duracao_min)}
+                  </span>
+                  <span className="hidden text-sm md:block">
+                    <span className="sr-only">Preço: </span>
+                    {formatarPreco(s.preco)}
+                  </span>
                   <span className="hidden flex-wrap gap-1 md:flex">
+                    <span className="sr-only">Quem faz: </span>
                     {s.profissionais.length === 0 ? (
-                      <span className="text-sm text-noite/65">—</span>
+                      <span className="text-sm text-noite/65">
+                        <span aria-hidden>—</span>
+                        <span className="sr-only">ninguém</span>
+                      </span>
                     ) : (
                       s.profissionais.map((p) => (
                         <span
@@ -90,7 +100,8 @@ async function Conteudo({ vinculo: { salao, perfil } }: { vinculo: Vinculo }) {
                           title={p.nome}
                           className="rounded-md bg-on/10 px-1.5 py-0.5 text-xs font-semibold text-on"
                         >
-                          {iniciais(p.nome)}
+                          <span aria-hidden>{iniciais(p.nome)}</span>
+                          <span className="sr-only">{p.nome}; </span>
                         </span>
                       ))
                     )}
@@ -100,6 +111,7 @@ async function Conteudo({ vinculo: { salao, perfil } }: { vinculo: Vinculo }) {
                       <SwitchAtivo id={s.id} ativo={s.ativo} nome={s.nome} />
                     ) : (
                       <span className={`text-sm ${s.ativo ? "text-confirmado-escuro" : "text-noite/65"}`}>
+                        <span className="sr-only">Ativo: </span>
                         {s.ativo ? "Sim" : "Não"}
                       </span>
                     )}

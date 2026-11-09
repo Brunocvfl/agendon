@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: "Cadastre seu salão · AgendOn" };
 
 export default function PaginaCriarSalao() {
   return (
-    <main className="flex flex-1 flex-col items-center justify-center px-4 py-10 sm:py-16">
+    <main id="conteudo" className="flex flex-1 flex-col items-center justify-center px-4 py-10 sm:py-16">
       <Image src="/logo-agendon.png" alt="AgendOn" width={192} height={58} priority className="mb-8 h-auto w-48" />
       <Cartao className="w-full max-w-lg">
         <p className="text-sm font-semibold text-on">Passo 2 de 2</p>

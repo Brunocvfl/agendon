@@ -42,11 +42,11 @@ async function Conteudo({ vinculo: { salao, perfil, membroId }, id }: { vinculo:
   return (
     <>
       <div className="mt-4 flex items-center gap-4">
-        <span className="flex size-14 items-center justify-center rounded-full bg-on/10 text-lg font-semibold text-on">
+        <span aria-hidden className="flex size-14 shrink-0 items-center justify-center rounded-full bg-on/10 text-lg font-semibold text-on">
           {iniciais(profissional.nome)}
         </span>
-        <div>
-          <h1 className="text-2xl font-semibold sm:text-3xl">{profissional.nome}</h1>
+        <div className="min-w-0">
+          <h1 className="break-words text-2xl font-semibold sm:text-3xl">{profissional.nome}</h1>
           <p className="text-sm text-noite/65">
             {profissional.ativo ? "Ativo" : "Inativo: não aparece na agenda nem na página pública"}
             {profissional.memberId === membroId ? " · este é você" : ""}

@@ -1,5 +1,6 @@
 "use client";
 
+import { useFocarPrimeiroErro } from "@/components/use-focar-erro";
 import { startTransition, useActionState, useEffect, useState, type FormEvent } from "react";
 import { Alerta, Botao, BotaoLink, Campo, Selecao } from "@/components/ui";
 import { formatarDuracao, formatarPreco } from "@/lib/formato";
@@ -19,6 +20,7 @@ const CAMPO =
 
 export function FormAgendamento({ opcoes, inicial, buscaPorTelefone }: Props) {
   const [estado, acao, pendente] = useActionState<EstadoForm, FormData>(criarAgendamento, {});
+  const form = useFocarPrimeiroErro(estado);
   const erros = estado.erros ?? {};
 
   const servicosDe = (profId: string) => opcoes.profissionais.find((p) => p.id === profId)?.servicos ?? [];
@@ -30,19 +32,30 @@ export function FormAgendamento({ opcoes, inicial, buscaPorTelefone }: Props) {
   const [modoCliente, setModoCliente] = useState<"existente" | "novo">("existente");
   const [cliente, setCliente] = useState<ClienteEncontrado | null>(null);
   const [busca, setBusca] = useState("");
-  const [resultados, setResultados] = useState<ClienteEncontrado[]>([]);
+  // Resultado guardado com o termo buscado: resposta atrasada de um termo antigo não aparece.
+  const [achados, setAchados] = useState<{ termo: string; lista: ClienteEncontrado[] } | null>(null);
+  const termo = busca.trim();
+  const temTermo = termo.length >= 2;
+  /** null = temTermo. */
+  const resultados = !temTermo ? [] : achados?.termo === termo ? achados.lista : null;
 
   const doProfissional = servicosDe(profissional);
   const servicoAtual = opcoes.servicos.find((s) => s.id === servico);
 
   // Busca de cliente com pequena espera entre as teclas.
   useEffect(() => {
-    if (busca.trim().length < 2) return;
+    if (termo.length < 2) return;
+    let ativo = true;
     const t = setTimeout(() => {
-      buscarClientes(busca).then(setResultados);
+      buscarClientes(termo).then((lista) => {
+        if (ativo) setAchados({ termo, lista });
+      });
     }, 250);
-    return () => clearTimeout(t);
-  }, [busca]);
+    return () => {
+      ativo = false;
+      clearTimeout(t);
+    };
+  }, [termo]);
 
   const trocarProfissional = (id: string) => {
     setProfissional(id);
@@ -58,7 +71,7 @@ export function FormAgendamento({ opcoes, inicial, buscaPorTelefone }: Props) {
   };
 
   return (
-    <form onSubmit={enviar} className="flex flex-col gap-5" noValidate>
+    <form ref={form} onSubmit={enviar} className="flex flex-col gap-5" noValidate>
       {estado.erro ? <Alerta tipo="erro">{estado.erro}</Alerta> : null}
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -151,16 +164,20 @@ export function FormAgendamento({ opcoes, inicial, buscaPorTelefone }: Props) {
               id="busca-cliente"
               type="search"
               value={busca}
-              onChange={(e) => {
-                setBusca(e.target.value);
-                if (e.target.value.trim().length < 2) setResultados([]);
-              }}
+              onChange={(e) => setBusca(e.target.value)}
               placeholder={buscaPorTelefone ? "Buscar por nome ou WhatsApp" : "Buscar pelo nome"}
               autoComplete="off"
               aria-invalid={erros.cliente ? true : undefined}
+              aria-describedby={erros.cliente ? "busca-cliente-erro" : undefined}
               className={`${CAMPO} ${erros.cliente ? "border-red-400" : "border-noite/15"}`}
             />
-            {resultados.length > 0 ? (
+            {/* Resumo para o leitor de tela; a lista em si não é anunciada a cada tecla. */}
+            <p aria-live="polite" className="sr-only">
+              {resultados === null ? "Buscando…" : temTermo ? `${resultados.length} encontrados` : ""}
+            </p>
+            {resultados === null ? (
+              <p className="mt-2 text-sm text-noite/65">Buscando…</p>
+            ) : resultados.length > 0 ? (
               <ul className="mt-2 overflow-hidden rounded-xl ring-1 ring-noite/10">
                 {resultados.map((c) => (
                   <li key={c.id}>
@@ -169,7 +186,6 @@ export function FormAgendamento({ opcoes, inicial, buscaPorTelefone }: Props) {
                       onClick={() => {
                         setCliente(c);
                         setBusca("");
-                        setResultados([]);
                       }}
                       className="flex w-full items-center justify-between gap-3 border-b border-noite/8 bg-white px-4 py-2.5 text-left last:border-b-0 hover:bg-fundo"
                     >
@@ -179,7 +195,7 @@ export function FormAgendamento({ opcoes, inicial, buscaPorTelefone }: Props) {
                   </li>
                 ))}
               </ul>
-            ) : busca.trim().length >= 2 ? (
+            ) : temTermo ? (
               <p className="mt-2 text-sm text-noite/65">
                 Nenhum cliente encontrado.{" "}
                 <button type="button" onClick={() => setModoCliente("novo")} className="font-medium text-on hover:underline">
@@ -187,7 +203,7 @@ export function FormAgendamento({ opcoes, inicial, buscaPorTelefone }: Props) {
                 </button>
               </p>
             ) : null}
-            {erros.cliente ? <p className="mt-1.5 text-sm text-red-600">{erros.cliente}</p> : null}
+            {erros.cliente ? <p id="busca-cliente-erro" className="mt-1.5 text-sm text-red-600">{erros.cliente}</p> : null}
           </div>
         )}
       </fieldset>

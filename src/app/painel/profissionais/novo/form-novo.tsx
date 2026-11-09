@@ -1,5 +1,6 @@
 "use client";
 
+import { useFocarPrimeiroErro } from "@/components/use-focar-erro";
 import { useActionState } from "react";
 import { Alerta, Botao, BotaoLink, Campo } from "@/components/ui";
 import { LIMITES_PROFISSIONAL } from "@/lib/regras/profissional";
@@ -7,9 +8,10 @@ import { criarProfissional, type EstadoForm } from "../actions";
 
 export function FormNovoProfissional({ podeSerEu }: { podeSerEu: boolean }) {
   const [estado, acao, pendente] = useActionState<EstadoForm, FormData>(criarProfissional, {});
+  const form = useFocarPrimeiroErro(estado);
 
   return (
-    <form action={acao} className="flex flex-col gap-4" noValidate>
+    <form ref={form} action={acao} className="flex flex-col gap-4" noValidate>
       {estado.erro ? <Alerta tipo="erro">{estado.erro}</Alerta> : null}
       <Campo
         id="nome"

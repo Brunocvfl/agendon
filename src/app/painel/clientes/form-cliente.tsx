@@ -1,5 +1,6 @@
 "use client";
 
+import { useFocarPrimeiroErro } from "@/components/use-focar-erro";
 import { useActionState } from "react";
 import { Alerta, Botao, BotaoLink, Campo } from "@/components/ui";
 import { LIMITES_CLIENTE } from "@/lib/regras/cliente";
@@ -10,12 +11,13 @@ type Inicial = { id?: string; nome?: string; telefone?: string; observacoes?: st
 export function FormCliente({ inicial = {} }: { inicial?: Inicial }) {
   const editando = Boolean(inicial.id);
   const [estado, acao, pendente] = useActionState<EstadoForm, FormData>(editando ? salvarCliente : criarCliente, {});
+  const form = useFocarPrimeiroErro(estado);
   // Depois de um erro, mostra o que foi digitado; senão, o valor salvo.
   const valor = (campo: "nome" | "telefone" | "observacoes") => estado.campos?.[campo] ?? inicial[campo] ?? "";
   const erroObs = estado.erros?.observacoes;
 
   return (
-    <form action={acao} className="flex flex-col gap-4" noValidate>
+    <form ref={form} action={acao} className="flex flex-col gap-4" noValidate>
       {estado.erro ? <Alerta tipo="erro">{estado.erro}</Alerta> : null}
       {estado.ok ? <Alerta tipo="sucesso">{estado.ok}</Alerta> : null}
       {editando ? <input type="hidden" name="id" value={inicial.id} /> : null}

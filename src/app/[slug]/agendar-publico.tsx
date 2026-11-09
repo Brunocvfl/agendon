@@ -1,5 +1,6 @@
 "use client";
 
+import { useFocarPrimeiroErro } from "@/components/use-focar-erro";
 import Link from "next/link";
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { Alerta, Botao, Campo } from "@/components/ui";
@@ -17,6 +18,7 @@ type Props = { slug: string; pagina: PaginaPublica; hoje: string };
 export function AgendarPublico({ slug, pagina, hoje }: Props) {
   const { fuso } = pagina.salao;
   const [estado, acao, enviando] = useActionState<EstadoAgendamento, FormData>(agendar, {});
+  const form = useFocarPrimeiroErro(estado);
 
   const [servico, setServico] = useState<string | null>(null);
   /** null = ainda não escolheu; "" = qualquer profissional. */
@@ -48,19 +50,28 @@ export function AgendarPublico({ slug, pagina, hoje }: Props) {
       ocupadoTratado.current = estado;
       setInicio(null);
       carregarHorarios(dia);
-      passoDia.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      rolarAte(passoDia.current);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [estado]);
 
+  // Confirmação: o foco vai para o título, e o leitor de tela lê o resultado (aria-live não anuncia
+  // conteúdo que acabou de ser montado).
+  const tituloConfirmacao = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    if (estado.confirmacao) tituloConfirmacao.current?.focus();
+  }, [estado.confirmacao]);
+
   if (estado.confirmacao) {
     const c = estado.confirmacao;
     return (
-      <section className="rounded-2xl bg-white p-6 shadow-sm" aria-live="polite">
-        <div className="flex size-12 items-center justify-center rounded-full bg-confirmado/15 text-2xl text-confirmado-escuro">
+      <section className="rounded-2xl bg-white p-6 shadow-sm">
+        <div aria-hidden className="flex size-12 items-center justify-center rounded-full bg-confirmado/15 text-2xl text-confirmado-escuro">
           ✓
         </div>
-        <h2 className="mt-4 text-xl font-semibold">Agendamento feito!</h2>
+        <h2 ref={tituloConfirmacao} tabIndex={-1} className="mt-4 text-xl font-semibold outline-none">
+          Agendamento feito!
+        </h2>
         <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
           <dt className="text-noite/65">Serviço</dt>
           <dd className="font-medium">{c.servico}</dd>
@@ -99,7 +110,7 @@ export function AgendarPublico({ slug, pagina, hoje }: Props) {
                   setProfissional(null);
                   setDia(null);
                   setInicio(null);
-                  setTimeout(() => passoProfissional.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+                  setTimeout(() => rolarAte(passoProfissional.current));
                 }}
               >
                 <span className="font-medium">{s.nome}</span>
@@ -145,7 +156,7 @@ export function AgendarPublico({ slug, pagina, hoje }: Props) {
 
       {servico && profissional !== null ? (
         <Passo numero={3} titulo="Dia e horário" ref={passoDia}>
-          <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-2" role="group" aria-label="Dias">
+          <div className="-mx-1 flex snap-x gap-2 overflow-x-auto overscroll-x-contain px-1 pb-2" role="group" aria-label="Dias">
             {dias.map((d) => (
               <button
                 key={d}
@@ -156,7 +167,7 @@ export function AgendarPublico({ slug, pagina, hoje }: Props) {
                   setInicio(null);
                   carregarHorarios(d);
                 }}
-                className={`flex shrink-0 flex-col items-center rounded-xl border px-3 py-2 text-sm capitalize transition-colors ${
+                className={`flex shrink-0 snap-start flex-col items-center rounded-xl border px-3 py-2 text-sm capitalize transition-colors ${
                   dia === d ? "border-on bg-on text-white" : "border-noite/15 bg-white hover:border-on"
                 }`}
               >
@@ -197,9 +208,9 @@ export function AgendarPublico({ slug, pagina, hoje }: Props) {
                       aria-pressed={inicio === h}
                       onClick={() => {
                         setInicio(h);
-                        setTimeout(() => passoDados.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+                        setTimeout(() => rolarAte(passoDados.current));
                       }}
-                      className={`h-11 rounded-xl border text-sm font-medium transition-colors ${
+                      className={`h-11 rounded-xl border text-sm font-medium tabular-nums transition-colors ${
                         inicio === h ? "border-on bg-on text-white" : "border-noite/15 bg-white hover:border-on"
                       }`}
                     >
@@ -221,7 +232,7 @@ export function AgendarPublico({ slug, pagina, hoje }: Props) {
             <strong>{servicoEscolhido?.nome}</strong> com {profissionalEscolhido?.nome ?? "qualquer profissional"},{" "}
             <span className="capitalize">{rotuloData(dia)}</span> às {paraHora(minutosNoFuso(inicio, fuso))}
           </p>
-          <form action={acao} className="flex flex-col gap-4" noValidate>
+          <form ref={form} action={acao} className="flex flex-col gap-4" noValidate>
             {estado.erro && !estado.ocupado ? <Alerta tipo="erro">{estado.erro}</Alerta> : null}
             <input type="hidden" name="slug" value={slug} />
             <input type="hidden" name="servico" value={servico} />
@@ -278,8 +289,14 @@ export function AgendarPublico({ slug, pagina, hoje }: Props) {
     setProfissional(id);
     setInicio(null);
     if (dia) carregarHorarios(dia, servico, id);
-    setTimeout(() => passoDia.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    setTimeout(() => rolarAte(passoDia.current));
   }
+}
+
+// Rola até o próximo passo; sem animação para quem pediu menos movimento no sistema.
+function rolarAte(el: HTMLElement | null) {
+  const suave = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  el?.scrollIntoView({ behavior: suave ? "smooth" : "auto", block: "start" });
 }
 
 function faixaDePreco(pagina: PaginaPublica, servico: string, base: number) {

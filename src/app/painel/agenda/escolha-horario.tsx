@@ -9,6 +9,9 @@ import { horariosLivres } from "./actions";
 const CAMPO =
   "h-11 w-auto rounded-xl border bg-white px-3.5 text-base text-noite outline-none transition-colors focus:border-on focus:ring-2 focus:ring-on/20";
 
+// Quantos horários livres aparecem antes do "Ver todos".
+const LIVRES_VISIVEIS = 16;
+
 type Props = {
   profissional: string;
   servico: string;
@@ -27,6 +30,7 @@ type Props = {
 
 export function EscolhaHorario({ profissional, servico, ignorar, dia, onDia, hora, onHora, erros, info, recarregar }: Props) {
   const [encaixe, setEncaixe] = useState(false);
+  const [verTodos, setVerTodos] = useState(false);
   const chave = `${profissional}|${servico}|${dia}`;
   const [livres, setLivres] = useState<{ chave: string; horas: string[] } | null>(null);
   const horas = livres?.chave === chave ? livres.horas : null;
@@ -55,6 +59,8 @@ export function EscolhaHorario({ profissional, servico, ignorar, dia, onDia, hor
             type="date"
             value={dia}
             onChange={(e) => onDia(e.target.value)}
+            aria-invalid={erros.dia ? true : undefined}
+            aria-describedby={erros.dia || erros.hora ? "horario-erro" : undefined}
             className={`${CAMPO} ${erros.dia ? "border-red-400" : "border-noite/15"}`}
           />
         </div>
@@ -65,19 +71,21 @@ export function EscolhaHorario({ profissional, servico, ignorar, dia, onDia, hor
         {info ? <p className="pb-2.5 text-sm text-noite/65">{info}</p> : null}
       </div>
       {erros.dia || erros.hora ? (
-        <p role="alert" className="text-sm text-red-600">
+        <p id="horario-erro" role="alert" className="text-sm text-red-600">
           {erros.hora ?? erros.dia}
         </p>
       ) : null}
 
       <div>
-        <p className="text-sm text-noite/65">
+        {/* Anuncia o resumo (não a lista inteira) ao trocar de dia, profissional ou serviço. */}
+        <p aria-live="polite" className="text-sm text-noite/65">
           Livres em {dia ? rotuloData(dia) : "—"}
           {horas === null ? "…" : horas.length === 0 ? ": nenhum horário livre neste dia." : ":"}
+          {horas && horas.length > 0 ? <span className="sr-only"> {horas.length} horários</span> : null}
         </p>
         {horas && horas.length > 0 ? (
           <ul className="mt-2 flex flex-wrap gap-2">
-            {horas.slice(0, 16).map((h) => (
+            {(verTodos ? horas : horas.slice(0, LIVRES_VISIVEIS)).map((h) => (
               <li key={h}>
                 <button
                   type="button"
@@ -91,12 +99,23 @@ export function EscolhaHorario({ profissional, servico, ignorar, dia, onDia, hor
                 </button>
               </li>
             ))}
+            {!verTodos && horas.length > LIVRES_VISIVEIS ? (
+              <li>
+                <button
+                  type="button"
+                  onClick={() => setVerTodos(true)}
+                  className="h-9 rounded-lg px-3 text-sm font-medium text-on hover:bg-on/5"
+                >
+                  Ver todos ({horas.length})
+                </button>
+              </li>
+            ) : null}
           </ul>
         ) : null}
       </div>
 
       {erros.encaixe || encaixe ? (
-        <div className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        <div role={erros.encaixe ? "alert" : undefined} className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
           {erros.encaixe ? <p className="font-medium">{erros.encaixe}</p> : null}
           <label className="mt-1 flex items-center gap-2">
             <input

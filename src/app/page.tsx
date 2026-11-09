@@ -5,7 +5,7 @@ import { BotaoLink } from "@/components/ui";
 // Página inicial provisória. A landing page de verdade vem depois do MVP.
 export default function Home() {
   return (
-    <main className="flex flex-1 flex-col items-center justify-center gap-8 px-4 py-16 text-center">
+    <main id="conteudo" className="flex flex-1 flex-col items-center justify-center gap-8 px-4 py-16 text-center">
       <Image src="/logo-agendon.png" alt="AgendOn" width={256} height={77} priority className="h-auto w-64" />
       <div className="max-w-md">
         <h1 className="text-2xl font-semibold sm:text-3xl">Agenda online para o seu salão</h1>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useFocarPrimeiroErro } from "@/components/use-focar-erro";
 import { useActionState, useState } from "react";
 import { Alerta, Botao, Campo } from "@/components/ui";
 import { LIMITES_SALAO, normalizarSlug } from "@/lib/regras/salao";
@@ -7,13 +8,14 @@ import { criarSalao, type EstadoSalao } from "./actions";
 
 export function FormSalao() {
   const [estado, acao, pendente] = useActionState<EstadoSalao, FormData>(criarSalao, {});
+  const form = useFocarPrimeiroErro(estado);
   const [nome, setNome] = useState(estado.campos?.nome ?? "");
   const [slug, setSlug] = useState(estado.campos?.slug ?? "");
   // Enquanto a pessoa não mexe no endereço, ele acompanha o nome.
   const [slugEditado, setSlugEditado] = useState(false);
 
   return (
-    <form action={acao} className="mt-6 flex flex-col gap-4" noValidate>
+    <form ref={form} action={acao} className="mt-6 flex flex-col gap-4" noValidate>
       {estado.erro ? <Alerta tipo="erro">{estado.erro}</Alerta> : null}
       <Campo
         id="nome"
@@ -50,7 +52,7 @@ export function FormSalao() {
         ajuda={
           <>
             Seus clientes vão agendar em{" "}
-            <span className="font-medium text-noite">agendon.app.br/{slug || "seu-salao"}</span>
+            <span className="break-all font-medium text-noite">agendon.app.br/{slug || "seu-salao"}</span>
           </>
         }
       />

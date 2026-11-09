@@ -24,7 +24,8 @@ export function SwitchAtivo({ id, ativo, nome }: { id: string; ativo: boolean; n
       type="button"
       role="switch"
       aria-checked={otimista}
-      aria-label={`${nome}: ${otimista ? "ativo" : "inativo"}`}
+      // O estado já vem do aria-checked; o rótulo diz só o que o switch liga.
+      aria-label={`${nome} ativo`}
       onClick={alternar}
       className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-on ${
         otimista ? "bg-confirmado" : "bg-noite/20"

@@ -1,5 +1,6 @@
 "use client";
 
+import { useFocarPrimeiroErro } from "@/components/use-focar-erro";
 import { useActionState } from "react";
 import { Alerta, Botao, BotaoLink, Campo } from "@/components/ui";
 import { LIMITES_SERVICO } from "@/lib/regras/servico";
@@ -9,11 +10,12 @@ type Inicial = { id?: string; nome?: string; duracao?: string; preco?: string };
 
 export function FormServico({ inicial = {} }: { inicial?: Inicial }) {
   const [estado, acao, pendente] = useActionState<EstadoForm, FormData>(salvarServico, {});
+  const form = useFocarPrimeiroErro(estado);
   // Depois de um erro, mostra o que foi digitado; senão, o valor salvo.
   const valor = (campo: "nome" | "duracao" | "preco") => estado.campos?.[campo] ?? inicial[campo] ?? "";
 
   return (
-    <form action={acao} className="flex flex-col gap-4" noValidate>
+    <form ref={form} action={acao} className="flex flex-col gap-4" noValidate>
       {estado.erro ? <Alerta tipo="erro">{estado.erro}</Alerta> : null}
       {inicial.id ? <input type="hidden" name="id" value={inicial.id} /> : null}
       <Campo

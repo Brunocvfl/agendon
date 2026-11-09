@@ -68,7 +68,8 @@ async function Conteudo({ vinculo: { salao }, searchParams }: { vinculo: Vinculo
           </div>
         ) : (
           <>
-            <div className="hidden grid-cols-[1fr_10rem_8rem_5rem_5rem] gap-4 border-b border-noite/8 px-6 py-3 text-sm text-noite/65 md:grid">
+            {/* Títulos só visuais: cada célula leva o próprio rótulo para o leitor de tela. */}
+            <div aria-hidden className="hidden grid-cols-[1fr_10rem_8rem_5rem_5rem] gap-4 border-b border-noite/8 px-6 py-3 text-sm text-noite/65 md:grid">
               <span>Cliente</span>
               <span>WhatsApp</span>
               <span>Último atendimento</span>
@@ -111,7 +112,7 @@ function Linha({ c, data }: { c: ClienteDaLista; data: Datas }) {
   const ultimo = c.ultimoAtendimento ? data.diaMes(c.ultimoAtendimento) : "—";
   return (
     <li className="relative grid grid-cols-[auto_1fr_auto] items-center gap-x-3 border-b border-noite/8 px-5 py-3.5 last:border-b-0 hover:bg-fundo md:grid-cols-[1fr_10rem_8rem_5rem_5rem] md:gap-4 md:px-6">
-      <span className="flex size-10 items-center justify-center rounded-full bg-on/10 text-sm font-semibold text-on md:hidden">
+      <span aria-hidden className="flex size-10 items-center justify-center rounded-full bg-on/10 text-sm font-semibold text-on md:hidden">
         {iniciais(c.nome)}
       </span>
       <div className="min-w-0">
@@ -124,9 +125,18 @@ function Linha({ c, data }: { c: ClienteDaLista; data: Datas }) {
           Cliente desde {data.mesAno(c.criadoEm)}
         </p>
       </div>
-      <span className="hidden text-sm tabular-nums md:block">{formatarTelefone(c.telefone)}</span>
-      <span className="hidden text-sm md:block">{ultimo}</span>
-      <span className="hidden text-right text-sm tabular-nums md:block">{c.visitas}</span>
+      <span className="hidden text-sm tabular-nums md:block">
+        <span className="sr-only">WhatsApp: </span>
+        {formatarTelefone(c.telefone)}
+      </span>
+      <span className="hidden text-sm md:block">
+        <span className="sr-only">Último atendimento: </span>
+        {ultimo}
+      </span>
+      <span className="hidden text-right text-sm tabular-nums md:block">
+        {c.visitas}
+        <span className="sr-only"> {c.visitas === 1 ? "visita" : "visitas"}</span>
+      </span>
       <span className="text-right text-sm tabular-nums">
         <span
           className={`inline-block min-w-7 rounded-md px-1.5 py-0.5 text-center text-xs font-semibold ${
@@ -135,6 +145,7 @@ function Linha({ c, data }: { c: ClienteDaLista; data: Datas }) {
           title={`${c.faltas} ${c.faltas === 1 ? "falta" : "faltas"}`}
         >
           {c.faltas}
+          <span className="sr-only"> {c.faltas === 1 ? "falta" : "faltas"}</span>
         </span>
       </span>
     </li>
