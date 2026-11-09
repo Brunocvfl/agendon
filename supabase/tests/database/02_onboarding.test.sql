@@ -1,7 +1,7 @@
 -- Testes do onboarding (create_salon): validação de entrada, slugs reservados e um salão por usuário.
 
 begin;
-select plan(11);
+select plan(13);
 
 insert into auth.users (id, email) values
   ('d0000000-0000-0000-0000-000000000001', 'dona.um@teste.local'),
@@ -24,6 +24,16 @@ select throws_ok(
   $$select public.create_salon('Studio', 'painel')$$,
   '22023', 'slug_reservado',
   'slug reservado é recusado'
+);
+select throws_ok(
+  $$select public.create_salon('Studio', 'esqueci-senha')$$,
+  '22023', 'slug_reservado',
+  'rota /esqueci-senha é reservada'
+);
+select throws_ok(
+  $$select public.create_salon('Studio', 'nova-senha')$$,
+  '22023', 'slug_reservado',
+  'rota /nova-senha é reservada'
 );
 select throws_ok(
   $$select public.create_salon('Studio', 'ab')$$,
