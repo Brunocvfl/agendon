@@ -57,6 +57,57 @@ export function lerAgendamento(e: EntradaAgendamento): Resultado<AgendamentoVali
   return valido({ profissional, servico, dia, inicio: `${dia}T${hora}`, cliente, encaixe: Boolean(e.encaixe) });
 }
 
+export type EntradaAgendamentoPublico = {
+  servico?: string;
+  /** Vazio = qualquer profissional. */
+  profissional?: string;
+  dia?: string;
+  hora?: string;
+  nome?: string;
+  telefone?: string;
+  optin?: boolean;
+};
+
+export type AgendamentoPublicoValido = {
+  servico: string;
+  profissional: string | null;
+  /** Horário local do salão, "AAAA-MM-DDTHH:MM". */
+  inicio: string;
+  nome: string;
+  telefone: string;
+  optin: boolean;
+};
+
+/** Agendamento feito pelo cliente na página pública. O banco (agendar_publico) confere o resto. */
+export function lerAgendamentoPublico(e: EntradaAgendamentoPublico): Resultado<AgendamentoPublicoValido> {
+  const erros: ErrosPorCampo = {};
+  const servico = e.servico ?? "";
+  const profissional = e.profissional ?? "";
+  const dia = e.dia ?? "";
+  const hora = e.hora ?? "";
+
+  if (!ehUuid(servico)) erros.servico = "Escolha o serviço.";
+  if (profissional !== "" && !ehUuid(profissional)) erros.profissional = "Escolha o profissional.";
+  if (!ehData(dia)) erros.dia = "Escolha o dia.";
+  if (!HORA_RE.test(hora)) erros.hora = "Escolha o horário.";
+
+  const cliente = lerCliente({ nome: e.nome, telefone: e.telefone });
+  if (!cliente.ok) {
+    if (cliente.erros.nome) erros.nome = cliente.erros.nome;
+    if (cliente.erros.telefone) erros.telefone = cliente.erros.telefone;
+  }
+
+  if (Object.keys(erros).length > 0 || !cliente.ok) return invalido(erros);
+  return valido({
+    servico,
+    profissional: profissional || null,
+    inicio: `${dia}T${hora}`,
+    nome: cliente.valor.nome,
+    telefone: cliente.valor.telefone,
+    optin: Boolean(e.optin),
+  });
+}
+
 function lerHorario(erros: ErrosPorCampo, profissional: string, dia: string, hora: string) {
   if (!ehUuid(profissional)) erros.profissional = "Escolha o profissional.";
   if (!ehData(dia)) erros.dia = "Escolha o dia.";

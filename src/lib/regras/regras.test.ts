@@ -5,7 +5,7 @@ import { lerServico } from "./servico";
 import { lerNomeProfissional } from "./profissional";
 import { lerFolga } from "./folga";
 import { lerCliente, lerTelefone } from "./cliente";
-import { lerAgendamento, lerMudancaDeStatus, lerRemarcacao, proximosStatus } from "./agendamento";
+import { lerAgendamento, lerAgendamentoPublico, lerMudancaDeStatus, lerRemarcacao, proximosStatus } from "./agendamento";
 import { lerSalao, normalizarSlug, SLUGS_RESERVADOS } from "./salao";
 
 describe("lerServico", () => {
@@ -192,5 +192,39 @@ describe("lerMudancaDeStatus", () => {
   it("recusa status desconhecido ou id inválido", () => {
     expect(lerMudancaDeStatus({ id, status: "apagado" })).toBeNull();
     expect(lerMudancaDeStatus({ id: "1", status: "cancelado" })).toBeNull();
+  });
+});
+
+describe("lerAgendamentoPublico", () => {
+  const base = {
+    servico: "11111111-1111-4111-8111-111111111111",
+    profissional: "",
+    dia: "2030-01-08",
+    hora: "10:30",
+    nome: "  Carla   Souza ",
+    telefone: "(11) 98765-4321",
+  };
+  it("aceita qualquer profissional e normaliza nome e WhatsApp", () => {
+    expect(lerAgendamentoPublico({ ...base, optin: true })).toEqual({
+      ok: true,
+      valor: {
+        servico: base.servico,
+        profissional: null,
+        inicio: "2030-01-08T10:30",
+        nome: "Carla Souza",
+        telefone: "+5511987654321",
+        optin: true,
+      },
+    });
+  });
+  it("aceita profissional escolhido", () => {
+    const r = lerAgendamentoPublico({ ...base, profissional: "22222222-2222-4222-8222-222222222222" });
+    expect(r.ok && r.valor.profissional).toBe("22222222-2222-4222-8222-222222222222");
+    expect(r.ok && r.valor.optin).toBe(false);
+  });
+  it("aponta cada campo inválido", () => {
+    const r = lerAgendamentoPublico({ servico: "x", profissional: "y", dia: "2030-02-30", hora: "25:00", nome: "A", telefone: "123" });
+    expect(r.ok).toBe(false);
+    expect(Object.keys(r.ok ? {} : r.erros).sort()).toEqual(["dia", "hora", "nome", "profissional", "servico", "telefone"]);
   });
 });
