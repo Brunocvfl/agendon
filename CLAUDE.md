@@ -121,7 +121,9 @@ Migrations em `supabase/migrations/`:
 
 16. `20261109234523_message_log_fk.sql`: `appointments` ganha `unique (id, salon_id)` e `message_log.appointment_id` vira FK composta `(appointment_id, salon_id)` (`on delete set null (appointment_id)`).
 
-Testes: `01_isolation` (12), `02_onboarding` (13), `03_services` (14), `04_professionals` (20), `05_clients` (21), `06_appointments` (23, datas fixas em 2030 para não depender do dia), `07_status` (30), `08_profissional_agenda` (17), `09_pagina_publica` (25, datas relativas a hoje por causa do horizonte de 60 dias), `10_equipe` (27), `11_dados_salao` (19), `12_lgpd` (26), `13_message_log` (4). Os testes não podem depender do banco vazio (use slugs/nomes que não colidem com dados criados à mão nem com o seed).
+17. `20261109235503_clientes_anonimizados_imutaveis.sql`: a policy de UPDATE de `clients` só vale para quem não foi anonimizado (a anonimização é definitiva; achado do Strix).
+
+Testes: `01_isolation` (12), `02_onboarding` (13), `03_services` (14), `04_professionals` (20), `05_clients` (21), `06_appointments` (23, datas fixas em 2030 para não depender do dia), `07_status` (30), `08_profissional_agenda` (17), `09_pagina_publica` (25, datas relativas a hoje por causa do horizonte de 60 dias), `10_equipe` (27), `11_dados_salao` (19), `12_lgpd` (28), `13_message_log` (4). Os testes não podem depender do banco vazio (use slugs/nomes que não colidem com dados criados à mão nem com o seed).
 
 Seed local (`supabase/seed.sql`, roda no `db:reset`; o `db push` não envia): salão "Studio Teste" com logins `dono@`, `recepcao@` e `profissional@agendon.test` (senha no arquivo), serviços, profissionais com horário, clientes e histórico.
 
