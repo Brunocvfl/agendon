@@ -11,6 +11,7 @@ export type Permissao =
   | "criar-agendamento" // e remarcar. Profissional: só na própria agenda (o banco restringe)
   | "mudar-status" // confirmar, concluir, faltou, cancelar. Profissional: só na própria agenda
   | "ver-clientes" // inclui histórico e telefone
+  | "dados-do-titular" // LGPD: exportar e anonimizar cliente
   | "editar-servicos" // serviços e preços
   | "editar-profissionais" // cadastro e serviços que cada um atende
   | "editar-horarios" // horário semanal e folgas
@@ -22,6 +23,7 @@ const MATRIZ: Record<Permissao, readonly Perfil[]> = {
   "criar-agendamento": ["dono", "recepcao", "profissional"],
   "mudar-status": ["dono", "recepcao", "profissional"],
   "ver-clientes": ["dono", "recepcao"],
+  "dados-do-titular": ["dono"],
   "editar-servicos": ["dono"],
   "editar-profissionais": ["dono"],
   "editar-horarios": ["dono", "recepcao"],

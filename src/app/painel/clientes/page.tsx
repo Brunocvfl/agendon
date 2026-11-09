@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Form from "next/form";
 import Link from "next/link";
-import { BotaoLink, Cartao } from "@/components/ui";
+import { Alerta, BotaoLink, Cartao } from "@/components/ui";
 import { PaginaProtegida } from "@/components/pagina-protegida";
 import type { Vinculo } from "@/lib/auth";
 import { formatarDiaMes, formatarMesAno, formatarTelefone, iniciais } from "@/lib/formato";
@@ -41,6 +41,11 @@ async function Conteudo({ vinculo: { salao }, searchParams }: { vinculo: Vinculo
 
   return (
     <>
+      {umValor(sp.aviso) === "anonimizado" ? (
+        <div className="mt-6">
+          <Alerta tipo="sucesso">Cliente anonimizado. Os atendimentos passados continuam na agenda, sem identificação.</Alerta>
+        </div>
+      ) : null}
       <Form action="/painel/clientes" className="mt-6" role="search">
         <label htmlFor="q" className="sr-only">
           Buscar por nome ou WhatsApp

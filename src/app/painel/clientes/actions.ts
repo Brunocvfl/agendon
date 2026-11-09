@@ -44,3 +44,16 @@ export const salvarCliente = acaoDoPainel({
   mensagens: DUPLICADO,
   depois: { ok: "Dados salvos." },
 });
+
+// LGPD: elimina por anonimização (só Dono(a)); o banco cancela os agendamentos futuros.
+export const anonimizarCliente = acaoDoPainel({
+  permissao: "dados-do-titular",
+  senao: VOLTAR,
+  ler: (fd) => {
+    const id = texto(fd, "id");
+    return ehUuid(id) ? { ok: true as const, valor: { id } } : invalido({ [ERRO_GERAL]: "Cliente inválido. Recarregue a página." });
+  },
+  executar: ({ id }, { supabase }) => supabase.rpc("anonimizar_cliente", { p_client: id }),
+  mensagens: { "nao-encontrado": "Esse cliente já foi anonimizado. Recarregue a página." },
+  depois: { ir: "/painel/clientes?aviso=anonimizado" },
+});

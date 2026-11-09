@@ -145,8 +145,10 @@ export default function PaginaPrivacidade() {
           <strong>Registros de acesso:</strong> pelo menos 6 meses, como exige o Marco Civil da Internet.
         </li>
         <li>
-          <strong>Dados dos clientes dos salões:</strong> pelo tempo definido pelo salão. O salão pode anonimizar um
-          cliente a qualquer momento; quando o salão encerra a conta, esses dados seguem os mesmos prazos acima.
+          <strong>Dados dos clientes dos salões:</strong> enquanto a pessoa continuar agendando. Quem fica 24 meses
+          sem nenhum agendamento é anonimizado automaticamente: nome, WhatsApp e observações são apagados e os
+          atendimentos passados ficam sem identificação. A pedido do cliente, o salão pode exportar os dados dele ou
+          anonimizá-lo a qualquer momento. Quando o salão encerra a conta, esses dados seguem os mesmos prazos acima.
         </li>
         <li>
           Dados que precisem ser mantidos por obrigação legal ou para defesa em processos são guardados pelo prazo

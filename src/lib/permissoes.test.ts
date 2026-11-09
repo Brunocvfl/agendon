@@ -7,6 +7,7 @@ const ESPERADO: [Permissao, boolean, boolean, boolean][] = [
   ["criar-agendamento", true, true, true],
   ["mudar-status", true, true, true],
   ["ver-clientes", true, true, false],
+  ["dados-do-titular", true, false, false],
   ["editar-servicos", true, false, false],
   ["editar-profissionais", true, false, false],
   ["editar-horarios", true, true, false],
