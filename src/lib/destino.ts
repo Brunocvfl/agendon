@@ -7,7 +7,7 @@ export function destinoSeguro(next: string | null | undefined, padrao = "/painel
 }
 
 // Rotas que exigem login e rotas que só fazem sentido para quem não está logado.
-export const ROTAS_PROTEGIDAS = ["/painel", "/criar-salao", "/nova-senha"];
+export const ROTAS_PROTEGIDAS = ["/painel", "/criar-salao", "/nova-senha", "/convite"];
 export const ROTAS_DE_VISITANTE = ["/entrar", "/cadastro", "/esqueci-senha"];
 
 export function comecaCom(pathname: string, rotas: string[]) {

@@ -1,8 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { urlDoSite } from "@/lib/site";
 import { destinoSeguro } from "@/lib/destino";
 import { erroDaSenha } from "@/lib/regras/senha";
 import { VERSAO_DOCUMENTOS } from "@/lib/legal";
@@ -46,13 +46,6 @@ function mensagemAuth(code: string | undefined) {
     default:
       return "Não foi possível concluir agora. Tente de novo em instantes.";
   }
-}
-
-async function urlDoSite() {
-  const configurada = process.env.NEXT_PUBLIC_SITE_URL;
-  if (configurada) return configurada.replace(/\/$/, "");
-  const h = await headers();
-  return h.get("origin") ?? "http://localhost:3000";
 }
 
 // Link dos e-mails de autenticação: passa pelo callback (troca o código pela sessão) e segue para `destino`.

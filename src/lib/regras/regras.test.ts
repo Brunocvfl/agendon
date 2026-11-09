@@ -7,6 +7,7 @@ import { lerFolga } from "./folga";
 import { lerCliente, lerTelefone } from "./cliente";
 import { lerAgendamento, lerAgendamentoPublico, lerMudancaDeStatus, lerRemarcacao, proximosStatus } from "./agendamento";
 import { lerSalao, normalizarSlug, SLUGS_RESERVADOS } from "./salao";
+import { lerConvite, lerMembro } from "./equipe";
 
 describe("lerServico", () => {
   it("aceita e normaliza", () => {
@@ -226,5 +227,34 @@ describe("lerAgendamentoPublico", () => {
     const r = lerAgendamentoPublico({ servico: "x", profissional: "y", dia: "2030-02-30", hora: "25:00", nome: "A", telefone: "123" });
     expect(r.ok).toBe(false);
     expect(Object.keys(r.ok ? {} : r.erros).sort()).toEqual(["dia", "hora", "nome", "profissional", "servico", "telefone"]);
+  });
+});
+
+describe("lerConvite e lerMembro", () => {
+  const agenda = "00000000-0000-4000-e000-000000000001";
+  it("aceita e normaliza", () => {
+    expect(lerConvite({ nome: "  Rita   Souza ", email: " Rita@Salao.com.BR ", perfil: "recepcao", agenda: "" })).toEqual({
+      ok: true,
+      valor: { nome: "Rita Souza", email: "rita@salao.com.br", perfil: "recepcao", agenda: { tipo: "nenhuma" } },
+    });
+  });
+  it("guarda a agenda escolhida ou nova", () => {
+    const r = lerMembro({ nome: "Ana", perfil: "profissional", agenda });
+    expect(r.ok && r.valor.agenda).toEqual({ tipo: "existente", id: agenda });
+    const n = lerMembro({ nome: "Ana", perfil: "profissional", agenda: "nova" });
+    expect(n.ok && n.valor.agenda).toEqual({ tipo: "nova" });
+  });
+  it("Profissional precisa de agenda; Dono(a) e Recepção não", () => {
+    const r = lerMembro({ nome: "Ana", perfil: "profissional", agenda: "" });
+    expect(r.ok ? {} : r.erros).toEqual({ agenda: "Escolha a agenda desse profissional (ou crie uma nova)." });
+    expect(lerMembro({ nome: "Ana", perfil: "dono", agenda: "" }).ok).toBe(true);
+  });
+  it("junta os erros de todos os campos", () => {
+    const r = lerConvite({ nome: "A", email: "sem-arroba", perfil: "gerente", agenda: "x" });
+    expect(Object.keys(r.ok ? {} : r.erros).sort()).toEqual(["agenda", "email", "nome", "perfil"]);
+  });
+  it("só e-mail inválido", () => {
+    const r = lerConvite({ nome: "Ana", email: "ana@", perfil: "dono" });
+    expect(r.ok ? {} : r.erros).toEqual({ email: "Informe um e-mail válido." });
   });
 });

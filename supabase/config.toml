@@ -258,10 +258,10 @@ content_path = "./supabase/templates/recuperacao.html"
 subject = "Confirme a troca de e-mail no AgendOn"
 content_path = "./supabase/templates/troca-de-email.html"
 
-# Uncomment to customize email template
-# [auth.email.template.invite]
-# subject = "You have been invited"
-# content_path = "./supabase/templates/invite.html"
+# Convite da equipe: o link vai para {{ .RedirectTo }} (/auth/confirmar) com o token_hash.
+[auth.email.template.invite]
+subject = "Você foi convidado(a) para o AgendOn"
+content_path = "./supabase/templates/convite.html"
 
 # Uncomment to customize notification email template
 # [auth.email.notification.password_changed]

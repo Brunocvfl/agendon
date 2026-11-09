@@ -5,7 +5,8 @@ Termos do domínio e dos módulos. Use estes nomes no código, nos commits e nas
 ## Domínio
 
 - **Salão**: o cliente do AgendOn (tenant). Tudo pertence a um salão (`salon_id`). Inclui autônomos (salão de uma pessoa).
-- **Vínculo**: a ligação de um login com um salão e o seu **perfil** (`public.members`). No MVP, um login tem um vínculo.
+- **Vínculo**: a ligação de um login com um salão e o seu **perfil** (`public.members`). No MVP, um login tem um vínculo. Situação: `ativo`, `convidado` (convite enviado, ainda sem acesso) ou `inativo` (acesso desativado; nunca é apagado).
+- **Convite**: o Dono(a) chama alguém para a **equipe** por e-mail; a pessoa cria a senha em `/convite` e o vínculo fica `ativo`.
 - **Perfil**: Dono(a), Recepção ou Profissional. Define o que o vínculo pode fazer (ver **Permissão**).
 - **Permissão**: uma ação do painel nomeada na matriz de permissões (ex.: `editar-servicos`). Perguntada com `pode(perfil, permissão)`.
 - **Serviço**: o que o salão oferece, com duração e preço. Nunca é apagado, só desativado.

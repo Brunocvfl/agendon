@@ -9,6 +9,8 @@ export const metadata: Metadata = { title: "Entrar · AgendOn" };
 const AVISOS: Record<string, string> = {
   link: "O link expirou ou já foi usado. Entre com e-mail e senha ou peça um novo link em “Esqueci a senha”.",
   confirmado: "E-mail confirmado. Entre para continuar.",
+  convite:
+    "O link do convite expirou ou já foi usado. Peça ao salão para reenviar o convite, ou use “Esqueci a senha” com o e-mail convidado.",
 };
 
 export default function PaginaEntrar({ searchParams }: PageProps<"/entrar">) {

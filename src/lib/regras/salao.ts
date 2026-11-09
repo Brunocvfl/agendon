@@ -6,9 +6,10 @@ export const LIMITES_SALAO = { nome: { min: 2, max: 80 }, slug: { min: 3, max: 4
 
 export const SLUGS_RESERVADOS = [
   "admin", "agendon", "ajuda", "api", "app", "auth", "blog", "cadastro", "cadastrar",
-  "conta", "contato", "criar-salao", "dashboard", "entrar", "esqueci-senha", "login",
-  "logout", "nova-senha", "painel", "planos", "precos", "privacidade", "sair", "salao",
-  "senha", "signup", "static", "status", "suporte", "termos", "webhook", "webhooks", "www",
+  "conta", "contato", "convite", "convites", "criar-salao", "dashboard", "entrar", "equipe",
+  "esqueci-senha", "login", "logout", "nova-senha", "painel", "planos", "precos", "privacidade",
+  "sair", "salao", "senha", "signup", "static", "status", "suporte", "termos", "webhook",
+  "webhooks", "www",
 ] as const;
 
 // "Studio Bela Vida!" -> "studio-bela-vida"
