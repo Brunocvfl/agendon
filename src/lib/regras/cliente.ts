@@ -53,3 +53,16 @@ export function lerCliente(entrada: { nome?: string; telefone?: string; observac
     ? invalido(erros)
     : valido({ nome, telefone: telefone!, observacoes: observacoes || null });
 }
+
+/** Nome do arquivo da exportação (LGPD): "cliente-marina-lima-2026-11-09.json", só ASCII. */
+export function arquivoDaExportacao(nome: string, data: string): string {
+  const base = nome
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 40)
+    .replace(/-+$/, "");
+  return `cliente-${base || "dados"}-${data}.json`;
+}

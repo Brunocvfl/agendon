@@ -58,6 +58,7 @@ export async function buscarCliente(salonId: string, id: string) {
     .limit(50, { referencedTable: "appointments" })
     .maybeSingle();
   if (!data || !data.telefone) return null;
+  const agora = Date.now();
 
   const historico: Atendimento[] = data.appointments.map((a) => ({
     id: a.id,
@@ -77,5 +78,7 @@ export async function buscarCliente(salonId: string, id: string) {
     historico,
     visitas: historico.filter((a) => a.status === "concluido").length,
     faltas: historico.filter((a) => a.status === "faltou").length,
+    /** Agendados/confirmados que ainda não começaram (a anonimização cancela). */
+    futuros: historico.filter((a) => (a.status === "agendado" || a.status === "confirmado") && Date.parse(a.inicio) > agora).length,
   };
 }

@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { lerServico } from "./servico";
 import { lerNomeProfissional } from "./profissional";
 import { lerFolga } from "./folga";
-import { lerCliente, lerTelefone } from "./cliente";
+import { arquivoDaExportacao, lerCliente, lerTelefone } from "./cliente";
 import { lerAgendamento, lerAgendamentoPublico, lerMudancaDeStatus, lerRemarcacao, proximosStatus } from "./agendamento";
 import { formatarEndereco, lerDadosSalao, lerInstagram, lerSalao, normalizarSlug, SLUGS_RESERVADOS } from "./salao";
 import { lerConvite, lerMembro } from "./equipe";
@@ -294,5 +294,17 @@ describe("formatarEndereco", () => {
       .toBe("Rua das Flores, 120 - Centro - São Paulo/SP");
     expect(formatarEndereco({ cidade: "Recife", uf: "PE" })).toBe("Recife/PE");
     expect(formatarEndereco({})).toBeNull();
+  });
+});
+
+describe("arquivoDaExportacao", () => {
+  it("usa o nome sem acentos e a data", () => {
+    expect(arquivoDaExportacao("  Júlia D'Ávila  Ramos ", "2026-11-09")).toBe("cliente-julia-d-avila-ramos-2026-11-09.json");
+  });
+  it("nome sem letras vira 'dados'", () => {
+    expect(arquivoDaExportacao("😀 ", "2026-11-09")).toBe("cliente-dados-2026-11-09.json");
+  });
+  it("corta nomes longos sem deixar hífen no fim", () => {
+    expect(arquivoDaExportacao("a".repeat(39) + " b", "2026-11-09")).toBe(`cliente-${"a".repeat(39)}-2026-11-09.json`);
   });
 });

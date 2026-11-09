@@ -4,9 +4,11 @@ import { notFound } from "next/navigation";
 import { Cartao } from "@/components/ui";
 import { PaginaProtegida } from "@/components/pagina-protegida";
 import type { Vinculo } from "@/lib/auth";
+import { pode } from "@/lib/permissoes";
 import { formatarDiaMes, formatarMesAno, formatarTelefone, iniciais, linkWhatsApp, NOME_STATUS } from "@/lib/formato";
 import { buscarCliente, type Atendimento } from "../dados";
 import { FormCliente } from "../form-cliente";
+import { DadosDoTitular } from "./dados-do-titular";
 
 type Datas = { diaMes: (iso: string) => string; mesAno: (iso: string) => string };
 
@@ -30,7 +32,7 @@ export default function PaginaCliente({ params }: PageProps<"/painel/clientes/[i
   );
 }
 
-async function Conteudo({ vinculo: { salao }, id }: { vinculo: Vinculo; id: string }) {
+async function Conteudo({ vinculo: { salao, perfil }, id }: { vinculo: Vinculo; id: string }) {
   const cliente = await buscarCliente(salao.id, id);
   if (!cliente) notFound();
 
@@ -98,6 +100,18 @@ async function Conteudo({ vinculo: { salao }, id }: { vinculo: Vinculo; id: stri
           )}
         </Cartao>
       </div>
+
+      {pode(perfil, "dados-do-titular") ? (
+        <Cartao className="mt-6 lg:max-w-[calc(100%-23.5rem)]">
+          <h2 className="text-lg font-semibold">Dados pessoais (LGPD)</h2>
+          <p className="mt-1 text-sm text-noite/65">
+            O salão é o controlador dos dados dos clientes. Use estas opções quando o cliente pedir.
+          </p>
+          <div className="mt-4">
+            <DadosDoTitular id={cliente.id} futuros={cliente.futuros} />
+          </div>
+        </Cartao>
+      ) : null}
     </>
   );
 }

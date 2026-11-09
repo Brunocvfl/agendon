@@ -316,6 +316,9 @@ isOneToOne: false
               "fim": string,"id": string,"inicio": string,"preco": number,"profissional": string,"servico": string
             }[]
                            },
+"anonimizar_cliente":
+{ Args: { "p_client": string }; Returns: number
+                           },
 "buscar_clientes_por_nome":
 { Args: { "p_busca": string,"p_limite"?: number,"p_salon": string }; Returns: {
               "id": string,"nome": string,"ultimo_atendimento": string
@@ -334,6 +337,9 @@ isOneToOne: false
 { Args: { "p_salon": string }; Returns: {
               "convidado_em": string,"email": string,"id": string,"nome": string,"perfil": Database["public"]['Enums']["member_role"],"profissional_id": string,"profissional_nome": string,"status": string,"ultimo_acesso": string,"user_id": string
             }[]
+                           },
+"exportar_cliente":
+{ Args: { "p_client": string }; Returns: Json
                            },
 "horarios_livres":
 { Args: { "p_dia": string,"p_ignorar"?: string,"p_professional": string,"p_service": string }; Returns: string[]
