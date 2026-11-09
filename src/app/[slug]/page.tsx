@@ -4,6 +4,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { dataNoFuso } from "@/lib/datas";
+import { formatarTelefone, linkWhatsApp } from "@/lib/formato";
+import { urlDaLogo } from "@/lib/logo";
+import { formatarEndereco } from "@/lib/regras/salao";
 import { carregarPaginaPublica } from "./dados";
 import { AgendarPublico } from "./agendar-publico";
 
@@ -46,12 +49,45 @@ async function Conteudo({ params }: { params: PageProps<"/[slug]">["params"] }) 
   if (!pagina) notFound();
 
   const { salao } = pagina;
+  const endereco = formatarEndereco(salao.endereco);
   return (
     <>
-      <header className="mb-6">
-        <p className="text-sm font-medium text-on">Agende seu horário</p>
-        <h1 className="mt-1 text-2xl font-semibold sm:text-3xl">{salao.nome}</h1>
-        {salao.endereco ? <p className="mt-1 text-sm text-noite/65">{salao.endereco}</p> : null}
+      <header className="mb-6 flex items-start gap-4">
+        {salao.logo_path ? (
+          <Image
+            src={urlDaLogo(salao.logo_path)}
+            alt=""
+            width={64}
+            height={64}
+            unoptimized
+            priority
+            className="size-16 shrink-0 rounded-2xl object-cover ring-1 ring-noite/10"
+          />
+        ) : null}
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-on">Agende seu horário</p>
+          <h1 className="mt-1 text-2xl font-semibold break-words sm:text-3xl">{salao.nome}</h1>
+          {endereco ? <p className="mt-1 text-sm text-noite/65">{endereco}</p> : null}
+          {salao.whatsapp || salao.instagram ? (
+            <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+              {salao.whatsapp ? (
+                <a href={linkWhatsApp(salao.whatsapp)} target="_blank" rel="noopener noreferrer" className="font-medium text-on hover:underline">
+                  WhatsApp {formatarTelefone(salao.whatsapp)}
+                </a>
+              ) : null}
+              {salao.instagram ? (
+                <a
+                  href={`https://instagram.com/${salao.instagram}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-on hover:underline"
+                >
+                  @{salao.instagram}
+                </a>
+              ) : null}
+            </p>
+          ) : null}
+        </div>
       </header>
       {pagina.servicos.length === 0 ? (
         <p className="rounded-2xl bg-white p-6 text-sm text-noite/70 shadow-sm">

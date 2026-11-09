@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-// Configurações abre na única aba pronta.
+// Configurações abre na primeira aba.
 export default function PaginaConfiguracoes() {
-  redirect("/painel/configuracoes/equipe");
+  redirect("/painel/configuracoes/dados");
 }
