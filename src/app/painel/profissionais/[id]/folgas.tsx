@@ -1,6 +1,7 @@
 "use client";
 
 import { startTransition, useActionState, useState, type FormEvent } from "react";
+import { useFormStatus } from "react-dom";
 import { SeletorHora } from "@/components/seletor-hora";
 import { Alerta, Botao, Campo } from "@/components/ui";
 import { LIMITES_FOLGA, proximoDia, type ModoFolga } from "@/lib/regras/folga";
@@ -62,23 +63,16 @@ export function Folgas({ id, folgas, fuso, podeEditar }: Props) {
   return (
     <div className="mt-4 flex flex-col gap-4">
       {folgas.length === 0 ? (
-        <p className="text-sm text-noite/50">Nenhuma folga ou bloqueio marcado.</p>
+        <p className="text-sm text-noite/65">Nenhuma folga ou bloqueio marcado.</p>
       ) : (
         <ul className="flex flex-col gap-2">
           {folgas.map((f) => (
             <li key={f.id} className="flex items-center justify-between gap-3 rounded-xl bg-fundo px-4 py-3 text-sm">
               <div className="min-w-0">
                 <p className="font-medium">{f.motivo ?? "Bloqueio"}</p>
-                <p className="text-noite/60">{formatarPeriodo(f.inicio, f.fim, fuso)}</p>
+                <p className="text-noite/65">{formatarPeriodo(f.inicio, f.fim, fuso)}</p>
               </div>
-              {podeEditar ? (
-                <form action={removerFolga}>
-                  <input type="hidden" name="id" value={f.id} />
-                  <button type="submit" className="text-sm font-medium text-red-600 hover:underline">
-                    Remover
-                  </button>
-                </form>
-              ) : null}
+              {podeEditar ? <RemoverFolga id={f.id} /> : null}
             </li>
           ))}
         </ul>
@@ -108,6 +102,49 @@ export function Folgas({ id, folgas, fuso, podeEditar }: Props) {
         </form>
       ) : null}
     </div>
+  );
+}
+
+// "Remover" pede confirmação na própria linha e fica desabilitado enquanto envia (sem envio duplo).
+function RemoverFolga({ id }: { id: string }) {
+  const [confirmando, setConfirmando] = useState(false);
+  if (!confirmando) {
+    return (
+      <button
+        type="button"
+        onClick={() => setConfirmando(true)}
+        className="shrink-0 text-sm font-medium text-red-700 hover:underline"
+      >
+        Remover
+      </button>
+    );
+  }
+  return (
+    <form action={removerFolga} className="flex shrink-0 items-center gap-3">
+      <input type="hidden" name="id" value={id} />
+      <BotaoConfirmarRemocao />
+      <button
+        type="button"
+        onClick={() => setConfirmando(false)}
+        className="text-sm font-medium text-noite/70 hover:underline"
+      >
+        Manter
+      </button>
+    </form>
+  );
+}
+
+function BotaoConfirmarRemocao() {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      autoFocus
+      className="rounded-lg bg-red-700 px-3 py-1.5 text-sm font-semibold text-white hover:bg-red-700/90 disabled:bg-red-700/50"
+    >
+      {pending ? "Removendo…" : "Remover mesmo"}
+    </button>
   );
 }
 
@@ -141,7 +178,7 @@ function Periodo({ fuso, erro }: { fuso: string; erro?: string }) {
             aria-checked={modo === m.valor}
             onClick={() => setModo(m.valor)}
             className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition-colors ${
-              modo === m.valor ? "bg-white text-noite shadow-sm" : "text-noite/60 hover:text-noite"
+              modo === m.valor ? "bg-white text-noite shadow-sm" : "text-noite/65 hover:text-noite"
             }`}
           >
             {m.rotulo}

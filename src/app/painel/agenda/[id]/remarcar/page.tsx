@@ -50,7 +50,7 @@ async function Conteudo({ vinculo, id }: { vinculo: Vinculo; id: string }) {
             inicial={{ profissional: ag.profissionalId, dia, hora }}
           />
         ) : (
-          <p className="text-sm text-noite/60">
+          <p className="text-sm text-noite/65">
             Este agendamento está {NOME_STATUS[ag.status]} e não pode ser remarcado.
           </p>
         )}

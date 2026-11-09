@@ -42,7 +42,7 @@ async function Conteudo({ vinculo: { salao, perfil } }: { vinculo: Vinculo }) {
         {servicos.length === 0 ? (
           <div className="px-6 py-14 text-center">
             <p className="font-medium">Nenhum serviço cadastrado</p>
-            <p className="mt-1 text-sm text-noite/60">
+            <p className="mt-1 text-sm text-noite/65">
               {podeEditar
                 ? "Cadastre o que o salão oferece, com duração e preço."
                 : "Peça ao Dono(a) do salão para cadastrar os serviços."}
@@ -51,7 +51,7 @@ async function Conteudo({ vinculo: { salao, perfil } }: { vinculo: Vinculo }) {
         ) : (
           <>
             {/* Cabeçalho da tabela (só em telas largas) */}
-            <div className="hidden grid-cols-[1fr_7rem_7rem_8rem_4rem] gap-4 border-b border-noite/8 px-6 py-3 text-sm text-noite/50 md:grid">
+            <div className="hidden grid-cols-[1fr_7rem_7rem_8rem_4rem] gap-4 border-b border-noite/8 px-6 py-3 text-sm text-noite/65 md:grid">
               <span>Serviço</span>
               <span>Duração</span>
               <span>Preço</span>
@@ -72,9 +72,9 @@ async function Conteudo({ vinculo: { salao, perfil } }: { vinculo: Vinculo }) {
                     ) : (
                       <span className="font-semibold">{s.nome}</span>
                     )}
-                    {!s.ativo ? <span className="ml-2 text-xs text-noite/50">inativo</span> : null}
+                    {!s.ativo ? <span className="ml-2 text-xs text-noite/65">inativo</span> : null}
                     {/* No celular, duração e preço ficam abaixo do nome */}
-                    <p className="text-sm text-noite/60 md:hidden">
+                    <p className="text-sm text-noite/65 md:hidden">
                       {formatarDuracao(s.duracao_min)} · {formatarPreco(s.preco)}
                     </p>
                   </div>
@@ -82,7 +82,7 @@ async function Conteudo({ vinculo: { salao, perfil } }: { vinculo: Vinculo }) {
                   <span className="hidden text-sm md:block">{formatarPreco(s.preco)}</span>
                   <span className="hidden flex-wrap gap-1 md:flex">
                     {s.profissionais.length === 0 ? (
-                      <span className="text-sm text-noite/40">—</span>
+                      <span className="text-sm text-noite/65">—</span>
                     ) : (
                       s.profissionais.map((p) => (
                         <span
@@ -99,7 +99,7 @@ async function Conteudo({ vinculo: { salao, perfil } }: { vinculo: Vinculo }) {
                     {podeEditar ? (
                       <SwitchAtivo id={s.id} ativo={s.ativo} nome={s.nome} />
                     ) : (
-                      <span className={`text-sm ${s.ativo ? "text-confirmado" : "text-noite/40"}`}>
+                      <span className={`text-sm ${s.ativo ? "text-confirmado-escuro" : "text-noite/65"}`}>
                         {s.ativo ? "Sim" : "Não"}
                       </span>
                     )}
@@ -110,7 +110,7 @@ async function Conteudo({ vinculo: { salao, perfil } }: { vinculo: Vinculo }) {
           </>
         )}
       </Cartao>
-      <p className="mt-4 text-sm text-noite/55">
+      <p className="mt-4 text-sm text-noite/65">
         A duração define quantos horários seguidos o serviço ocupa na agenda e na página pública. Serviços inativos
         não aparecem para os clientes.
       </p>

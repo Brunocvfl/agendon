@@ -25,7 +25,7 @@ export function CampoSenhaNova({ id = "senha", name = "senha", label = "Senha" }
         <span className="grid grid-cols-1 gap-1 sm:grid-cols-2">
           {requisitos.map((r) => (
             <span key={r.id} className={`flex items-center gap-1.5 ${r.ok ? "text-noite/80" : ""}`}>
-              <span aria-hidden="true" className={`w-3 font-bold ${r.ok ? "text-confirmado" : ""}`}>
+              <span aria-hidden="true" className={`w-3 font-bold ${r.ok ? "text-confirmado-escuro" : ""}`}>
                 {r.ok ? "✓" : "○"}
               </span>
               {r.texto}

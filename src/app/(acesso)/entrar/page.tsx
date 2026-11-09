@@ -15,7 +15,7 @@ export default function PaginaEntrar({ searchParams }: PageProps<"/entrar">) {
   return (
     <Cartao>
       <h1 className="text-2xl font-semibold">Entrar</h1>
-      <p className="mt-1 text-sm text-noite/60">Acesse o painel do seu salão.</p>
+      <p className="mt-1 text-sm text-noite/65">Acesse o painel do seu salão.</p>
       <Suspense fallback={<div className="mt-6 h-64" />}>
         <Conteudo searchParams={searchParams} />
       </Suspense>

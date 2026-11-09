@@ -18,10 +18,10 @@ export default function PaginaPublica({ params }: PageProps<"/[slug]">) {
           <Conteudo params={params} />
         </Suspense>
       </main>
-      <footer className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 px-4 pb-8 text-xs text-noite/50">
+      <footer className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 px-4 pb-8 text-xs text-noite/65">
         <Link href="/" className="flex items-center gap-1.5 hover:text-on">
           Agendamento por
-          <Image src="/logo-agendon.png" alt="AgendOn" width={4092} height={1230} className="h-auto w-16" />
+          <Image src="/logo-agendon.png" alt="AgendOn" width={64} height={19} className="h-auto w-16" />
         </Link>
         <Link href="/privacidade" className="hover:text-on">
           Privacidade
@@ -42,7 +42,7 @@ async function Conteudo({ params }: { params: PageProps<"/[slug]">["params"] }) 
       <header className="mb-6">
         <p className="text-sm font-medium text-on">Agende seu horário</p>
         <h1 className="mt-1 text-2xl font-semibold sm:text-3xl">{salao.nome}</h1>
-        {salao.endereco ? <p className="mt-1 text-sm text-noite/60">{salao.endereco}</p> : null}
+        {salao.endereco ? <p className="mt-1 text-sm text-noite/65">{salao.endereco}</p> : null}
       </header>
       {pagina.servicos.length === 0 ? (
         <p className="rounded-2xl bg-white p-6 text-sm text-noite/70 shadow-sm">

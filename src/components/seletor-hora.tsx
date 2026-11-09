@@ -38,7 +38,7 @@ export function SeletorHora({
       <svg
         viewBox="0 0 16 16"
         aria-hidden
-        className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-noite/40"
+        className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-noite/65"
       >
         <path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
       </svg>

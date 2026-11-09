@@ -9,7 +9,7 @@ export default function PaginaEsqueciSenha() {
   return (
     <Cartao>
       <h1 className="text-2xl font-semibold">Esqueci a senha</h1>
-      <p className="mt-1 text-sm text-noite/60">
+      <p className="mt-1 text-sm text-noite/65">
         Informe o e-mail da sua conta. Enviaremos um link para você criar uma nova senha.
       </p>
       <FormEsqueciSenha />

@@ -98,7 +98,7 @@ async function Conteudo({ vinculo, searchParams }: { vinculo: Vinculo; searchPar
 
       {colunas.length === 0 ? (
         <Cartao className="mt-4">
-          <p className="text-center text-sm text-noite/60">
+          <p className="text-center text-sm text-noite/65">
             {pode(perfil, "ver-agenda-de-todos") ? (
               <>
                 Nenhum profissional ativo.{" "}
@@ -126,7 +126,7 @@ function Resumo({ valor, rotulo }: { valor: string; rotulo: string }) {
   return (
     <div className="flex items-baseline gap-2 rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-noite/5">
       <span className="text-xl font-semibold tabular-nums sm:text-2xl">{valor}</span>
-      <span className="text-sm text-noite/60">{rotulo}</span>
+      <span className="text-sm text-noite/65">{rotulo}</span>
     </div>
   );
 }
@@ -136,7 +136,7 @@ const ESTILO_STATUS: Record<Status, string> = {
   agendado: "border-on bg-[#EAF0FF]",
   concluido: "border-noite/35 bg-[#EEF0F6]",
   faltou: "border-red-500 bg-[#FDECEC]",
-  cancelado: "border-noite/20 bg-white/80 text-noite/45 line-through",
+  cancelado: "border-noite/20 bg-white/80 text-noite/65 line-through",
 };
 
 function Legenda() {
@@ -147,7 +147,7 @@ function Legenda() {
     ["faltou", "bg-red-500"],
   ];
   return (
-    <ul aria-label="Legenda" className="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-sm text-noite/60">
+    <ul aria-label="Legenda" className="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-sm text-noite/65">
       {itens.map(([status, cor]) => (
         <li key={status} className="flex items-center gap-1.5">
           <span aria-hidden className={`size-2.5 rounded-sm ${cor}`} />
@@ -182,7 +182,7 @@ function Grade(props: {
             </span>
             <div className="min-w-0">
               <p className="truncate font-semibold">{c.nome}</p>
-              <p className="text-xs text-noite/55">
+              <p className="text-xs text-noite/65">
                 {c.itens.filter((i) => i.status !== "cancelado").length} agend.
                 {c.faixas.length === 0 ? " · não atende neste dia" : ""}
               </p>
@@ -197,7 +197,7 @@ function Grade(props: {
             <span
               key={h}
               // A primeira hora fica logo abaixo do cabeçalho (sem subir meia linha e ser cortada).
-              className={`absolute right-2 text-xs tabular-nums text-noite/45 ${h === r.de ? "translate-y-0.5" : "-translate-y-1/2"}`}
+              className={`absolute right-2 text-xs tabular-nums text-noite/65 ${h === r.de ? "translate-y-0.5" : "-translate-y-1/2"}`}
               style={{ top: (h - r.de) * PX_POR_MIN }}
             >
               {h < r.ate ? paraHora(h) : ""}
@@ -260,7 +260,7 @@ function Coluna({
           }}
         >
           {l.tipo === "intervalo" && (l.ate - l.de) * PX_POR_MIN >= 36 ? (
-            <p className="text-xs font-medium text-noite/50">
+            <p className="text-xs font-medium text-noite/65">
               Intervalo {paraHora(l.de)}–{paraHora(l.ate)}
             </p>
           ) : null}
@@ -281,12 +281,15 @@ function Coluna({
         </div>
       ))}
 
+      {/* Atalhos só para mouse e toque: fora do Tab e do leitor de tela (dezenas por coluna). No teclado,
+          o botão "+ Novo agendamento" faz o mesmo. */}
       {atalhos.map((m) => (
         <Link
           key={m}
+          tabIndex={-1}
+          aria-hidden
           href={`/painel/agenda/novo?dia=${dia}&profissional=${c.id}&hora=${paraHora(m)}`}
-          aria-label={`Novo agendamento com ${c.nome} às ${paraHora(m)}`}
-          className="group absolute inset-x-1 flex items-start rounded-md px-2 pt-1 text-xs font-medium text-on opacity-0 transition-opacity hover:bg-on/5 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-on"
+          className="group absolute inset-x-1 flex items-start rounded-md px-2 pt-1 text-xs font-medium text-on opacity-0 transition-opacity hover:bg-on/5 hover:opacity-100"
           style={{ top: top(m), height: PASSO_NOVO * PX_POR_MIN }}
         >
           + {paraHora(m)}
@@ -342,6 +345,8 @@ function Bloco({
     <Link
       href={`/painel/agenda/${item.id}`}
       title={titulo}
+      // Em blocos curtos só o nome aparece; o leitor de tela recebe tudo.
+      aria-label={titulo}
       className={`${classe} hover:brightness-[0.98] focus-visible:outline-2 focus-visible:outline-on`}
       style={estilo}
     >

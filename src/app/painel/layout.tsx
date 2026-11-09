@@ -12,7 +12,7 @@ export default function LayoutPainel({ children }: { children: ReactNode }) {
       {/* Celular: barra fixa com o nome do salão e o botão de menu */}
       <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 bg-noite pl-4 pr-2 text-white md:hidden">
         <Link href="/painel" className="flex min-w-0 items-center gap-2.5">
-          <Image src="/simbolo-agendon.png" alt="AgendOn" width={2048} height={2048} className="size-8 shrink-0 rounded-lg" />
+          <Image src="/simbolo-agendon.png" alt="AgendOn" width={32} height={32} className="size-8 shrink-0 rounded-lg" />
           <Suspense fallback={null}>
             <NomeSalao />
           </Suspense>
@@ -25,7 +25,7 @@ export default function LayoutPainel({ children }: { children: ReactNode }) {
       {/* Telas largas: barra lateral */}
       <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col bg-noite text-white md:flex">
         <Link href="/painel" className="flex items-center gap-2.5 px-6 py-6">
-          <Image src="/simbolo-agendon.png" alt="" width={2048} height={2048} className="size-9 rounded-lg" />
+          <Image src="/simbolo-agendon.png" alt="" width={36} height={36} className="size-9 rounded-lg" />
           <span className="text-xl font-semibold tracking-tight">
             Agend<span className="text-on">On</span>
           </span>

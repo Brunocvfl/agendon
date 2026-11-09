@@ -60,7 +60,7 @@ export function FormHorarios({ id, dias: inicial }: { id: string; dias: DiaTela[
       <div>
         {/* Régua de horas, uma vez, alinhada com as barras (só em telas largas) */}
         <div aria-hidden className="mb-1 hidden pl-[9.5rem] sm:block">
-          <div className="relative h-4 text-[11px] tabular-nums text-noite/40">
+          <div className="relative h-4 text-[11px] tabular-nums text-noite/65">
             {marcas.map((m) => (
               <span
                 key={m}
@@ -137,19 +137,19 @@ function LinhaDia({ nome, d, regua, erro, alterar }: LinhaProps) {
           >
             <span className="inline-block size-4 rounded-full bg-white shadow-sm transition-transform" />
           </span>
-          <span className={`font-medium ${d.trabalha ? "" : "text-noite/45"}`}>{nome}</span>
+          <span className={`font-medium ${d.trabalha ? "" : "text-noite/65"}`}>{nome}</span>
         </label>
 
         {d.trabalha ? (
           <div className="flex flex-1 flex-wrap items-center gap-x-5 gap-y-2">
-            <div className="flex items-center gap-2 text-sm text-noite/60">
+            <div className="flex items-center gap-2 text-sm text-noite/65">
               <SeletorHora name={`d${n}_inicio`} rotulo={`${nome}, começa`} valor={d.inicio} onChange={(v) => alterar({ inicio: v })} />
               até
               <SeletorHora name={`d${n}_fim`} rotulo={`${nome}, termina`} valor={d.fim} onChange={(v) => alterar({ fim: v })} />
             </div>
 
             {temIntervalo ? (
-              <div className="flex items-center gap-2 text-sm text-noite/60">
+              <div className="flex items-center gap-2 text-sm text-noite/65">
                 <span>pausa</span>
                 <SeletorHora
                   name={`d${n}_ii`}
@@ -168,7 +168,7 @@ function LinhaDia({ nome, d, regua, erro, alterar }: LinhaProps) {
                   type="button"
                   onClick={() => alterar({ intervaloInicio: "", intervaloFim: "" })}
                   aria-label={`Tirar a pausa de ${nome.toLowerCase()}`}
-                  className="flex size-8 items-center justify-center rounded-full text-noite/40 hover:bg-noite/5 hover:text-noite focus-visible:outline-2 focus-visible:outline-on"
+                  className="flex size-8 items-center justify-center rounded-full text-noite/65 hover:bg-noite/5 hover:text-noite focus-visible:outline-2 focus-visible:outline-on"
                 >
                   <svg viewBox="0 0 16 16" className="size-3.5" aria-hidden>
                     <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
@@ -186,7 +186,7 @@ function LinhaDia({ nome, d, regua, erro, alterar }: LinhaProps) {
             )}
           </div>
         ) : (
-          <span className="text-sm text-noite/45">Não atende</span>
+          <span className="text-sm text-noite/65">Não atende</span>
         )}
       </div>
 

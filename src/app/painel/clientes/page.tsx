@@ -60,7 +60,7 @@ async function Conteudo({ vinculo: { salao }, searchParams }: { vinculo: Vinculo
         {clientes.length === 0 ? (
           <div className="px-6 py-14 text-center">
             <p className="font-medium">{busca ? "Nenhum cliente encontrado" : "Nenhum cliente cadastrado"}</p>
-            <p className="mt-1 text-sm text-noite/60">
+            <p className="mt-1 text-sm text-noite/65">
               {busca
                 ? "Confira o nome ou os números do WhatsApp."
                 : "Os clientes aparecem aqui ao agendar pela página pública ou ao cadastrar pelo painel."}
@@ -68,7 +68,7 @@ async function Conteudo({ vinculo: { salao }, searchParams }: { vinculo: Vinculo
           </div>
         ) : (
           <>
-            <div className="hidden grid-cols-[1fr_10rem_8rem_5rem_5rem] gap-4 border-b border-noite/8 px-6 py-3 text-sm text-noite/50 md:grid">
+            <div className="hidden grid-cols-[1fr_10rem_8rem_5rem_5rem] gap-4 border-b border-noite/8 px-6 py-3 text-sm text-noite/65 md:grid">
               <span>Cliente</span>
               <span>WhatsApp</span>
               <span>Último atendimento</span>
@@ -85,7 +85,7 @@ async function Conteudo({ vinculo: { salao }, searchParams }: { vinculo: Vinculo
       </Cartao>
 
       {total > 0 ? (
-        <nav aria-label="Páginas" className="mt-4 flex items-center justify-between text-sm text-noite/60">
+        <nav aria-label="Páginas" className="mt-4 flex items-center justify-between text-sm text-noite/65">
           <span>
             Mostrando {(pagina - 1) * POR_PAGINA + 1} a {Math.min(pagina * POR_PAGINA, total)} de {total}
           </span>
@@ -119,7 +119,7 @@ function Linha({ c, data }: { c: ClienteDaLista; data: Datas }) {
         <Link href={`/painel/clientes/${c.id}`} className="font-semibold after:absolute after:inset-0 hover:text-on">
           {c.nome}
         </Link>
-        <p className="text-sm text-noite/55">
+        <p className="text-sm text-noite/65">
           <span className="md:hidden">{formatarTelefone(c.telefone)} · </span>
           Cliente desde {data.mesAno(c.criadoEm)}
         </p>
@@ -130,7 +130,7 @@ function Linha({ c, data }: { c: ClienteDaLista; data: Datas }) {
       <span className="text-right text-sm tabular-nums">
         <span
           className={`inline-block min-w-7 rounded-md px-1.5 py-0.5 text-center text-xs font-semibold ${
-            c.faltas > 0 ? "bg-red-50 text-red-600" : "bg-confirmado/10 text-confirmado"
+            c.faltas > 0 ? "bg-red-50 text-red-600" : "bg-confirmado/10 text-confirmado-escuro"
           }`}
           title={`${c.faltas} ${c.faltas === 1 ? "falta" : "faltas"}`}
         >

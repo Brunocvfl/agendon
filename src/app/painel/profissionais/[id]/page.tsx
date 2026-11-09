@@ -21,7 +21,7 @@ export default function PaginaProfissional({ params }: PageProps<"/painel/profis
       <Link href="/painel/profissionais" className="text-sm font-medium text-on hover:underline">
         ← Profissionais
       </Link>
-      <PaginaProtegida params={params} carregando={<p className="mt-4 text-sm text-noite/60">Carregando…</p>}>
+      <PaginaProtegida params={params} carregando={<p className="mt-4 text-sm text-noite/65">Carregando…</p>}>
         {(ctx) => <Conteudo {...ctx} />}
       </PaginaProtegida>
     </div>
@@ -47,7 +47,7 @@ async function Conteudo({ vinculo: { salao, perfil, membroId }, id }: { vinculo:
         </span>
         <div>
           <h1 className="text-2xl font-semibold sm:text-3xl">{profissional.nome}</h1>
-          <p className="text-sm text-noite/60">
+          <p className="text-sm text-noite/65">
             {profissional.ativo ? "Ativo" : "Inativo: não aparece na agenda nem na página pública"}
             {profissional.memberId === membroId ? " · este é você" : ""}
           </p>
@@ -65,7 +65,7 @@ async function Conteudo({ vinculo: { salao, perfil, membroId }, id }: { vinculo:
         <Cartao>
           <h2 className="text-lg font-semibold">Serviços que atende</h2>
           {servicos.length === 0 ? (
-            <p className="mt-2 text-sm text-noite/60">
+            <p className="mt-2 text-sm text-noite/65">
               Nenhum serviço ativo.{" "}
               {editaCadastro ? (
                 <Link href="/painel/servicos/novo" className="font-medium text-on hover:underline">
@@ -103,7 +103,7 @@ async function Conteudo({ vinculo: { salao, perfil, membroId }, id }: { vinculo:
 
         <Cartao>
           <h2 className="text-lg font-semibold">Folgas e bloqueios</h2>
-          <p className="mt-1 text-sm text-noite/60">
+          <p className="mt-1 text-sm text-noite/65">
             Períodos em que o profissional não atende (férias, compromissos). Horários no fuso do salão.
           </p>
           <Folgas id={profissional.id} folgas={profissional.folgas} fuso={salao.fuso} podeEditar={editaHorarios} />

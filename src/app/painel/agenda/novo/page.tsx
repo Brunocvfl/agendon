@@ -43,7 +43,7 @@ async function Conteudo({ vinculo, searchParams }: { vinculo: Vinculo; searchPar
 
   if (!pode(perfil, "ver-agenda-de-todos") && opcoes.profissionais.length === 0) {
     return (
-      <p className="text-sm text-noite/60">
+      <p className="text-sm text-noite/65">
         Seu login ainda não está ligado a uma agenda. Peça ao Dono(a) do salão para marcar &quot;sou eu&quot; no seu cadastro
         de profissional.
       </p>
@@ -52,7 +52,7 @@ async function Conteudo({ vinculo, searchParams }: { vinculo: Vinculo; searchPar
 
   if (opcoes.profissionais.length === 0 || opcoes.servicos.length === 0) {
     return (
-      <p className="text-sm text-noite/60">
+      <p className="text-sm text-noite/65">
         Para agendar, cadastre pelo menos um{" "}
         <Link href="/painel/servicos" className="font-medium text-on hover:underline">
           serviço

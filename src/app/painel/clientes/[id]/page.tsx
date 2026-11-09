@@ -22,7 +22,7 @@ export default function PaginaCliente({ params }: PageProps<"/painel/clientes/[i
         exige="ver-clientes"
         senao="/painel"
         params={params}
-        carregando={<p className="mt-4 text-sm text-noite/60">Carregando…</p>}
+        carregando={<p className="mt-4 text-sm text-noite/65">Carregando…</p>}
       >
         {(ctx) => <Conteudo {...ctx} />}
       </PaginaProtegida>
@@ -45,7 +45,7 @@ async function Conteudo({ vinculo: { salao }, id }: { vinculo: Vinculo; id: stri
           </span>
           <div className="min-w-0">
             <h1 className="truncate text-2xl font-semibold sm:text-3xl">{cliente.nome}</h1>
-            <p className="text-sm text-noite/60">
+            <p className="text-sm text-noite/65">
               {formatarTelefone(cliente.telefone)} · cliente desde{" "}
               {data.mesAno(cliente.criadoEm)}
             </p>
@@ -55,7 +55,7 @@ async function Conteudo({ vinculo: { salao }, id }: { vinculo: Vinculo; id: stri
           href={linkWhatsApp(cliente.telefone)}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex h-11 items-center justify-center rounded-xl bg-confirmado px-5 text-[15px] font-semibold text-white transition-colors hover:bg-confirmado/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-confirmado"
+          className="inline-flex h-11 items-center justify-center rounded-xl bg-confirmado-escuro px-5 text-[15px] font-semibold text-white transition-colors hover:bg-confirmado-escuro/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-confirmado-escuro"
         >
           Chamar no WhatsApp
         </a>
@@ -79,7 +79,7 @@ async function Conteudo({ vinculo: { salao }, id }: { vinculo: Vinculo; id: stri
               }}
             />
           </div>
-          <p className="mt-4 border-t border-noite/8 pt-4 text-sm text-noite/55">
+          <p className="mt-4 border-t border-noite/8 pt-4 text-sm text-noite/65">
             Lembretes por WhatsApp:{" "}
             {cliente.optIn ? "autorizados pelo cliente." : "o cliente ainda não autorizou (a autorização é dada na página de agendamento)."}
           </p>
@@ -88,7 +88,7 @@ async function Conteudo({ vinculo: { salao }, id }: { vinculo: Vinculo; id: stri
         <Cartao>
           <h2 className="text-lg font-semibold">Histórico</h2>
           {cliente.historico.length === 0 ? (
-            <p className="mt-2 text-sm text-noite/60">Nenhum agendamento ainda.</p>
+            <p className="mt-2 text-sm text-noite/65">Nenhum agendamento ainda.</p>
           ) : (
             <ul className="mt-3">
               {cliente.historico.map((a) => (
@@ -106,17 +106,17 @@ function Numero({ valor, rotulo }: { valor: number; rotulo: string }) {
   return (
     <div className="rounded-2xl bg-white px-5 py-4 shadow-sm ring-1 ring-noite/5">
       <p className="text-2xl font-semibold tabular-nums">{valor}</p>
-      <p className="text-sm text-noite/60">{rotulo}</p>
+      <p className="text-sm text-noite/65">{rotulo}</p>
     </div>
   );
 }
 
 function ItemHistorico({ a, data }: { a: Atendimento; data: Datas }) {
   const corStatus =
-    a.status === "faltou" ? "text-red-600" : a.status === "cancelado" ? "text-noite/40" : "text-noite/60";
+    a.status === "faltou" ? "text-red-600" : a.status === "cancelado" ? "text-noite/65" : "text-noite/65";
   return (
     <li className="grid grid-cols-[4rem_1fr] gap-3 border-b border-noite/8 py-3 text-sm last:border-b-0">
-      <span className="text-noite/55">{data.diaMes(a.inicio)}</span>
+      <span className="text-noite/65">{data.diaMes(a.inicio)}</span>
       <div className="min-w-0">
         <p className="font-medium">{a.servico}</p>
         <p className={corStatus}>

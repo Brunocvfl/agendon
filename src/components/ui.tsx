@@ -2,13 +2,15 @@
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
 
-type Variante = "primario" | "secundario";
+type Variante = "primario" | "secundario" | "perigo";
 
 const BASE_BOTAO =
   "inline-flex h-11 items-center justify-center rounded-xl px-5 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-on";
 const VARIANTES: Record<Variante, string> = {
   primario: "bg-on text-white hover:bg-on/90 disabled:bg-on/50",
   secundario: "border border-noite/15 bg-white text-noite hover:bg-fundo disabled:opacity-50",
+  // Confirmação de ação que não dá para desfazer facilmente (cancelar, remover).
+  perigo: "bg-red-700 text-white hover:bg-red-700/90 disabled:bg-red-700/50",
 };
 
 export function Botao({
@@ -53,7 +55,7 @@ export function Campo({
           {erro}
         </p>
       ) : ajuda ? (
-        <p id={`${id}-ajuda`} className="text-sm text-noite/55">
+        <p id={`${id}-ajuda`} className="text-sm text-noite/65">
           {ajuda}
         </p>
       ) : null}

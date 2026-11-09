@@ -35,7 +35,7 @@ async function Conteudo({ vinculo: { salao, perfil, membroId } }: { vinculo: Vin
       {profissionais.length === 0 ? (
         <Cartao className="mt-6 text-center">
           <p className="font-medium">Nenhum profissional cadastrado</p>
-          <p className="mt-1 text-sm text-noite/60">
+          <p className="mt-1 text-sm text-noite/65">
             {podeCadastrar
               ? "Cadastre quem atende no salão. Se você também atende, marque “sou eu” no cadastro."
               : "Peça ao Dono(a) do salão para cadastrar os profissionais."}
@@ -52,7 +52,7 @@ async function Conteudo({ vinculo: { salao, perfil, membroId } }: { vinculo: Vin
                 <span
                   aria-hidden
                   className={`flex size-12 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${
-                    p.ativo ? "bg-on/10 text-on" : "bg-noite/5 text-noite/40"
+                    p.ativo ? "bg-on/10 text-on" : "bg-noite/5 text-noite/65"
                   }`}
                 >
                   {iniciais(p.nome)}
@@ -61,12 +61,12 @@ async function Conteudo({ vinculo: { salao, perfil, membroId } }: { vinculo: Vin
                   <p className="font-semibold">
                     {p.nome}
                     {p.memberId === membroId ? <span className="ml-2 text-xs font-medium text-on">você</span> : null}
-                    {!p.ativo ? <span className="ml-2 text-xs font-normal text-noite/50">inativo</span> : null}
+                    {!p.ativo ? <span className="ml-2 text-xs font-normal text-noite/65">inativo</span> : null}
                   </p>
-                  <p className="mt-0.5 line-clamp-2 text-sm text-noite/60">
+                  <p className="mt-0.5 line-clamp-2 text-sm text-noite/65">
                     {p.servicos.length > 0 ? p.servicos.join(", ") : "Nenhum serviço definido"}
                   </p>
-                  <p className="mt-1 text-xs text-noite/50">
+                  <p className="mt-1 text-xs text-noite/65">
                     {p.diasTrabalho === 0
                       ? "Sem horário de trabalho"
                       : `Atende ${p.diasTrabalho} ${p.diasTrabalho === 1 ? "dia" : "dias"} por semana`}
