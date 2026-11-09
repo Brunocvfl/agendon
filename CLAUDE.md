@@ -119,7 +119,9 @@ Migrations em `supabase/migrations/`:
 
 15. `20261109231254_lgpd_clientes.sql`: no painel, `clients` só aceita INSERT/UPDATE de `nome`, `telefone`, `observacoes` (+ `salon_id` no insert): consentimento, opt-out e anonimização só por função. `exportar_cliente(id)` (JSON: controlador, cliente, consentimento, agendamentos) e `anonimizar_cliente(id)` (cancela os agendados/confirmados futuros, apaga os dados pessoais, nome vira "Cliente anonimizado"; devolve quantos cancelou), ambas SECURITY DEFINER e só Dono(a) (42501; P0002 se não existe ou já anonimizado). Núcleo em `app.anonimizar_cliente`; retenção `app.anonimizar_inativos(meses)` (sem agendamento de qualquer status nem cadastro nos últimos 24 meses) no pg_cron `lgpd-retencao-clientes` (06:00 UTC). Tudo vai para `audit_log` (`exportar`, `anonimizar`, `anonimizar_retencao` com `user_id` nulo).
 
-Testes: `01_isolation` (12), `02_onboarding` (13), `03_services` (14), `04_professionals` (20), `05_clients` (21), `06_appointments` (23, datas fixas em 2030 para não depender do dia), `07_status` (30), `08_profissional_agenda` (17), `09_pagina_publica` (25, datas relativas a hoje por causa do horizonte de 60 dias), `10_equipe` (27), `11_dados_salao` (19), `12_lgpd` (26). Os testes não podem depender do banco vazio (use slugs/nomes que não colidem com dados criados à mão nem com o seed).
+16. `20261109234523_message_log_fk.sql`: `appointments` ganha `unique (id, salon_id)` e `message_log.appointment_id` vira FK composta `(appointment_id, salon_id)` (`on delete set null (appointment_id)`).
+
+Testes: `01_isolation` (12), `02_onboarding` (13), `03_services` (14), `04_professionals` (20), `05_clients` (21), `06_appointments` (23, datas fixas em 2030 para não depender do dia), `07_status` (30), `08_profissional_agenda` (17), `09_pagina_publica` (25, datas relativas a hoje por causa do horizonte de 60 dias), `10_equipe` (27), `11_dados_salao` (19), `12_lgpd` (26), `13_message_log` (4). Os testes não podem depender do banco vazio (use slugs/nomes que não colidem com dados criados à mão nem com o seed).
 
 Seed local (`supabase/seed.sql`, roda no `db:reset`; o `db push` não envia): salão "Studio Teste" com logins `dono@`, `recepcao@` e `profissional@agendon.test` (senha no arquivo), serviços, profissionais com horário, clientes e histórico.
 
@@ -153,7 +155,6 @@ App (`src/app`): `/entrar` (com "Esqueci a senha" e reenvio da confirmação se 
 
 ## Pendências técnicas
 
-- `message_log.appointment_id` com FK composta `(id, salon_id)`.
 - Login com Google e Microsoft (adiado em 2026-11-09): aprovado, fica para depois. Plano: `signInWithOAuth` pelo `/auth/callback` nos dois provedores (Microsoft = provider `azure`, contas pessoais e de trabalho, claim opcional `email`); um app por provedor com as URIs de callback dos três ambientes; segredos em `.env.local` lidos pelo `config.toml`. A tela de consentimento mostra `...supabase.co` até termos domínio próprio no Supabase (Pro + adicional).
 
 ## Decisões tomadas
