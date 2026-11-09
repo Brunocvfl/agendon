@@ -6,14 +6,25 @@ import { BotaoLink, Cartao } from "@/components/ui";
 import { PaginaProtegida } from "@/components/pagina-protegida";
 import type { Vinculo } from "@/lib/auth";
 import { ladoALado, regua, semAtendimento, type Periodo } from "@/lib/agenda";
-import { dataNoFuso, ehData, minutosNoFuso, paraHora, rotuloData, somarDias } from "@/lib/datas";
+import {
+  dataNoFuso,
+  ehData,
+  inicioDaSemana,
+  minutosNoFuso,
+  paraHora,
+  rotuloData,
+  rotuloSemana,
+  somarDias,
+} from "@/lib/datas";
 import { formatarPreco, iniciais, NOME_STATUS } from "@/lib/formato";
 import { pode } from "@/lib/permissoes";
 import { carregarAgenda, type ColunaAgenda, type ItemAgenda, type Status } from "./dados";
+import { FiltroProfissional } from "./filtro-profissional";
 
 export const metadata: Metadata = { title: "Agenda · AgendOn" };
 
 type Busca = Promise<Record<string, string | string[] | undefined>>;
+type Vista = "dia" | "semana";
 
 const PX_POR_MIN = 1.6; // 1 h = 96 px
 const PASSO_NOVO = 30; // atalhos de "novo agendamento" na grade, de 30 em 30 min
@@ -30,41 +41,93 @@ export default function PaginaAgenda({ searchParams }: PageProps<"/painel/agenda
 
 const umValor = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
 
+/** URL da agenda; omite o que é padrão (vista dia, hoje, todos os profissionais). */
+function hrefAgenda(o: { vista: Vista; dia?: string; profissional?: string }): string {
+  const q = new URLSearchParams();
+  if (o.vista === "semana") q.set("vista", "semana");
+  if (o.dia) q.set("dia", o.dia);
+  if (o.profissional) q.set("profissional", o.profissional);
+  const s = q.toString();
+  return s ? `/painel/agenda?${s}` : "/painel/agenda";
+}
+
 async function Conteudo({ vinculo, searchParams }: { vinculo: Vinculo; searchParams: Busca }) {
   const { salao, perfil } = vinculo;
   const sp = await searchParams;
   const hoje = dataNoFuso(new Date(), salao.fuso);
   const pedido = umValor(sp.dia);
   const dia = ehData(pedido) ? pedido : hoje;
+  const vista: Vista = umValor(sp.vista) === "semana" ? "semana" : "dia";
+  const segunda = inicioDaSemana(dia);
+  const dias = vista === "semana" ? Array.from({ length: 7 }, (_, i) => somarDias(segunda, i)) : [dia];
   // Profissional agenda só na própria agenda, que é a única coluna que ele vê.
   const podeAgendar = pode(perfil, "criar-agendamento");
 
-  const colunas = await carregarAgenda(vinculo, dia);
-  const todos = colunas.flatMap((c) => c.itens);
-  const ativos = todos.filter((i) => i.status !== "cancelado");
+  const { profissionais, colunas: todas } = await carregarAgenda(vinculo, dias);
+  // Dia: filtro opcional (vazio = todos). Semana: sempre um profissional (o primeiro, se nenhum for pedido).
+  const pedidoProf = profissionais.find((p) => p.id === umValor(sp.profissional))?.id ?? "";
+  const profissional = vista === "semana" ? pedidoProf || profissionais[0]?.id || "" : pedidoProf;
+  const colunas = profissional ? todas.filter((c) => c.profissionalId === profissional) : todas;
+
+  // Um agendamento que passa da meia-noite aparece em dois dias: conta uma vez.
+  const unicos = [...new Map(colunas.flatMap((c) => c.itens).map((i) => [i.id, i])).values()];
+  const ativos = unicos.filter((i) => i.status !== "cancelado");
   const previsto = ativos.filter((i) => i.status !== "faltou").reduce((s, i) => s + i.preco, 0);
   const r = regua(colunas.flatMap((c) => [...c.faixas, ...c.itens.map((i) => i.periodo)]));
-  const agora = dia === hoje ? minutosNoFuso(new Date(), salao.fuso) : null;
+  const agora = dias.includes(hoje) ? minutosNoFuso(new Date(), salao.fuso) : null;
+
+  const semana = vista === "semana";
+  const passo = semana ? 7 : 1;
+  const ehAtual = semana ? segunda === inicioDaSemana(hoje) : dia === hoje;
+  const rotuloPeriodo = semana
+    ? `${ehAtual ? "Esta semana · " : ""}${rotuloSemana(segunda)}`
+    : `${ehAtual ? "Hoje · " : ""}${rotuloData(dia)}`;
+  const opcoesFiltro = [
+    ...(semana ? [] : [{ valor: "", rotulo: "Todos os profissionais", href: hrefAgenda({ vista, dia }) }]),
+    ...profissionais.map((p) => ({ valor: p.id, rotulo: p.nome, href: hrefAgenda({ vista, dia, profissional: p.id }) })),
+  ];
 
   return (
     <>
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="mr-2 text-2xl font-semibold sm:text-3xl">Agenda</h1>
-        <nav aria-label="Dia" className="flex items-center gap-2">
-          <Link href={`/painel/agenda?dia=${somarDias(dia, -1)}`} aria-label="Dia anterior" className={BOTAO_DIA}>
+        <nav aria-label={semana ? "Semana" : "Dia"} className="flex items-center gap-2">
+          <Link
+            href={hrefAgenda({ vista, dia: somarDias(dia, -passo), profissional })}
+            aria-label={semana ? "Semana anterior" : "Dia anterior"}
+            className={BOTAO_DIA}
+          >
             ‹
           </Link>
           <Link
-            href="/painel/agenda"
-            className={`h-10 rounded-xl px-4 text-sm font-semibold leading-10 ${dia === hoje ? "bg-noite text-white" : "border border-noite/12 bg-white hover:border-on/50"}`}
+            href={hrefAgenda({ vista, profissional })}
+            className={`h-10 whitespace-nowrap rounded-xl px-4 text-sm font-semibold leading-10 ${ehAtual ? "bg-noite text-white" : "border border-noite/12 bg-white hover:border-on/50"}`}
           >
-            {dia === hoje ? `Hoje · ${rotuloData(dia)}` : rotuloData(dia)}
+            {rotuloPeriodo}
           </Link>
-          <Link href={`/painel/agenda?dia=${somarDias(dia, 1)}`} aria-label="Próximo dia" className={BOTAO_DIA}>
+          <Link
+            href={hrefAgenda({ vista, dia: somarDias(dia, passo), profissional })}
+            aria-label={semana ? "Próxima semana" : "Próximo dia"}
+            className={BOTAO_DIA}
+          >
             ›
           </Link>
         </nav>
+        <nav aria-label="Visualização" className="flex rounded-xl border border-noite/12 bg-white p-0.5">
+          {(["dia", "semana"] as const).map((v) => (
+            <Link
+              key={v}
+              href={hrefAgenda({ vista: v, dia, profissional })}
+              aria-current={vista === v ? "page" : undefined}
+              className={`h-9 rounded-[10px] px-3.5 text-sm font-medium leading-9 ${vista === v ? "bg-on/10 text-on" : "text-noite/70 hover:text-noite"}`}
+            >
+              {v === "dia" ? "Dia" : "Semana"}
+            </Link>
+          ))}
+        </nav>
         <Form action="/painel/agenda" className="flex items-center gap-2">
+          {semana ? <input type="hidden" name="vista" value="semana" /> : null}
+          {profissional ? <input type="hidden" name="profissional" value={profissional} /> : null}
           <label htmlFor="dia" className="sr-only">
             Ir para o dia
           </label>
@@ -80,18 +143,21 @@ async function Conteudo({ vinculo, searchParams }: { vinculo: Vinculo; searchPar
             Ir
           </button>
         </Form>
-        {podeAgendar ? (
-          <BotaoLink href={`/painel/agenda/novo?dia=${dia}`} className="ml-auto">
-            + Novo agendamento
-          </BotaoLink>
-        ) : null}
+        <div className="flex flex-wrap items-center gap-3 sm:ml-auto">
+          {profissionais.length > 1 ? <FiltroProfissional opcoes={opcoesFiltro} valor={profissional} /> : null}
+          {podeAgendar ? (
+            <BotaoLink href={`/painel/agenda/novo?dia=${dia}${profissional ? `&profissional=${profissional}` : ""}`}>
+              + Novo agendamento
+            </BotaoLink>
+          ) : null}
+        </div>
       </div>
 
       <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Resumo valor={String(ativos.length)} rotulo={ativos.length === 1 ? "agendamento" : "agendamentos"} />
         <Resumo valor={String(ativos.filter((i) => i.status === "confirmado").length)} rotulo="confirmados" />
         <Resumo valor={String(ativos.filter((i) => i.status === "agendado").length)} rotulo="aguardando confirmação" />
-        <Resumo valor={formatarPreco(previsto)} rotulo="previsto no dia" />
+        <Resumo valor={formatarPreco(previsto)} rotulo={semana ? "previsto na semana" : "previsto no dia"} />
       </div>
 
       <Legenda />
@@ -113,7 +179,7 @@ async function Conteudo({ vinculo, searchParams }: { vinculo: Vinculo; searchPar
           </p>
         </Cartao>
       ) : (
-        <Grade colunas={colunas} r={r} agora={agora} dia={dia} podeAgendar={podeAgendar} />
+        <Grade colunas={colunas} r={r} agora={agora} hoje={hoje} vista={vista} podeAgendar={podeAgendar} />
       )}
     </>
   );
@@ -162,13 +228,15 @@ function Grade(props: {
   colunas: ColunaAgenda[];
   r: Periodo;
   agora: number | null;
-  dia: string;
+  hoje: string;
+  vista: Vista;
   podeAgendar: boolean;
 }) {
-  const { colunas, r, agora } = props;
+  const { colunas, r, agora, hoje, vista } = props;
   const altura = (r.ate - r.de) * PX_POR_MIN;
   const horas = Array.from({ length: (r.ate - r.de) / 60 + 1 }, (_, i) => r.de + i * 60);
-  const estiloGrade: CSSProperties = { gridTemplateColumns: `3.5rem repeat(${colunas.length}, minmax(11rem, 1fr))` };
+  const largura = vista === "semana" ? "8.5rem" : "11rem";
+  const estiloGrade: CSSProperties = { gridTemplateColumns: `3.5rem repeat(${colunas.length}, minmax(${largura}, 1fr))` };
 
   return (
     <div className="mt-4 overflow-x-auto rounded-2xl bg-white shadow-sm ring-1 ring-noite/5">
@@ -176,18 +244,7 @@ function Grade(props: {
         {/* Cabeçalho */}
         <div className="sticky left-0 z-20 border-b border-noite/8 bg-white" />
         {colunas.map((c) => (
-          <div key={c.id} className="flex items-center gap-3 border-b border-l border-noite/8 px-4 py-3">
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-on/10 text-sm font-semibold text-on">
-              {iniciais(c.nome)}
-            </span>
-            <div className="min-w-0">
-              <p className="truncate font-semibold">{c.nome}</p>
-              <p className="text-xs text-noite/65">
-                {c.itens.filter((i) => i.status !== "cancelado").length} agend.
-                {c.faixas.length === 0 ? " · não atende neste dia" : ""}
-              </p>
-            </div>
-          </div>
+          <Cabecalho key={c.chave} coluna={c} vista={vista} hoje={hoje} />
         ))}
 
         {/* Horas */}
@@ -206,7 +263,15 @@ function Grade(props: {
         </div>
 
         {colunas.map((c) => (
-          <Coluna key={c.id} coluna={c} altura={altura} {...props} />
+          <Coluna
+            key={c.chave}
+            coluna={c}
+            altura={altura}
+            r={r}
+            agora={c.dia === hoje ? agora : null}
+            podeAgendar={props.podeAgendar}
+            rotuloDia={vista === "semana" ? rotuloData(c.dia) : undefined}
+          />
         ))}
       </div>
       {agora !== null && agora >= r.de && agora <= r.ate ? (
@@ -216,20 +281,62 @@ function Grade(props: {
   );
 }
 
+function Cabecalho({ coluna: c, vista, hoje }: { coluna: ColunaAgenda; vista: Vista; hoje: string }) {
+  const qtd = c.itens.filter((i) => i.status !== "cancelado").length;
+  const folgaInteira = c.folgas.some((f) => f.de === 0 && f.ate === 24 * 60);
+
+  if (vista === "dia") {
+    const aviso = folgaInteira ? " · folga" : c.faixas.length === 0 ? " · não atende neste dia" : "";
+    return (
+      <div className="flex items-center gap-3 border-b border-l border-noite/8 px-4 py-3">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-on/10 text-sm font-semibold text-on">
+          {iniciais(c.nome)}
+        </span>
+        <div className="min-w-0">
+          <p className="truncate font-semibold">{c.nome}</p>
+          <p className="text-xs text-noite/65">
+            {qtd} agend.
+            {aviso}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Semana: o dia leva à visão de dia do mesmo profissional.
+  const ehHoje = c.dia === hoje;
+  return (
+    <Link
+      href={hrefAgenda({ vista: "dia", dia: c.dia, profissional: c.profissionalId })}
+      aria-current={ehHoje ? "date" : undefined}
+      className={`border-b border-l border-noite/8 px-3 py-3 hover:bg-on/5 ${ehHoje ? "bg-on/5" : ""}`}
+    >
+      <p className={`truncate font-semibold first-letter:uppercase ${ehHoje ? "text-on" : ""}`}>
+        {ehHoje ? `Hoje, ${rotuloData(c.dia).split(", ")[1]}` : rotuloData(c.dia)}
+      </p>
+      <p className="truncate text-xs text-noite/65">
+        {qtd} agend.
+        {folgaInteira ? " · folga" : c.faixas.length === 0 ? " · não atende" : ""}
+      </p>
+    </Link>
+  );
+}
+
 function Coluna({
   coluna: c,
   altura,
   r,
   agora,
-  dia,
   podeAgendar,
+  rotuloDia,
 }: {
   coluna: ColunaAgenda;
   altura: number;
   r: Periodo;
   agora: number | null;
-  dia: string;
   podeAgendar: boolean;
+  /** Semana: o dia entra no rótulo do agendamento (o cabeçalho fica longe na ordem de leitura). */
+  rotuloDia?: string;
 }) {
   const top = (min: number) => (min - r.de) * PX_POR_MIN;
   const posicoes = ladoALado(c.itens.map((i) => i.periodo));
@@ -260,7 +367,7 @@ function Coluna({
           }}
         >
           {l.tipo === "intervalo" && (l.ate - l.de) * PX_POR_MIN >= 36 ? (
-            <p className="text-xs font-medium text-noite/65">
+            <p className="truncate text-xs font-medium text-noite/65">
               Intervalo {paraHora(l.de)}–{paraHora(l.ate)}
             </p>
           ) : null}
@@ -288,7 +395,7 @@ function Coluna({
           key={m}
           tabIndex={-1}
           aria-hidden
-          href={`/painel/agenda/novo?dia=${dia}&profissional=${c.id}&hora=${paraHora(m)}`}
+          href={`/painel/agenda/novo?dia=${c.dia}&profissional=${c.profissionalId}&hora=${paraHora(m)}`}
           className="group absolute inset-x-1 flex items-start rounded-md px-2 pt-1 text-xs font-medium text-on opacity-0 transition-opacity hover:bg-on/5 hover:opacity-100"
           style={{ top: top(m), height: PASSO_NOVO * PX_POR_MIN }}
         >
@@ -297,7 +404,7 @@ function Coluna({
       ))}
 
       {c.itens.map((item, i) => (
-        <Bloco key={item.id} item={item} top={top(item.periodo.de)} posicao={posicoes[i]} />
+        <Bloco key={item.id} item={item} top={top(item.periodo.de)} posicao={posicoes[i]} rotuloDia={rotuloDia} />
       ))}
 
       {agora !== null && agora >= r.de && agora <= r.ate ? (
@@ -311,10 +418,12 @@ function Bloco({
   item,
   top,
   posicao,
+  rotuloDia,
 }: {
   item: ItemAgenda;
   top: number;
   posicao: { coluna: number; colunas: number };
+  rotuloDia?: string;
 }) {
   const duracao = item.periodo.ate - item.periodo.de;
   const altura = Math.max(duracao * PX_POR_MIN - 3, 22);
@@ -339,7 +448,7 @@ function Bloco({
     left: `calc(${posicao.coluna * largura}% + 4px)`,
     width: `calc(${largura}% - 8px)`,
   };
-  const titulo = `${item.clienteNome} · ${item.servico} · ${hora} · ${NOME_STATUS[item.status]}`;
+  const titulo = `${item.clienteNome} · ${item.servico} · ${rotuloDia ? `${rotuloDia}, ` : ""}${hora} · ${NOME_STATUS[item.status]}`;
 
   return (
     <Link

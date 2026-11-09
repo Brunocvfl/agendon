@@ -22,6 +22,22 @@ export function diaDaSemana(data: string): number {
   return new Date(`${data}T00:00:00Z`).getUTCDay();
 }
 
+/** Segunda-feira da semana de uma data (a semana da agenda vai de segunda a domingo). */
+export function inicioDaSemana(data: string): string {
+  return somarDias(data, -((diaDaSemana(data) + 6) % 7));
+}
+
+/** "9–15 nov" ou "30 nov – 6 dez" (semana que começa em `segunda`). */
+export function rotuloSemana(segunda: string): string {
+  const domingo = somarDias(segunda, 6);
+  const parte = (data: string, o: Intl.DateTimeFormatOptions) =>
+    new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC", ...o }).format(new Date(`${data}T12:00:00Z`)).replace(".", "");
+  const dia = (d: string) => String(Number(d.slice(8, 10)));
+  return segunda.slice(5, 7) === domingo.slice(5, 7)
+    ? `${dia(segunda)}–${dia(domingo)} ${parte(domingo, { month: "short" })}`
+    : `${dia(segunda)} ${parte(segunda, { month: "short" })} – ${dia(domingo)} ${parte(domingo, { month: "short" })}`;
+}
+
 /** Data "AAAA-MM-DD" de um instante no fuso do salão. */
 export function dataNoFuso(instante: Date | string, fuso: string): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: fuso, year: "numeric", month: "2-digit", day: "2-digit" }).format(
