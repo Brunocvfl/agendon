@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { Viewport } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -6,11 +7,14 @@ import { getUsuario, getVinculo } from "@/lib/auth";
 import { sair } from "@/app/(acesso)/actions";
 import { ListaMenu, MenuCelular, NavPainel } from "./nav-painel";
 
+// Barra do navegador no celular na cor do cabeçalho do painel.
+export const viewport: Viewport = { themeColor: "#0f1b4d" };
+
 export default function LayoutPainel({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-full flex-1 flex-col md:flex-row">
       {/* Celular: barra fixa com o nome do salão e o botão de menu */}
-      <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 bg-noite pl-4 pr-2 text-white md:hidden">
+      <header data-cabecalho-fixo className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 bg-noite pl-4 pr-2 text-white md:hidden">
         <Link href="/painel" className="flex min-w-0 items-center gap-2.5">
           <Image src="/simbolo-agendon.png" alt="AgendOn" width={32} height={32} className="size-8 shrink-0 rounded-lg" />
           <Suspense fallback={null}>
@@ -38,7 +42,7 @@ export default function LayoutPainel({ children }: { children: ReactNode }) {
         </Suspense>
       </aside>
 
-      <main className="min-w-0 flex-1 px-4 py-6 sm:px-8 sm:py-10">{children}</main>
+      <main id="conteudo" className="min-w-0 flex-1 px-4 py-6 sm:px-8 sm:py-10">{children}</main>
     </div>
   );
 }

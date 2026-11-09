@@ -7,13 +7,22 @@ import { dataNoFuso } from "@/lib/datas";
 import { carregarPaginaPublica } from "./dados";
 import { AgendarPublico } from "./agendar-publico";
 
-export const metadata: Metadata = { title: "Agendar horário · AgendOn" };
+// Título com o nome do salão: aparece na aba e na prévia do link compartilhado no WhatsApp.
+export async function generateMetadata({ params }: PageProps<"/[slug]">): Promise<Metadata> {
+  const { slug } = await params;
+  const pagina = await carregarPaginaPublica(slug);
+  if (!pagina) return { title: "Agendar horário · AgendOn" };
+  return {
+    title: `${pagina.salao.nome} · Agendar horário`,
+    description: `Agende seu horário online: ${pagina.salao.nome}.`,
+  };
+}
 
 // Página pública do salão (agendon.app.br/<slug>): sem login, mobile first.
 export default function PaginaPublica({ params }: PageProps<"/[slug]">) {
   return (
     <div className="flex flex-1 flex-col">
-      <main className="mx-auto w-full max-w-xl flex-1 px-4 py-6 sm:py-10">
+      <main id="conteudo" className="mx-auto w-full max-w-xl flex-1 px-4 py-6 sm:py-10">
         <Suspense fallback={<div className="h-96" />}>
           <Conteudo params={params} />
         </Suspense>

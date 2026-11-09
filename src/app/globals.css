@@ -12,6 +12,21 @@
   --font-sans: var(--font-sora), ui-sans-serif, system-ui, sans-serif;
 }
 
+html {
+  /* Só tema claro por enquanto: campos nativos e barras de rolagem claros mesmo com o sistema no escuro. */
+  color-scheme: light;
+  /* Sem a espera do toque duplo (zoom) nos botões; o destaque azul do toque fica por conta dos nossos estados. */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Painel no celular: o cabeçalho fixo (h-14) não pode cobrir o campo em foco nem o alvo de uma âncora. */
+@media (width < 48rem) {
+  html:has([data-cabecalho-fixo]) {
+    scroll-padding-top: 4.5rem;
+  }
+}
+
 body {
   background: var(--color-fundo);
   color: var(--color-noite);

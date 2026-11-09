@@ -168,21 +168,23 @@ function Periodo({ fuso, erro }: { fuso: string; erro?: string }) {
   return (
     <fieldset className="flex flex-col gap-3">
       <legend className="sr-only">Período</legend>
-      <input type="hidden" name="modo" value={modo} />
+      {/* Rádios nativos com cara de botões: setas do teclado e leitor de tela funcionam sem código extra. */}
       <div role="radiogroup" aria-label="Tipo de período" className="inline-flex w-fit rounded-xl bg-noite/[0.06] p-1">
         {MODOS.map((m) => (
-          <button
+          <label
             key={m.valor}
-            type="button"
-            role="radio"
-            aria-checked={modo === m.valor}
-            onClick={() => setModo(m.valor)}
-            className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition-colors ${
-              modo === m.valor ? "bg-white text-noite shadow-sm" : "text-noite/65 hover:text-noite"
-            }`}
+            className="cursor-pointer rounded-lg px-3.5 py-1.5 text-sm font-medium text-noite/65 transition-colors hover:text-noite has-[:checked]:bg-white has-[:checked]:text-noite has-[:checked]:shadow-sm has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-on"
           >
+            <input
+              type="radio"
+              name="modo"
+              value={m.valor}
+              checked={modo === m.valor}
+              onChange={() => setModo(m.valor)}
+              className="sr-only"
+            />
             {m.rotulo}
-          </button>
+          </label>
         ))}
       </div>
 

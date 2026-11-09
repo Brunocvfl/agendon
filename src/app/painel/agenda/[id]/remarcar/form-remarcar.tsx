@@ -1,5 +1,6 @@
 "use client";
 
+import { useFocarPrimeiroErro } from "@/components/use-focar-erro";
 import { startTransition, useActionState, useState, type FormEvent } from "react";
 import { Alerta, Botao, BotaoLink, Selecao } from "@/components/ui";
 import { remarcarAgendamento, type EstadoForm } from "../../actions";
@@ -14,6 +15,7 @@ type Props = {
 
 export function FormRemarcar({ id, servico, profissionais, inicial }: Props) {
   const [estado, acao, pendente] = useActionState<EstadoForm, FormData>(remarcarAgendamento, {});
+  const form = useFocarPrimeiroErro(estado);
   const erros = estado.erros ?? {};
   const [profissional, setProfissional] = useState(inicial.profissional);
   const [dia, setDia] = useState(inicial.dia);
@@ -27,7 +29,7 @@ export function FormRemarcar({ id, servico, profissionais, inicial }: Props) {
   };
 
   return (
-    <form onSubmit={enviar} className="flex flex-col gap-5" noValidate>
+    <form ref={form} onSubmit={enviar} className="flex flex-col gap-5" noValidate>
       {estado.erro ? <Alerta tipo="erro">{estado.erro}</Alerta> : null}
       <input type="hidden" name="id" value={id} />
 

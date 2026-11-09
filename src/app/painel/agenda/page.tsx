@@ -76,7 +76,7 @@ async function Conteudo({ vinculo, searchParams }: { vinculo: Vinculo; searchPar
             key={dia}
             className="h-10 rounded-xl border border-noite/12 bg-white px-3 text-sm text-noite outline-none focus:border-on focus:ring-2 focus:ring-on/20"
           />
-          <button type="submit" className="h-10 rounded-xl px-3 text-sm font-medium text-on hover:underline">
+          <button type="submit" aria-label="Ir para o dia escolhido" className="h-10 rounded-xl px-3 text-sm font-medium text-on hover:underline">
             Ir
           </button>
         </Form>
@@ -108,7 +108,7 @@ async function Conteudo({ vinculo, searchParams }: { vinculo: Vinculo; searchPar
                 .
               </>
             ) : (
-              "Seu login ainda não está ligado a uma agenda. Peça ao Dono(a) do salão para marcar \"sou eu\" no seu cadastro de profissional."
+              "Seu login ainda não está ligado a uma agenda. Peça ao Dono(a) do salão para marcar “sou eu” no seu cadastro de profissional."
             )}
           </p>
         </Cartao>

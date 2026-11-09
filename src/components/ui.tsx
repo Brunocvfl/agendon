@@ -47,6 +47,8 @@ export function Campo({
         id={id}
         aria-invalid={erro ? true : undefined}
         aria-describedby={descricao}
+        // E-mail: sem corretor e sem maiúscula automática no celular.
+        {...(props.type === "email" ? { spellCheck: false, autoCapitalize: "none", autoCorrect: "off" } : {})}
         className={`h-11 rounded-xl border bg-white px-3.5 text-base text-noite outline-none transition-colors placeholder:text-noite/35 focus:border-on focus:ring-2 focus:ring-on/20 ${erro ? "border-red-400" : "border-noite/15"}`}
         {...props}
       />
@@ -110,6 +112,7 @@ export function Selecao({
         value={valor}
         onChange={(e) => onChange(e.target.value)}
         aria-invalid={erro ? true : undefined}
+        aria-describedby={erro ? `${id}-erro` : undefined}
         className={`h-11 w-full cursor-pointer rounded-xl border bg-white px-3.5 text-base text-noite outline-none transition-colors focus:border-on focus:ring-2 focus:ring-on/20 ${erro ? "border-red-400" : "border-noite/15"}`}
       >
         {opcoes.length === 0 ? <option value="">—</option> : null}
@@ -119,7 +122,11 @@ export function Selecao({
           </option>
         ))}
       </select>
-      {erro ? <p className="text-sm text-red-600">{erro}</p> : null}
+      {erro ? (
+        <p id={`${id}-erro`} className="text-sm text-red-600">
+          {erro}
+        </p>
+      ) : null}
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { SeletorHora } from "@/components/seletor-hora";
+import { useAvisoAoSair } from "@/components/use-aviso-ao-sair";
 import { Alerta, Botao } from "@/components/ui";
 import { DIAS, type DiaTela } from "@/lib/horarios";
 import { salvarHorarios, type EstadoForm } from "../actions";
@@ -26,6 +27,14 @@ function calcularRegua(dias: DiaTela[]) {
 export function FormHorarios({ id, dias: inicial }: { id: string; dias: DiaTela[] }) {
   const [estado, acao, pendente] = useActionState<EstadoForm, FormData>(salvarHorarios, {});
   const [dias, setDias] = useState(inicial);
+  // O que está salvo no banco: atualiza quando o servidor confirma.
+  const [salvo, setSalvo] = useState(inicial);
+  const [ultimo, setUltimo] = useState(estado);
+  if (estado !== ultimo) {
+    setUltimo(estado);
+    if (estado.ok) setSalvo(dias);
+  }
+  useAvisoAoSair(JSON.stringify(dias) !== JSON.stringify(salvo));
   const regua = calcularRegua(dias);
   const marcas = [6, 9, 12, 15, 18, 21].map((h) => h * 60).filter((m) => m >= regua.ini && m <= regua.fim);
 

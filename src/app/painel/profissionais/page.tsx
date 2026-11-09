@@ -58,7 +58,7 @@ async function Conteudo({ vinculo: { salao, perfil, membroId } }: { vinculo: Vin
                   {iniciais(p.nome)}
                 </span>
                 <div className="min-w-0">
-                  <p className="font-semibold">
+                  <p className="break-words font-semibold">
                     {p.nome}
                     {p.memberId === membroId ? <span className="ml-2 text-xs font-medium text-on">você</span> : null}
                     {!p.ativo ? <span className="ml-2 text-xs font-normal text-noite/65">inativo</span> : null}
