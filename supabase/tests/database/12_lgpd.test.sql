@@ -2,7 +2,7 @@
 -- isolamento entre salões e a retenção (app.anonimizar_inativos + pg_cron).
 
 begin;
-select plan(26);
+select plan(28);
 
 insert into auth.users (id, email) values
   ('c0000000-0000-0000-0000-000000000001', 'dono.l@teste.local'),
@@ -158,6 +158,19 @@ select throws_ok(
 select throws_ok(
   $$select app.anonimizar_inativos(24)$$,
   '42501', null, 'usuário logado não roda a retenção'
+);
+select is_empty(
+  $$update public.clients set nome = 'Marina Lima', telefone = '+5511987600001'
+    where id = 'c5000000-0000-0000-0000-000000000001' returning id$$,
+  'Dono(a) não regrava dados num cliente anonimizado'
+);
+
+-- Recepção também não
+select set_config('request.jwt.claims', '{"sub":"c0000000-0000-0000-0000-000000000002","role":"authenticated"}', true);
+select is_empty(
+  $$update public.clients set nome = 'Marina Lima', telefone = '+5511987600001', observacoes = 'x'
+    where id = 'c5000000-0000-0000-0000-000000000001' returning id$$,
+  'Recepção não regrava dados num cliente anonimizado'
 );
 
 -- anon
