@@ -8,7 +8,12 @@ import { pode, type Perfil, type Permissao } from "@/lib/permissoes";
 
 export type { Perfil, Permissao };
 
-export type Usuario = { id: string; email: string | null };
+export type Usuario = {
+  id: string;
+  email: string | null;
+  /** Versão dos Termos/Política aceita (user_metadata.termos_versao); null se nunca aceitou. */
+  termosVersao: string | null;
+};
 
 export type Vinculo = {
   membroId: string;
@@ -22,7 +27,12 @@ export const getUsuario = cache(async (): Promise<Usuario | null> => {
   const { data } = await supabase.auth.getClaims();
   const claims = data?.claims;
   if (!claims?.sub) return null;
-  return { id: claims.sub, email: typeof claims.email === "string" ? claims.email : null };
+  const versao = (claims.user_metadata as { termos_versao?: unknown } | undefined)?.termos_versao;
+  return {
+    id: claims.sub,
+    email: typeof claims.email === "string" ? claims.email : null,
+    termosVersao: typeof versao === "string" ? versao : null,
+  };
 });
 
 export async function exigirUsuario(): Promise<Usuario> {

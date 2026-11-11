@@ -137,7 +137,7 @@ App (`src/app`): `/entrar` (com "Esqueci a senha" e reenvio da confirmação se 
 - [x] Projetos Supabase de staging e produção; variáveis de ambiente (ver `.env.example`). Vercel: produção em https://agendon.app.br (também https://agendon.vercel.app).
 - [x] CI no GitHub Actions: lint, testes de banco, varredura de segredos (`.github/workflows/ci.yml`, repo privado github.com/Brunocvfl/agendon).
 - [x] Tela de login e cadastro do salão (chamando `create_salon`) e "esqueci a senha".
-- [x] Termos de Uso (`/termos`) e Política de Privacidade (`/privacidade`), grupo `src/app/(legal)`; dados da empresa, versão e e-mail do encarregado (`legal@agendon.app.br`, ImprovMX → Gmail) em `src/lib/legal.ts`. O cadastro exige o aceite e grava `termos_versao` e `termos_aceitos_em` no `user_metadata`.
+- [x] Termos de Uso (`/termos`) e Política de Privacidade (`/privacidade`), grupo `src/app/(legal)`; dados da empresa, versão e e-mail do encarregado (`legal@agendon.app.br`, ImprovMX → Gmail) em `src/lib/legal.ts`. O cadastro exige o aceite e grava `termos_versao` e `termos_aceitos_em` no `user_metadata`. Revisão com a advogada (versão `2026-11-11.1`): resumo em linguagem simples e cláusulas limitativas em destaque (`src/app/(legal)/destaque.tsx`), papel de controlador/operador com obrigações (Termos, seção 3), transferência internacional (Política, seção 5), segurança (seção 9) e passo a passo para apagar dados (seção 8). Mudou `VERSAO_DOCUMENTOS`? O painel pede novo aceite (`AvisoNovosTermos`, ação `aceitarNovosTermos`).
 - [ ] Conta Meta Business aberta e verificação do negócio iniciada.
 
 ## Ambientes na nuvem

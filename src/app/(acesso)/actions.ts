@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { urlDoSite } from "@/lib/site";
@@ -147,4 +148,18 @@ export async function sair() {
   const supabase = await createClient();
   await supabase.auth.signOut();
   redirect("/entrar");
+}
+
+// Novo aceite quando os Termos/Política mudam de versão (aviso no painel).
+export async function aceitarNovosTermos(_anterior: EstadoForm, formData: FormData): Promise<EstadoForm> {
+  if (formData.get("aceite") !== "sim") return { erro: "Para continuar, aceite os Termos de Uso e a Política de Privacidade." };
+  const supabase = await createClient();
+  const { error } = await supabase.auth.updateUser({
+    data: { termos_versao: VERSAO_DOCUMENTOS, termos_aceitos_em: new Date().toISOString() },
+  });
+  if (error) return { erro: "Não foi possível registrar o aceite agora. Tente de novo em instantes." };
+  // O JWT guarda o user_metadata: renova para o painel enxergar a versão nova.
+  await supabase.auth.refreshSession();
+  revalidatePath("/painel", "layout");
+  return {};
 }
