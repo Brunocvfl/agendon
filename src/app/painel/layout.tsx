@@ -4,7 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import { getUsuario, getVinculo } from "@/lib/auth";
+import { DATA_DOCUMENTOS, VERSAO_DOCUMENTOS } from "@/lib/legal";
 import { sair } from "@/app/(acesso)/actions";
+import { AvisoNovosTermos } from "./aviso-termos";
 import { ListaMenu, MenuCelular, NavPainel } from "./nav-painel";
 
 // Barra do navegador no celular na cor do cabeçalho do painel.
@@ -43,6 +45,10 @@ export default function LayoutPainel({ children }: { children: ReactNode }) {
       </aside>
 
       <main id="conteudo" className="min-w-0 flex-1 px-4 py-6 sm:px-8 sm:py-10">{children}</main>
+
+      <Suspense fallback={null}>
+        <NovosTermos />
+      </Suspense>
     </div>
   );
 }
@@ -61,6 +67,13 @@ async function MenuCelularDoVinculo() {
 async function NomeSalao() {
   const vinculo = await getVinculo();
   return <span className="truncate font-semibold">{vinculo?.salao.nome ?? "AgendOn"}</span>;
+}
+
+// Termos/Política mudaram de versão desde o último aceite: pede o novo aceite antes de seguir.
+async function NovosTermos() {
+  const usuario = await getUsuario();
+  if (!usuario || usuario.termosVersao === VERSAO_DOCUMENTOS) return null;
+  return <AvisoNovosTermos data={DATA_DOCUMENTOS} />;
 }
 
 async function Conta() {
