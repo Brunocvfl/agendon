@@ -30,7 +30,7 @@ select lives_ok(
 );
 select throws_ok(
   $$insert into public.message_log (salon_id, appointment_id, tipo)
-    values ('d1000000-0000-0000-0000-000000000002', 'd6000000-0000-0000-0000-000000000001', 'confirmacao')$$,
+    values ('d1000000-0000-0000-0000-000000000002', 'd6000000-0000-0000-0000-000000000001', 'lembrete_1d')$$,
   '23503', null,
   'mensagem do salão Q não aponta para agendamento do salão P'
 );

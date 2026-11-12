@@ -2,11 +2,13 @@
 
 import { createHash } from "node:crypto";
 import { headers } from "next/headers";
+import { after } from "next/server";
 import { captchaValido } from "@/lib/captcha";
 import { ehData } from "@/lib/datas";
 import { ehUuid } from "@/lib/ids";
 import { lerAgendamentoPublico } from "@/lib/regras/agendamento";
 import { clientePublico } from "@/lib/supabase/publico";
+import { processarFila } from "@/lib/whatsapp/enviar";
 import { slugValido } from "./dados";
 
 export type Confirmacao = { servico: string; profissional: string; inicio: string; fim: string; preco: number };
@@ -99,6 +101,8 @@ export async function agendar(_anterior: EstadoAgendamento, formData: FormData):
 
   const r = data?.[0];
   if (!r) throw new Error("agendar_publico não devolveu o agendamento");
+  // A confirmação do WhatsApp já está na fila (gatilho do banco, se o cliente deu opt-in): envia depois da resposta.
+  after(() => processarFila().catch((e) => console.error(e instanceof Error ? e.message : "whatsapp: fila falhou")));
   return { confirmacao: { servico: r.servico, profissional: r.profissional, inicio: r.inicio, fim: r.fim, preco: r.preco } };
 }
 

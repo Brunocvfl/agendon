@@ -55,6 +55,23 @@ export const NOME_STATUS = {
   cancelado: "cancelado",
 } as const;
 
+// Mensagens do WhatsApp como aparecem para o salão (status de message_log).
+export const NOME_STATUS_MENSAGEM: Record<string, string> = {
+  na_fila: "na fila para envio",
+  enviando: "enviando",
+  enviada: "enviada",
+  entregue: "entregue",
+  lida: "lida",
+  falhou: "não enviada",
+};
+
+export const NOME_TIPO_MENSAGEM: Record<string, string> = {
+  confirmacao: "Confirmação",
+  lembrete_1d: "Lembrete (1 dia antes)",
+  lembrete_2h: "Lembrete (2 horas antes)",
+  cancelamento: "Aviso de cancelamento",
+};
+
 // Datas no fuso do salão, no formato curto do painel: "03 nov" e "nov/2026".
 function partes(iso: string, fuso: string, o: Intl.DateTimeFormatOptions) {
   const p = new Intl.DateTimeFormat("pt-BR", { timeZone: fuso, ...o }).formatToParts(new Date(iso));

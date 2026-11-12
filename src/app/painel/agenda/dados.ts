@@ -184,6 +184,20 @@ export async function carregarAgendamento(id: string): Promise<Agendamento | nul
   };
 }
 
+export type MensagemDoAgendamento = { tipo: string; status: string; erro: string | null };
+
+/** Mensagens do WhatsApp deste agendamento. Só Dono(a) e Recepção leem (RLS): para o Profissional vem vazio. */
+export async function carregarMensagens(agendamentoId: string): Promise<MensagemDoAgendamento[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("message_log")
+    .select("tipo, status, erro")
+    .eq("appointment_id", agendamentoId)
+    .order("created_at");
+  if (error) throw new Error("Falha ao carregar as mensagens.");
+  return data ?? [];
+}
+
 /**
  * Para quem o agendamento pode ir na remarcação: o profissional atual e os ativos que fazem o serviço.
  * Profissional: só a própria agenda.

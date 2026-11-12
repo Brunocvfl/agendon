@@ -99,14 +99,14 @@ isOneToOne: false
                   ]
                 },"message_log": {
                   Row: {
-                    "appointment_id": string | null,"created_at": string,"custo_estimado": number | null,"id": string,"meta_message_id": string | null,"salon_id": string,"status": string,"tipo": string
+                    "appointment_id": string | null,"atualizada_em": string,"client_id": string | null,"created_at": string,"custo_estimado": number | null,"enviada_em": string | null,"erro": string | null,"id": string,"meta_message_id": string | null,"salon_id": string,"status": string,"tentativas": number,"template": string | null,"tipo": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "appointment_id"?: string | null,"created_at"?: string,"custo_estimado"?: number | null,"id"?: string,"meta_message_id"?: string | null,"salon_id": string,"status"?: string,"tipo": string
+                    "appointment_id"?: string | null,"atualizada_em"?: string,"client_id"?: string | null,"created_at"?: string,"custo_estimado"?: number | null,"enviada_em"?: string | null,"erro"?: string | null,"id"?: string,"meta_message_id"?: string | null,"salon_id": string,"status"?: string,"tentativas"?: number,"template"?: string | null,"tipo": string
                   }
                   Update: {
-                    "appointment_id"?: string | null,"created_at"?: string,"custo_estimado"?: number | null,"id"?: string,"meta_message_id"?: string | null,"salon_id"?: string,"status"?: string,"tipo"?: string
+                    "appointment_id"?: string | null,"atualizada_em"?: string,"client_id"?: string | null,"created_at"?: string,"custo_estimado"?: number | null,"enviada_em"?: string | null,"erro"?: string | null,"id"?: string,"meta_message_id"?: string | null,"salon_id"?: string,"status"?: string,"tentativas"?: number,"template"?: string | null,"tipo"?: string
                   }
                   Relationships: [
                     {
@@ -114,6 +114,12 @@ isOneToOne: false
       columns: ["appointment_id","salon_id"]
 isOneToOne: false
       referencedRelation: "appointments"
+      referencedColumns: ["id","salon_id"]
+    },{
+      foreignKeyName: "message_log_client_fkey"
+      columns: ["client_id","salon_id"]
+isOneToOne: false
+      referencedRelation: "clients"
       referencedColumns: ["id","salon_id"]
     },{
       foreignKeyName: "message_log_salon_id_fkey"
@@ -371,6 +377,20 @@ isOneToOne: false
                            },
 "salvar_servicos_profissional":
 { Args: { "p_professional": string,"p_servicos": (string)[] }; Returns: undefined
+                           },
+"whatsapp_optout":
+{ Args: { "p_telefones": (string)[] }; Returns: number
+                           },
+"whatsapp_reservar":
+{ Args: { "p_limite"?: number }; Returns: {
+              "cliente_nome": string,"fuso": string,"inicio": string,"mensagem_id": string,"profissional": string,"salao": string,"servico": string,"telefone": string,"template": string,"tipo": string
+            }[]
+                           },
+"whatsapp_resultado":
+{ Args: { "p_erro": string,"p_id": string,"p_status": string,"p_wamid": string }; Returns: undefined
+                           },
+"whatsapp_status_meta":
+{ Args: { "p_erro": string,"p_status": string,"p_wamid": string }; Returns: number
                            }
           }
           Enums: {
