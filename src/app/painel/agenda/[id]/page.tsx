@@ -5,10 +5,18 @@ import { BotaoLink, Cartao } from "@/components/ui";
 import { PaginaProtegida } from "@/components/pagina-protegida";
 import type { Vinculo } from "@/lib/auth";
 import { dataNoFuso, minutosNoFuso, paraHora, rotuloData } from "@/lib/datas";
-import { formatarDuracao, formatarPreco, formatarTelefone, linkWhatsApp, NOME_STATUS } from "@/lib/formato";
+import {
+  formatarDuracao,
+  formatarPreco,
+  formatarTelefone,
+  linkWhatsApp,
+  NOME_STATUS,
+  NOME_STATUS_MENSAGEM,
+  NOME_TIPO_MENSAGEM,
+} from "@/lib/formato";
 import { pode } from "@/lib/permissoes";
 import { podeRemarcar, proximosStatus, type Status } from "@/lib/regras/agendamento";
-import { carregarAgendamento } from "../dados";
+import { carregarAgendamento, carregarMensagens } from "../dados";
 import { AcoesStatus } from "./acoes-status";
 
 export const metadata: Metadata = { title: "Agendamento · AgendOn" };
@@ -35,6 +43,7 @@ async function Conteudo({ vinculo, id }: { vinculo: Vinculo; id: string }) {
   const { salao, perfil } = vinculo;
   const ag = await carregarAgendamento(id);
   if (!ag) notFound();
+  const mensagens = await carregarMensagens(ag.id);
 
   const dia = dataNoFuso(ag.inicio, salao.fuso);
   const de = minutosNoFuso(ag.inicio, salao.fuso);
@@ -77,6 +86,20 @@ async function Conteudo({ vinculo, id }: { vinculo: Vinculo; id: string }) {
               >
                 Chamar
               </a>
+            </Item>
+          ) : null}
+          {mensagens.length > 0 ? (
+            <Item rotulo="Mensagens no WhatsApp">
+              <ul>
+                {mensagens.map((m) => (
+                  <li key={m.tipo}>
+                    {NOME_TIPO_MENSAGEM[m.tipo] ?? m.tipo}: {NOME_STATUS_MENSAGEM[m.status] ?? m.status}
+                    {m.status === "falhou" && m.erro ? (
+                      <span className="block text-sm font-normal text-noite/65">{m.erro}</span>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
             </Item>
           ) : null}
           <Item rotulo="Origem">

@@ -1,5 +1,6 @@
 "use server";
 
+import { after } from "next/server";
 import { acaoDoPainel, texto, type EstadoForm } from "@/lib/acao";
 import { exigirPermissao } from "@/lib/auth";
 import { pode } from "@/lib/permissoes";
@@ -9,6 +10,7 @@ import { ehUuid } from "@/lib/ids";
 import { lerAgendamento, lerMudancaDeStatus, lerRemarcacao } from "@/lib/regras/agendamento";
 import { invalido, valido } from "@/lib/regras/resultado";
 import { createClient } from "@/lib/supabase/server";
+import { processarFila } from "@/lib/whatsapp/enviar";
 
 export type { EstadoForm };
 
@@ -38,8 +40,8 @@ export const criarAgendamento = acaoDoPainel({
       telefone: texto(fd, "telefone"),
       encaixe: texto(fd, "encaixe") === "on",
     }),
-  executar: (a, { supabase }) =>
-    supabase.rpc("criar_agendamento", {
+  executar: async (a, { supabase }) => {
+    const resposta = await supabase.rpc("criar_agendamento", {
       p_professional: a.profissional,
       p_service: a.servico,
       p_inicio: a.inicio,
@@ -47,7 +49,13 @@ export const criarAgendamento = acaoDoPainel({
       ...("id" in a.cliente
         ? { p_client: a.cliente.id }
         : { p_cliente_nome: a.cliente.nome, p_cliente_telefone: a.cliente.telefone }),
-    }),
+    });
+    // Cliente que já deu opt-in tem a confirmação na fila (gatilho do banco): envia depois da resposta.
+    if (!resposta.error) {
+      after(() => processarFila().catch((e) => console.error(e instanceof Error ? e.message : "whatsapp: fila falhou")));
+    }
+    return resposta;
+  },
   mensagens: {
     conflito: ERROS_DE_HORARIO.conflito,
     invalido: (e) => {
