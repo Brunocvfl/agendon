@@ -1,10 +1,13 @@
 // Template da confirmação (categoria utilidade, pt_BR). O texto aprovado na Meta é:
 //
 //   Olá, {{1}}! Seu horário no {{2}} está confirmado: {{3}} com {{4}}, {{5}}.
-//   Para não receber mais mensagens, responda SAIR.
+//   Se precisar mudar ou cancelar, fale com o salão. Até breve!
 //
-// Nome do template: confirmacao_agendamento. Mudou o texto ou a ordem das variáveis? Crie um template
-// novo na Meta (versão nova do nome) e atualize aqui e em `message_log.template`.
+// Nome do template: confirmacao_agendamento_v2 (o v1 tinha "responda SAIR" e a Meta o reclassificou como
+// marketing; texto de descadastro em template de utilidade faz isso). O SAIR continua valendo pelo webhook.
+// Mudou o texto ou a ordem das variáveis? Crie um template novo na Meta (versão nova do nome) e atualize
+// aqui e no gatilho `app.enfileirar_confirmacao` (nova migration). Template curto com muitas variáveis é
+// recusado (proporção palavras/parâmetros).
 import { dataNoFuso, minutosNoFuso, paraHora, rotuloData } from "@/lib/datas";
 
 export const IDIOMA = "pt_BR";

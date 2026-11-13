@@ -112,7 +112,7 @@ describe("template da confirmação", () => {
   });
 
   it("monta o corpo da Cloud API com cinco variáveis, na ordem do template", () => {
-    const corpo = montarConfirmacao("confirmacao_agendamento", "+5511987654321", {
+    const corpo = montarConfirmacao("confirmacao_agendamento_v2", "+5511987654321", {
       nome: "Marina",
       salao: "Studio Teste",
       servico: "Corte",
@@ -126,7 +126,7 @@ describe("template da confirmação", () => {
       to: "5511987654321",
       type: "template",
       template: {
-        name: "confirmacao_agendamento",
+        name: "confirmacao_agendamento_v2",
         language: { code: "pt_BR" },
         components: [
           {
