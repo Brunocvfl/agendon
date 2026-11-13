@@ -1,12 +1,13 @@
-// Envio das mensagens da fila pela Cloud API da Meta. Chamado depois de um agendamento (after()).
+// Envio das mensagens da fila pela Cloud API da Meta. Chamado depois de um agendamento (after()) e pelo
+// job do pg_cron a cada 15 min (rota /api/whatsapp/processar: lembretes e novas tentativas).
 // Só a fila fala com o banco, por funções próprias; telefone e nome do cliente existem aqui só na
 // memória, durante o envio, e nunca vão para log.
 import "server-only";
 import { clienteWhatsApp } from "@/lib/supabase/whatsapp";
 import { lerRespostaDaMeta } from "./graph";
-import { montarConfirmacao } from "./template";
+import { montarMensagem } from "./template";
 
-const LOTE = 10;
+export const LOTE = 10;
 const VERSAO_PADRAO = "v23.0";
 
 export type ResumoDoEnvio = { enviadas: number; falhas: number; adiadas: number };
@@ -33,7 +34,7 @@ export async function processarFila(): Promise<ResumoDoEnvio> {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify(
-          montarConfirmacao(m.template, m.telefone, {
+          montarMensagem(m.template, m.telefone, {
             nome: m.cliente_nome,
             salao: m.salao,
             servico: m.servico,

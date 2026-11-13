@@ -1,18 +1,24 @@
-// Template da confirmação (categoria utilidade, pt_BR). O texto aprovado na Meta é:
+// Templates do WhatsApp (categoria utilidade, pt_BR). Os dois têm as mesmas cinco variáveis, na mesma ordem:
+// {{1}} nome do cliente, {{2}} salão, {{3}} serviço, {{4}} profissional, {{5}} dia e hora no fuso do salão.
 //
+// Confirmação (`confirmacao_agendamento_v2`, gatilho `app.enfileirar_confirmacao`):
 //   Olá, {{1}}! Seu horário no {{2}} está confirmado: {{3}} com {{4}}, {{5}}.
 //   Se precisar mudar ou cancelar, fale com o salão. Até breve!
 //
-// Nome do template: confirmacao_agendamento_v2 (o v1 tinha "responda SAIR" e a Meta o reclassificou como
-// marketing; texto de descadastro em template de utilidade faz isso). O SAIR continua valendo pelo webhook.
+// Lembrete (`lembrete_agendamento`, `app.enfileirar_lembretes`, antecedência em `salons.lembrete_horas`):
+//   Olá, {{1}}! Passando para lembrar do seu horário no {{2}}: {{3}} com {{4}}, {{5}}.
+//   Se precisar mudar ou cancelar, fale com o salão. Até lá!
+//
+// Sem texto de descadastro: o v1 da confirmação tinha "responda SAIR" e a Meta o reclassificou como
+// marketing. O SAIR continua valendo pelo webhook.
 // Mudou o texto ou a ordem das variáveis? Crie um template novo na Meta (versão nova do nome) e atualize
-// aqui e no gatilho `app.enfileirar_confirmacao` (nova migration). Template curto com muitas variáveis é
-// recusado (proporção palavras/parâmetros).
+// aqui e na função que enfileira (nova migration). Template curto com muitas variáveis é recusado
+// (proporção palavras/parâmetros).
 import { dataNoFuso, minutosNoFuso, paraHora, rotuloData } from "@/lib/datas";
 
 export const IDIOMA = "pt_BR";
 
-export type DadosConfirmacao = {
+export type DadosMensagem = {
   nome: string;
   salao: string;
   servico: string;
@@ -34,7 +40,7 @@ export function quando(inicio: string, fuso: string): string {
 }
 
 /** Corpo do POST /{phone-number-id}/messages da Cloud API. `telefone` em E.164 ("+5511987654321"). */
-export function montarConfirmacao(template: string, telefone: string, d: DadosConfirmacao) {
+export function montarMensagem(template: string, telefone: string, d: DadosMensagem) {
   const textos = [d.nome, d.salao, d.servico, d.profissional, quando(d.inicio, d.fuso)];
   return {
     messaging_product: "whatsapp",
@@ -48,3 +54,11 @@ export function montarConfirmacao(template: string, telefone: string, d: DadosCo
     },
   };
 }
+
+/** Texto que o cliente recebe, para a prévia no painel (o que vale é o aprovado na Meta). */
+export const TEXTOS = {
+  confirmacao: (d: DadosMensagem) =>
+    `Olá, ${d.nome}! Seu horário no ${d.salao} está confirmado: ${d.servico} com ${d.profissional}, ${quando(d.inicio, d.fuso)}. Se precisar mudar ou cancelar, fale com o salão. Até breve!`,
+  lembrete: (d: DadosMensagem) =>
+    `Olá, ${d.nome}! Passando para lembrar do seu horário no ${d.salao}: ${d.servico} com ${d.profissional}, ${quando(d.inicio, d.fuso)}. Se precisar mudar ou cancelar, fale com o salão. Até lá!`,
+};

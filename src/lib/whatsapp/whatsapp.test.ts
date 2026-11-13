@@ -1,9 +1,9 @@
 import { createHmac } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { assinaturaValida, textosIguais } from "./assinatura";
+import { assinaturaValida, bearerValido, textosIguais } from "./assinatura";
 import { candidatosDeTelefone, ehPedidoDeSaida, lerEventos } from "./eventos";
 import { lerRespostaDaMeta } from "./graph";
-import { montarConfirmacao, parametro, quando } from "./template";
+import { montarMensagem, parametro, quando, TEXTOS } from "./template";
 
 const assinar = (corpo: string, segredo: string) => `sha256=${createHmac("sha256", segredo).update(corpo).digest("hex")}`;
 
@@ -112,7 +112,7 @@ describe("template da confirmação", () => {
   });
 
   it("monta o corpo da Cloud API com cinco variáveis, na ordem do template", () => {
-    const corpo = montarConfirmacao("confirmacao_agendamento_v2", "+5511987654321", {
+    const corpo = montarMensagem("confirmacao_agendamento_v2", "+5511987654321", {
       nome: "Marina",
       salao: "Studio Teste",
       servico: "Corte",
@@ -158,5 +158,42 @@ describe("resposta da Meta ao enviar", () => {
   it("token inválido é definitivo e o erro não leva número de telefone", () => {
     const r = lerRespostaDaMeta(401, { error: { code: 190, message: "Invalid token for 5511987654321" } });
     expect(r).toEqual({ ok: false, tentarDepois: false, erro: "190: Invalid token for …" });
+  });
+});
+
+describe("segredo da rota de envio", () => {
+  const segredo = "s".repeat(40);
+  it("aceita o Bearer certo", () => {
+    expect(bearerValido(`Bearer ${segredo}`, segredo)).toBe(true);
+  });
+  it("recusa ausente, errado, sem Bearer ou segredo curto/não configurado", () => {
+    expect(bearerValido(null, segredo)).toBe(false);
+    expect(bearerValido(`Bearer ${segredo}x`, segredo)).toBe(false);
+    expect(bearerValido(segredo, segredo)).toBe(false);
+    expect(bearerValido("Bearer curto", "curto")).toBe(false);
+    expect(bearerValido("Bearer ", undefined)).toBe(false);
+  });
+});
+
+describe("template do lembrete", () => {
+  const dados = {
+    nome: "Marina",
+    salao: "Studio Teste",
+    servico: "Corte",
+    profissional: "Ana",
+    inicio: "2026-11-12T18:30:00Z",
+    fuso: "America/Sao_Paulo",
+  };
+  it("usa as mesmas cinco variáveis da confirmação", () => {
+    const corpo = montarMensagem("lembrete_agendamento", "+5511987654321", dados);
+    expect(corpo.template.name).toBe("lembrete_agendamento");
+    expect(corpo.template.components[0].parameters.map((p) => p.text)).toEqual([
+      "Marina", "Studio Teste", "Corte", "Ana", "qui, 12 nov às 15:30",
+    ]);
+  });
+  it("a prévia mostra o texto aprovado com os dados", () => {
+    expect(TEXTOS.lembrete(dados)).toBe(
+      "Olá, Marina! Passando para lembrar do seu horário no Studio Teste: Corte com Ana, qui, 12 nov às 15:30. Se precisar mudar ou cancelar, fale com o salão. Até lá!",
+    );
   });
 });

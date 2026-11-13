@@ -99,14 +99,14 @@ isOneToOne: false
                   ]
                 },"message_log": {
                   Row: {
-                    "appointment_id": string | null,"atualizada_em": string,"client_id": string | null,"created_at": string,"custo_estimado": number | null,"enviada_em": string | null,"erro": string | null,"id": string,"meta_message_id": string | null,"salon_id": string,"status": string,"tentativas": number,"template": string | null,"tipo": string
+                    "appointment_id": string | null,"atualizada_em": string,"client_id": string | null,"created_at": string,"custo_estimado": number | null,"enviada_em": string | null,"erro": string | null,"id": string,"meta_message_id": string | null,"salon_id": string,"status": string,"template": string | null,"tentativas": number,"tipo": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "appointment_id"?: string | null,"atualizada_em"?: string,"client_id"?: string | null,"created_at"?: string,"custo_estimado"?: number | null,"enviada_em"?: string | null,"erro"?: string | null,"id"?: string,"meta_message_id"?: string | null,"salon_id": string,"status"?: string,"tentativas"?: number,"template"?: string | null,"tipo": string
+                    "appointment_id"?: string | null,"atualizada_em"?: string,"client_id"?: string | null,"created_at"?: string,"custo_estimado"?: number | null,"enviada_em"?: string | null,"erro"?: string | null,"id"?: string,"meta_message_id"?: string | null,"salon_id": string,"status"?: string,"template"?: string | null,"tentativas"?: number,"tipo": string
                   }
                   Update: {
-                    "appointment_id"?: string | null,"atualizada_em"?: string,"client_id"?: string | null,"created_at"?: string,"custo_estimado"?: number | null,"enviada_em"?: string | null,"erro"?: string | null,"id"?: string,"meta_message_id"?: string | null,"salon_id"?: string,"status"?: string,"tentativas"?: number,"template"?: string | null,"tipo"?: string
+                    "appointment_id"?: string | null,"atualizada_em"?: string,"client_id"?: string | null,"created_at"?: string,"custo_estimado"?: number | null,"enviada_em"?: string | null,"erro"?: string | null,"id"?: string,"meta_message_id"?: string | null,"salon_id"?: string,"status"?: string,"template"?: string | null,"tentativas"?: number,"tipo"?: string
                   }
                   Relationships: [
                     {
@@ -203,14 +203,14 @@ isOneToOne: false
                   ]
                 },"salons": {
                   Row: {
-                    "bairro": string | null,"cep": string | null,"cidade": string | null,"complemento": string | null,"created_at": string,"email": string | null,"fuso": string,"id": string,"instagram": string | null,"logo_path": string | null,"logradouro": string | null,"nome": string,"numero": string | null,"plano": string,"slug": string,"status": string,"uf": string | null,"whatsapp": string | null
+                    "bairro": string | null,"cep": string | null,"cidade": string | null,"complemento": string | null,"created_at": string,"email": string | null,"fuso": string,"id": string,"instagram": string | null,"lembrete_horas": number | null,"logo_path": string | null,"logradouro": string | null,"nome": string,"numero": string | null,"plano": string,"slug": string,"status": string,"uf": string | null,"whatsapp": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "bairro"?: string | null,"cep"?: string | null,"cidade"?: string | null,"complemento"?: string | null,"created_at"?: string,"email"?: string | null,"fuso"?: string,"id"?: string,"instagram"?: string | null,"logo_path"?: string | null,"logradouro"?: string | null,"nome": string,"numero"?: string | null,"plano"?: string,"slug": string,"status"?: string,"uf"?: string | null,"whatsapp"?: string | null
+                    "bairro"?: string | null,"cep"?: string | null,"cidade"?: string | null,"complemento"?: string | null,"created_at"?: string,"email"?: string | null,"fuso"?: string,"id"?: string,"instagram"?: string | null,"lembrete_horas"?: number | null,"logo_path"?: string | null,"logradouro"?: string | null,"nome": string,"numero"?: string | null,"plano"?: string,"slug": string,"status"?: string,"uf"?: string | null,"whatsapp"?: string | null
                   }
                   Update: {
-                    "bairro"?: string | null,"cep"?: string | null,"cidade"?: string | null,"complemento"?: string | null,"created_at"?: string,"email"?: string | null,"fuso"?: string,"id"?: string,"instagram"?: string | null,"logo_path"?: string | null,"logradouro"?: string | null,"nome"?: string,"numero"?: string | null,"plano"?: string,"slug"?: string,"status"?: string,"uf"?: string | null,"whatsapp"?: string | null
+                    "bairro"?: string | null,"cep"?: string | null,"cidade"?: string | null,"complemento"?: string | null,"created_at"?: string,"email"?: string | null,"fuso"?: string,"id"?: string,"instagram"?: string | null,"lembrete_horas"?: number | null,"logo_path"?: string | null,"logradouro"?: string | null,"nome"?: string,"numero"?: string | null,"plano"?: string,"slug"?: string,"status"?: string,"uf"?: string | null,"whatsapp"?: string | null
                   }
                   Relationships: [
                     
