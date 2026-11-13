@@ -169,7 +169,7 @@ set local role service_role;
 select throws_ok(
   $$select * from public.agendar_publico('salao-publico-p', '92000000-0000-0000-0000-000000000001',
     null, pg_temp.as_local('13:00'), 'Teste', '+5511900000005', false, 'origem-cheia')$$,
-  'P0001', 'muitos_agendamentos',
+  'P0001', 'muitas_tentativas',
   'origem com 5 agendamentos na última hora é barrada'
 );
 
