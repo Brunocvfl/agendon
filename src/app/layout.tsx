@@ -10,6 +10,8 @@ const sora = Sora({
 export const metadata: Metadata = {
   title: "AgendOn",
   description: "Agendamento online para salões de beleza.",
+  // Verificação do domínio agendon.app.br no Meta Business (WhatsApp). Código público, não é segredo.
+  other: { "facebook-domain-verification": "90ppeqd6yqbd2gl1uop9emhwe699b5" },
 };
 
 // Cor da barra do navegador no celular = fundo da página (o painel troca pelo azul noite).
