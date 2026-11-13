@@ -53,7 +53,7 @@ select is(
 select results_eq(
   $$select tipo, status, template, tentativas, client_id from public.message_log
     where appointment_id = 'e6000000-0000-0000-0000-000000000001'$$,
-  $$values ('confirmacao'::text, 'na_fila'::text, 'confirmacao_agendamento'::text, 0, 'e5000000-0000-0000-0000-000000000001'::uuid)$$,
+  $$values ('confirmacao'::text, 'na_fila'::text, 'confirmacao_agendamento_v2'::text, 0, 'e5000000-0000-0000-0000-000000000001'::uuid)$$,
   'a mensagem na fila não guarda telefone nem nome, só o cliente e o template');
 select is(
   (select count(*)::int from public.message_log where appointment_id = 'e6000000-0000-0000-0000-000000000002'),
@@ -100,8 +100,8 @@ select results_eq(
   $$select telefone, cliente_nome, salao, servico, profissional, template, tipo
     from public.whatsapp_reservar(50) order by inicio$$,
   $$values
-    ('+5511987800001'::text, 'Cliente C1'::text, 'Salão W'::text, 'Corte W'::text, 'Prof W'::text, 'confirmacao_agendamento'::text, 'confirmacao'::text),
-    ('+5511987800001'::text, 'Cliente C1'::text, 'Salão W'::text, 'Corte W'::text, 'Prof W'::text, 'confirmacao_agendamento'::text, 'confirmacao'::text)$$,
+    ('+5511987800001'::text, 'Cliente C1'::text, 'Salão W'::text, 'Corte W'::text, 'Prof W'::text, 'confirmacao_agendamento_v2'::text, 'confirmacao'::text),
+    ('+5511987800001'::text, 'Cliente C1'::text, 'Salão W'::text, 'Corte W'::text, 'Prof W'::text, 'confirmacao_agendamento_v2'::text, 'confirmacao'::text)$$,
   'reservar devolve os dados do envio (agendamentos 1 e 6)');
 reset role;
 select is(
@@ -206,7 +206,7 @@ select results_eq(
   $$select m.tipo, m.status, m.template, c.consentimento_origem
     from public.message_log m join public.clients c on c.id = m.client_id
     where c.telefone = '+5511987800009'$$,
-  $$values ('confirmacao'::text, 'na_fila'::text, 'confirmacao_agendamento'::text, 'pagina_publica'::text)$$,
+  $$values ('confirmacao'::text, 'na_fila'::text, 'confirmacao_agendamento_v2'::text, 'pagina_publica'::text)$$,
   'agendamento público com opt-in gera a confirmação na fila');
 
 select * from finish();
