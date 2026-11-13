@@ -127,6 +127,8 @@ Migrations em `supabase/migrations/`:
 
 19. `20261113024841_whatsapp_template_v2.sql`: o gatilho enfileira o template `confirmacao_agendamento_v2` (utilidade, sem texto de descadastro) e o que estava na fila com o nome antigo passa para o v2. O v1 (`confirmacao_agendamento`, com "responda SAIR") foi reclassificado pela Meta como marketing e a categoria não pode ser trocada.
 
+20. `20261113034530_limite_publico_mensagens.sql`: `agendar_publico` passa a distinguir os limites: `muitas_tentativas` (P0001, 5 por hora por origem) e `muitos_agendamentos` (P0001, 3 futuros ativos por WhatsApp no salão). O app mostra uma mensagem para cada (`src/app/[slug]/actions.ts`).
+
 Testes: `01_isolation` (12), `02_onboarding` (13), `03_services` (14), `04_professionals` (20), `05_clients` (21), `06_appointments` (23, datas fixas em 2030 para não depender do dia), `07_status` (30), `08_profissional_agenda` (17), `09_pagina_publica` (25, datas relativas a hoje por causa do horizonte de 60 dias), `10_equipe` (27), `11_dados_salao` (19), `12_lgpd` (28), `13_message_log` (4), `14_whatsapp_fila` (43: gatilho, permissões, reservar, resultado, status do webhook, tentativas, SAIR e o caminho `agendar_publico` com opt-in). Os testes não podem depender do banco vazio (use slugs/nomes que não colidem com dados criados à mão nem com o seed).
 
 Seed local (`supabase/seed.sql`, roda no `db:reset`; o `db push` não envia): salão "Studio Teste" com logins `dono@`, `recepcao@` e `profissional@agendon.test` (senha no arquivo), serviços, profissionais com horário, clientes e histórico.

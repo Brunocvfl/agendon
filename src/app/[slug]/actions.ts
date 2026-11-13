@@ -87,7 +87,9 @@ export async function agendar(_anterior: EstadoAgendamento, formData: FormData):
       case "23P01":
         return falha({ ocupado: true, erro: "Esse horário acabou de ser ocupado. Escolha outro." });
       case "P0001":
-        return falha({ erro: "Você já tem muitos agendamentos recentes neste salão. Fale com o salão para marcar mais." });
+        return error.message === "muitas_tentativas"
+          ? falha({ erro: "Muitos agendamentos feitos daqui em pouco tempo. Tente de novo daqui a uma hora." })
+          : falha({ erro: "Você já tem 3 horários marcados neste salão. Para marcar outro, fale com o salão." });
       case "P0002":
         return falha({ erro: "Este salão não está recebendo agendamentos online." });
       case "22023":
