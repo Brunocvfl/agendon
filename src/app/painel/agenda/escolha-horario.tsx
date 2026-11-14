@@ -32,14 +32,17 @@ export function EscolhaHorario({ profissional, servico, ignorar, dia, onDia, hor
   const [encaixe, setEncaixe] = useState(false);
   const [verTodos, setVerTodos] = useState(false);
   const chave = `${profissional}|${servico}|${dia}`;
-  const [livres, setLivres] = useState<{ chave: string; horas: string[] } | null>(null);
-  const horas = livres?.chave === chave ? livres.horas : null;
+  // "erro": o banco falhou ao buscar os livres (diferente de "nenhum horário livre").
+  const [livres, setLivres] = useState<{ chave: string; horas: string[] | "erro" } | null>(null);
+  const resposta = livres?.chave === chave ? livres.horas : null;
+  const falhou = resposta === "erro";
+  const horas = falhou ? null : resposta;
 
   useEffect(() => {
     let ativo = true;
     if (!servico) return;
     horariosLivres(profissional, servico, dia, ignorar).then((h) => {
-      if (ativo) setLivres({ chave: `${profissional}|${servico}|${dia}`, horas: h });
+      if (ativo) setLivres({ chave: `${profissional}|${servico}|${dia}`, horas: h ?? "erro" });
     });
     return () => {
       ativo = false;
@@ -80,7 +83,9 @@ export function EscolhaHorario({ profissional, servico, ignorar, dia, onDia, hor
         {/* Anuncia o resumo (não a lista inteira) ao trocar de dia, profissional ou serviço. */}
         <p aria-live="polite" className="text-sm text-noite/65">
           Livres em {dia ? rotuloData(dia) : "—"}
-          {horas === null ? "…" : horas.length === 0 ? ": nenhum horário livre neste dia." : ":"}
+          {falhou
+            ? ": não foi possível carregar agora. Escolha o horário acima ou tente de novo."
+            : horas === null ? "…" : horas.length === 0 ? ": nenhum horário livre neste dia." : ":"}
           {horas && horas.length > 0 ? <span className="sr-only"> {horas.length} horários</span> : null}
         </p>
         {horas && horas.length > 0 ? (

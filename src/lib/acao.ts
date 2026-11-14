@@ -52,13 +52,16 @@ const PADRAO: Record<ErroBanco, string> = {
 };
 
 /** Mensagem para o formulário (texto) ou para um campo ({ campo, msg }); pode depender do erro. */
-type Mensagem = string | { campo: string; msg: string };
+export type Mensagem = string | { campo: string; msg: string };
 export type Mensagens = Partial<Record<ErroBanco, Mensagem | ((e: ErroPostgres) => Mensagem)>>;
 
 function mensagemDoErro(error: ErroPostgres, mensagens: Mensagens = {}): Pick<EstadoForm, "erro" | "erros"> {
   const tipo = traduzirErroBanco(error);
   const m = mensagens[tipo];
-  const msg = typeof m === "function" ? m(error) : (m ?? PADRAO[tipo]);
+  return estadoDaMensagem(typeof m === "function" ? m(error) : (m ?? PADRAO[tipo]));
+}
+
+function estadoDaMensagem(msg: Mensagem): Pick<EstadoForm, "erro" | "erros"> {
   return typeof msg === "string" ? { erro: msg } : { erros: { [msg.campo]: msg.msg } };
 }
 
@@ -71,8 +74,10 @@ function estadoDeErros(erros: ErrosPorCampo, erroGeral?: string): Pick<EstadoFor
 
 type Contexto = { vinculo: Vinculo; supabase: Awaited<ReturnType<typeof createClient>> };
 type RespostaBanco<D> = { error: ErroPostgres | null; data?: D | null };
+/** Resposta de um módulo de domínio (ex.: Agendamento): o erro já vem com nome, da lista dele. */
+type RespostaDominio<D, E extends string> = { ok: true; data: D } | { ok: false; erro: E };
 
-export function acaoDoPainel<T, D = unknown>(def: {
+type Comum<T, D> = {
   permissao: Permissao;
   /** Para onde vai quem não tem a permissão. */
   senao?: string;
@@ -81,11 +86,26 @@ export function acaoDoPainel<T, D = unknown>(def: {
   ler: (fd: FormData, vinculo: Vinculo) => Resultado<T>;
   /** Mensagem geral quando a leitura falha só com erros de campo. */
   erroDeLeitura?: string;
-  executar: (valor: T, ctx: Contexto) => PromiseLike<RespostaBanco<D>>;
-  mensagens?: Mensagens;
   /** Sucesso: mostra `ok` e atualiza a tela, ou vai para outra página (a partir do que o banco devolveu e do que foi lido). */
   depois: { ok: string } | { ir: string | ((data: D, valor: T) => string) };
-}) {
+};
+
+type DefBanco<T, D> = Comum<T, D> & {
+  executar: (valor: T, ctx: Contexto) => PromiseLike<RespostaBanco<D>>;
+  mensagens?: Mensagens;
+};
+
+type DefDominio<T, D, E extends string> = Comum<T, D> & {
+  executar: (valor: T, ctx: Contexto) => PromiseLike<RespostaDominio<D, E>>;
+  /** Um texto para cada erro que a operação pode devolver (o TypeScript cobra os que faltarem). */
+  mensagens: Record<NoInfer<E>, Mensagem>;
+};
+
+type Acao = (anterior: EstadoForm, fd: FormData) => Promise<EstadoForm>;
+
+export function acaoDoPainel<T, D, E extends string>(def: DefDominio<T, D, E>): Acao;
+export function acaoDoPainel<T, D = unknown>(def: DefBanco<T, D>): Acao;
+export function acaoDoPainel<T, D>(def: DefBanco<T, D> | DefDominio<T, D, string>): Acao {
   return async function (_anterior: EstadoForm, fd: FormData): Promise<EstadoForm> {
     const vinculo = await exigirPermissao(def.permissao, def.senao);
     const campos = Object.fromEntries((def.devolver ?? []).map((c) => [c, String(fd.get(c) ?? "")]));
@@ -94,8 +114,15 @@ export function acaoDoPainel<T, D = unknown>(def: {
     if (!lido.ok) return { ...estadoDeErros(lido.erros, def.erroDeLeitura), campos };
 
     const supabase = await createClient();
-    const { error, data } = await def.executar(lido.valor, { vinculo, supabase });
-    if (error) return { ...mensagemDoErro(error, def.mensagens), campos };
+    const resposta = await def.executar(lido.valor, { vinculo, supabase });
+    let data: D | null | undefined;
+    if ("ok" in resposta) {
+      if (!resposta.ok) return { ...estadoDaMensagem((def as DefDominio<T, D, string>).mensagens[resposta.erro]), campos };
+      data = resposta.data;
+    } else {
+      if (resposta.error) return { ...mensagemDoErro(resposta.error, (def as DefBanco<T, D>).mensagens), campos };
+      data = resposta.data;
+    }
 
     if ("ir" in def.depois) {
       redirect(typeof def.depois.ir === "function" ? def.depois.ir(data as D, lido.valor) : def.depois.ir);
