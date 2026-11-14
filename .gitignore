@@ -25,3 +25,6 @@ supabase/.temp/
 coverage/
 *.log
 .DS_Store
+
+# Documentos jurídicos (contratos, rascunhos da advogada): só local
+docs/juridico/

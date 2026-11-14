@@ -17,3 +17,10 @@ export function textosIguais(a: string, b: string): boolean {
   const hb = createHash("sha256").update(b).digest();
   return timingSafeEqual(ha, hb);
 }
+
+/** Cabeçalho "Authorization: Bearer <segredo>" da chamada do job (pg_net) à rota de envio. */
+export function bearerValido(cabecalho: string | null, segredo: string | undefined): boolean {
+  if (!cabecalho || !segredo || segredo.length < 32) return false;
+  const m = /^Bearer (.+)$/.exec(cabecalho.trim());
+  return !!m && textosIguais(m[1], segredo);
+}
