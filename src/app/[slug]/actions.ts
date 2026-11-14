@@ -2,16 +2,14 @@
 
 import { createHash } from "node:crypto";
 import { headers } from "next/headers";
-import { after } from "next/server";
 import { captchaValido } from "@/lib/captcha";
-import { ehData } from "@/lib/datas";
-import { ehUuid } from "@/lib/ids";
+import * as agendamento from "@/lib/agendamento";
+import type { Confirmacao, ErroPublico } from "@/lib/agendamento";
 import { lerAgendamentoPublico } from "@/lib/regras/agendamento";
 import { clientePublico } from "@/lib/supabase/publico";
-import { processarFila } from "@/lib/whatsapp/enviar";
 import { slugValido } from "./dados";
 
-export type Confirmacao = { servico: string; profissional: string; inicio: string; fim: string; preco: number };
+export type { Confirmacao };
 
 export type EstadoAgendamento = {
   erro?: string;
@@ -30,20 +28,24 @@ export async function horariosDoDia(
   profissional: string | null,
   dia: string,
 ): Promise<string[]> {
-  if (!slugValido(slug) || !ehUuid(servico) || (profissional !== null && !ehUuid(profissional)) || !ehData(dia)) {
-    return [];
-  }
-  const supabase = await clientePublico();
-  const { data, error } = await supabase.rpc("horarios_publicos", {
-    p_slug: slug,
-    p_service: servico,
-    // O tipo gerado não aceita null, mas a função trata null como "qualquer profissional".
-    p_professional: profissional as string,
-    p_dia: dia,
-  });
-  if (error) throw new Error(`horarios_publicos falhou (${error.code})`);
-  return data ?? [];
+  if (!slugValido(slug)) return [];
+  const r = await agendamento.horariosPublicos({ slug, servico, profissional, dia }, { supabase: await clientePublico() });
+  if (!r.ok) throw new Error("horarios_publicos falhou");
+  return r.data;
 }
+
+const CONFIRA = "Confira os campos destacados.";
+
+/** O que a pessoa vê para cada erro do agendamento público ("outro" vira erro do servidor). */
+const ERROS: Record<Exclude<ErroPublico, "outro">, EstadoAgendamento> = {
+  ocupado: { ocupado: true, erro: "Esse horário acabou de ser ocupado. Escolha outro." },
+  "muitas-tentativas": { erro: "Muitos agendamentos feitos daqui em pouco tempo. Tente de novo daqui a uma hora." },
+  "muitos-agendamentos": { erro: "Você já tem 3 horários marcados neste salão. Para marcar outro, fale com o salão." },
+  "salao-indisponivel": { erro: "Este salão não está recebendo agendamentos online." },
+  "telefone-invalido": { erros: { telefone: "Informe um WhatsApp válido, com DDD." }, erro: CONFIRA },
+  "servico-nao-atendido": { erro: "Esse serviço não está disponível com o profissional escolhido." },
+  "dado-invalido": { erro: "Esse serviço não está disponível com o profissional escolhido." },
+};
 
 export async function agendar(_anterior: EstadoAgendamento, formData: FormData): Promise<EstadoAgendamento> {
   const texto = (campo: string) => String(formData.get(campo) ?? "");
@@ -61,51 +63,21 @@ export async function agendar(_anterior: EstadoAgendamento, formData: FormData):
     telefone: texto("telefone"),
     optin: formData.get("optin") === "sim",
   });
-  if (!lido.ok) return falha({ erros: lido.erros, erro: "Confira os campos destacados." });
+  if (!lido.ok) return falha({ erros: lido.erros, erro: CONFIRA });
 
   const ip = await ipDaRequisicao();
   if (!(await captchaValido(texto("cf-turnstile-response"), ip))) {
     return falha({ erro: "Não conseguimos confirmar que você não é um robô. Tente de novo." });
   }
 
-  const a = lido.valor;
-  const supabase = await clientePublico();
-  const { data, error } = await supabase.rpc("agendar_publico", {
-    p_slug: slug,
-    p_service: a.servico,
-    p_professional: a.profissional as string,
-    p_inicio: a.inicio,
-    p_nome: a.nome,
-    p_telefone: a.telefone,
-    p_optin: a.optin,
-    // Só o hash do IP vai para o banco (limite de agendamentos por origem).
-    p_origem: createHash("sha256").update(ip ?? "sem-ip").digest("hex"),
-  });
-
-  if (error) {
-    switch (error.code) {
-      case "23P01":
-        return falha({ ocupado: true, erro: "Esse horário acabou de ser ocupado. Escolha outro." });
-      case "P0001":
-        return error.message === "muitas_tentativas"
-          ? falha({ erro: "Muitos agendamentos feitos daqui em pouco tempo. Tente de novo daqui a uma hora." })
-          : falha({ erro: "Você já tem 3 horários marcados neste salão. Para marcar outro, fale com o salão." });
-      case "P0002":
-        return falha({ erro: "Este salão não está recebendo agendamentos online." });
-      case "22023":
-        return error.message === "telefone_invalido"
-          ? falha({ erros: { telefone: "Informe um WhatsApp válido, com DDD." }, erro: "Confira os campos destacados." })
-          : falha({ erro: "Esse serviço não está disponível com o profissional escolhido." });
-      default:
-        throw new Error(`agendar_publico falhou (${error.code})`);
-    }
+  // Só o hash do IP vai para o banco (limite de agendamentos por origem).
+  const origem = createHash("sha256").update(ip ?? "sem-ip").digest("hex");
+  const r = await agendamento.agendarPublico(slug, lido.valor, origem, { supabase: await clientePublico() });
+  if (!r.ok) {
+    if (r.erro === "outro") throw new Error("agendar_publico falhou");
+    return falha(ERROS[r.erro]);
   }
-
-  const r = data?.[0];
-  if (!r) throw new Error("agendar_publico não devolveu o agendamento");
-  // A confirmação do WhatsApp já está na fila (gatilho do banco, se o cliente deu opt-in): envia depois da resposta.
-  after(() => processarFila().catch((e) => console.error(e instanceof Error ? e.message : "whatsapp: fila falhou")));
-  return { confirmacao: { servico: r.servico, profissional: r.profissional, inicio: r.inicio, fim: r.fim, preco: r.preco } };
+  return { confirmacao: r.data };
 }
 
 // Na Vercel, o primeiro IP de x-forwarded-for é o do visitante.

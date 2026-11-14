@@ -101,3 +101,28 @@ describe("acaoDoPainel", () => {
     await expect(criar({}, form({}))).rejects.toThrow("REDIRECT:/painel/profissionais/p9");
   });
 });
+
+describe("acaoDoPainel com resposta de módulo de domínio", () => {
+  type Erro = "ocupado" | "outro";
+  const executar = vi.fn<() => Promise<{ ok: true; data: string } | { ok: false; erro: Erro }>>();
+  const acao = acaoDoPainel({
+    permissao: "criar-agendamento",
+    devolver: ["nome"],
+    ler: () => valido({}),
+    executar,
+    mensagens: { ocupado: { campo: "hora", msg: "Ocupado." }, outro: "Tente de novo." },
+    depois: { ir: (id: string) => `/painel/agenda/${id}` },
+  });
+
+  it("o erro nomeado vira a mensagem do mapa, com o que foi digitado", async () => {
+    executar.mockResolvedValue({ ok: false, erro: "ocupado" });
+    expect(await acao({}, form({ nome: "Ana" }))).toEqual({ erros: { hora: "Ocupado." }, campos: { nome: "Ana" } });
+    executar.mockResolvedValue({ ok: false, erro: "outro" });
+    expect((await acao({}, form({}))).erro).toBe("Tente de novo.");
+  });
+
+  it("sucesso segue para o destino com o dado devolvido", async () => {
+    executar.mockResolvedValue({ ok: true, data: "a1" });
+    await expect(acao({}, form({}))).rejects.toThrow("REDIRECT:/painel/agenda/a1");
+  });
+});
