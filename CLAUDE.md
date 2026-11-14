@@ -171,7 +171,7 @@ App (`src/app`): `/entrar` (com "Esqueci a senha" e reenvio da confirmação se 
 ## Pendências técnicas
 
 - **WhatsApp fatia 2: lembrete** no ar desde 2026-11-14 (PR #26). Templates `confirmacao_agendamento_v2` e `lembrete_agendamento` aprovados (utilidade); o v1 (marketing) foi excluído da WABA. Rota `/api/whatsapp/processar` conferida em produção (sem token = 401, com o segredo = 200). O job só chama a rota quando há algo na fila: conferir `net._http_response` depois do primeiro lembrete real. No staging, o job só enfileira (o preview tem proteção da Vercel). Lembrete já enviado não se repete se o agendamento for remarcado: tratar na fatia de remarcação. Próximo: screencast para a análise do app na Meta.
-- **SAIR na página pública (branch `corrige-optout-publico`, 2026-11-14):** migration 22. Falta: staging, produção e merge.
+- SAIR na página pública: corrigido (migration 22, PR #27), no staging e na produção em 2026-11-14.
 - Staging: 5 agendamentos de teste "Teste Limite" na Mustache Barbearia (ter 17/11, 08:00–09:15, WhatsApps fictícios (11) 90000-0001 a 0003, sem opt-in), criados no teste do PR #25; cancelar se atrapalharem demonstração.
 
 - Login com Google e Microsoft (adiado em 2026-11-09): aprovado, fica para depois. Plano: `signInWithOAuth` pelo `/auth/callback` nos dois provedores (Microsoft = provider `azure`, contas pessoais e de trabalho, claim opcional `email`); um app por provedor com as URIs de callback dos três ambientes; segredos em `.env.local` lidos pelo `config.toml`. A tela de consentimento mostra `...supabase.co` até termos domínio próprio no Supabase (Pro + adicional).
