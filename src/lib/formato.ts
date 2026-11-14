@@ -71,24 +71,3 @@ export const NOME_TIPO_MENSAGEM: Record<string, string> = {
   lembrete_2h: "Lembrete (2 horas antes)",
   cancelamento: "Aviso de cancelamento",
 };
-
-// Datas no fuso do salão, no formato curto do painel: "03 nov" e "nov/2026".
-function partes(iso: string, fuso: string, o: Intl.DateTimeFormatOptions) {
-  const p = new Intl.DateTimeFormat("pt-BR", { timeZone: fuso, ...o }).formatToParts(new Date(iso));
-  const valor = (t: Intl.DateTimeFormatPartTypes) => (p.find((x) => x.type === t)?.value ?? "").replace(".", "");
-  return { dia: valor("day"), mes: valor("month"), ano: valor("year") };
-}
-
-export function formatarDiaMes(iso: string, fuso: string) {
-  const { dia, mes } = partes(iso, fuso, { day: "2-digit", month: "short" });
-  return `${dia} ${mes}`;
-}
-
-export function formatarData(iso: string, fuso: string) {
-  return new Intl.DateTimeFormat("pt-BR", { timeZone: fuso, day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(iso));
-}
-
-export function formatarMesAno(iso: string, fuso: string) {
-  const { mes, ano } = partes(iso, fuso, { month: "short", year: "numeric" });
-  return `${mes}/${ano}`;
-}

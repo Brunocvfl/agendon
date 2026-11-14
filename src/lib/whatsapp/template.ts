@@ -14,7 +14,7 @@
 // Mudou o texto ou a ordem das variáveis? Crie um template novo na Meta (versão nova do nome) e atualize
 // aqui e na função que enfileira (nova migration). Template curto com muitas variáveis é recusado
 // (proporção palavras/parâmetros).
-import { dataNoFuso, minutosNoFuso, paraHora, rotuloData } from "@/lib/datas";
+import { quando } from "@/lib/datas";
 
 export const IDIOMA = "pt_BR";
 
@@ -32,11 +32,6 @@ export type DadosMensagem = {
 export function parametro(texto: string, max = 60): string {
   const limpo = texto.replace(/\s+/g, " ").trim().slice(0, max).trim();
   return limpo || "-";
-}
-
-/** "qui, 12 nov às 15:30" no fuso do salão. */
-export function quando(inicio: string, fuso: string): string {
-  return `${rotuloData(dataNoFuso(inicio, fuso))} às ${paraHora(minutosNoFuso(inicio, fuso))}`;
 }
 
 /** Corpo do POST /{phone-number-id}/messages da Cloud API. `telefone` em E.164 ("+5511987654321"). */

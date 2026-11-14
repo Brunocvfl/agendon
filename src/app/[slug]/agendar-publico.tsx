@@ -4,7 +4,7 @@ import { useFocarPrimeiroErro } from "@/components/use-focar-erro";
 import Link from "next/link";
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { Alerta, Botao, Campo } from "@/components/ui";
-import { dataNoFuso, minutosNoFuso, paraHora, rotuloData, somarDias } from "@/lib/datas";
+import { dataNoFuso, horaNoFuso, partesDaData, rotuloData, somarDias } from "@/lib/datas";
 import { formatarDuracao, formatarPreco } from "@/lib/formato";
 import { agendar, horariosDoDia, type EstadoAgendamento } from "./actions";
 import type { PaginaPublica } from "./dados";
@@ -80,7 +80,7 @@ export function AgendarPublico({ slug, pagina, hoje }: Props) {
           <dt className="text-noite/65">Quando</dt>
           <dd className="font-medium">
             <span className="capitalize">{rotuloData(dataNoFuso(c.inicio, fuso))}</span>, às{" "}
-            {paraHora(minutosNoFuso(c.inicio, fuso))}
+            {horaNoFuso(c.inicio, fuso)}
           </dd>
           <dt className="text-noite/65">Valor</dt>
           <dd className="font-medium">{formatarPreco(c.preco)}</dd>
@@ -171,8 +171,8 @@ export function AgendarPublico({ slug, pagina, hoje }: Props) {
                   dia === d ? "border-on bg-on text-white" : "border-noite/15 bg-white hover:border-on"
                 }`}
               >
-                <span className="text-xs opacity-75">{d === hoje ? "hoje" : rotuloData(d).split(",")[0]}</span>
-                <span className="font-semibold">{rotuloData(d).split(", ")[1]}</span>
+                <span className="text-xs opacity-75">{d === hoje ? "hoje" : partesDaData(d).semana}</span>
+                <span className="font-semibold">{partesDaData(d).dia}</span>
               </button>
             ))}
             {qtdDias <= HORIZONTE_DIAS ? (
@@ -214,7 +214,7 @@ export function AgendarPublico({ slug, pagina, hoje }: Props) {
                         inicio === h ? "border-on bg-on text-white" : "border-noite/15 bg-white hover:border-on"
                       }`}
                     >
-                      {paraHora(minutosNoFuso(h, fuso))}
+                      {horaNoFuso(h, fuso)}
                     </button>
                   ))}
                 </div>
@@ -230,7 +230,7 @@ export function AgendarPublico({ slug, pagina, hoje }: Props) {
         <Passo numero={4} titulo="Seus dados" ref={passoDados}>
           <p className="mb-4 rounded-xl bg-fundo px-4 py-3 text-sm">
             <strong>{servicoEscolhido?.nome}</strong> com {profissionalEscolhido?.nome ?? "qualquer profissional"},{" "}
-            <span className="capitalize">{rotuloData(dia)}</span> às {paraHora(minutosNoFuso(inicio, fuso))}
+            <span className="capitalize">{rotuloData(dia)}</span> às {horaNoFuso(inicio, fuso)}
           </p>
           <form ref={form} action={acao} className="flex flex-col gap-4" noValidate>
             {estado.erro && !estado.ocupado ? <Alerta tipo="erro">{estado.erro}</Alerta> : null}
@@ -238,7 +238,7 @@ export function AgendarPublico({ slug, pagina, hoje }: Props) {
             <input type="hidden" name="servico" value={servico} />
             <input type="hidden" name="profissional" value={profissional} />
             <input type="hidden" name="dia" value={dia} />
-            <input type="hidden" name="hora" value={paraHora(minutosNoFuso(inicio, fuso))} />
+            <input type="hidden" name="hora" value={horaNoFuso(inicio, fuso)} />
             <Campo
               id="nome"
               name="nome"

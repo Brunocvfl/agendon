@@ -1,13 +1,11 @@
 // Regras do Agendamento feito pelo painel. O banco (criar_agendamento, remarcar_agendamento,
 // mudar_status) confere o resto: serviço que o profissional faz, expediente/folga (encaixe),
 // conflito de horário (23P01) e quem pode mexer em qual agenda.
-import { ehData } from "@/lib/datas";
+import { ehData, ehHora } from "@/lib/datas";
 import type { Database } from "@/lib/supabase/database.types";
 import { ehUuid } from "@/lib/ids";
 import { lerCliente } from "./cliente";
 import { invalido, valido, type ErrosPorCampo, type Resultado } from "./resultado";
-
-const HORA_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 export type EntradaAgendamento = {
   profissional?: string;
@@ -89,7 +87,7 @@ export function lerAgendamentoPublico(e: EntradaAgendamentoPublico): Resultado<A
   if (!ehUuid(servico)) erros.servico = "Escolha o serviço.";
   if (profissional !== "" && !ehUuid(profissional)) erros.profissional = "Escolha o profissional.";
   if (!ehData(dia)) erros.dia = "Escolha o dia.";
-  if (!HORA_RE.test(hora)) erros.hora = "Escolha o horário.";
+  if (!ehHora(hora)) erros.hora = "Escolha o horário.";
 
   const cliente = lerCliente({ nome: e.nome, telefone: e.telefone });
   if (!cliente.ok) {
@@ -111,7 +109,7 @@ export function lerAgendamentoPublico(e: EntradaAgendamentoPublico): Resultado<A
 function lerHorario(erros: ErrosPorCampo, profissional: string, dia: string, hora: string) {
   if (!ehUuid(profissional)) erros.profissional = "Escolha o profissional.";
   if (!ehData(dia)) erros.dia = "Escolha o dia.";
-  if (!HORA_RE.test(hora)) erros.hora = "Escolha o horário.";
+  if (!ehHora(hora)) erros.hora = "Escolha o horário.";
 }
 
 // --- Remarcação ---------------------------------------------------------------
