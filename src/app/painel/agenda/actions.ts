@@ -126,9 +126,10 @@ export async function buscarClientes(busca: string): Promise<ClienteEncontrado[]
  * Horários livres ("HH:MM", horário do salão) de um profissional para um serviço num dia.
  * `ignorar`: o agendamento que está sendo remarcado (não ocupa o próprio horário).
  * Profissional só enxerga a própria agenda (RLS), e é só nela que remarca.
+ * `null`: o banco falhou (a tela avisa, em vez de dizer que não há horário livre).
  */
-export async function horariosLivres(profissional: string, servico: string, dia: string, ignorar?: string): Promise<string[]> {
+export async function horariosLivres(profissional: string, servico: string, dia: string, ignorar?: string): Promise<string[] | null> {
   const { salao } = await exigirPermissao("criar-agendamento", VOLTAR);
   const r = await agendamento.horariosLivres({ profissional, servico, dia, ignorar }, { supabase: await createClient() });
-  return r.ok ? r.data.map((h) => paraHora(minutosNoFuso(h, salao.fuso))) : [];
+  return r.ok ? r.data.map((h) => paraHora(minutosNoFuso(h, salao.fuso))) : null;
 }
