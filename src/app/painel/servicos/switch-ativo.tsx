@@ -1,26 +1,36 @@
 "use client";
 
-import { useOptimistic, useTransition } from "react";
+import { useOptimistic, useState, useTransition } from "react";
 import { alternarAtivo } from "./actions";
 
-// Liga/desliga o serviço. Mostra a mudança na hora e confirma com o servidor.
+// Liga/desliga o serviço. Mostra a mudança na hora e confirma com o servidor; se o servidor
+// recusar, o switch volta sozinho (fim da transição) e o erro aparece ao lado.
 export function SwitchAtivo({ id, ativo, nome }: { id: string; ativo: boolean; nome: string }) {
   const [otimista, setOtimista] = useOptimistic(ativo);
   const [, startTransition] = useTransition();
+  const [erro, setErro] = useState<string | null>(null);
 
   function alternar() {
     const proximo = !otimista;
     startTransition(async () => {
       setOtimista(proximo);
+      setErro(null);
       const fd = new FormData();
       fd.set("id", id);
       fd.set("ativo", String(proximo));
-      await alternarAtivo(fd);
+      const r = await alternarAtivo(fd);
+      if (r.erro) setErro(r.erro);
     });
   }
 
   return (
-    <button
+    <span className="inline-flex items-center gap-2">
+      {erro ? (
+        <span role="alert" className="text-xs text-red-600">
+          {erro}
+        </span>
+      ) : null}
+      <button
       type="button"
       role="switch"
       aria-checked={otimista}
@@ -36,6 +46,7 @@ export function SwitchAtivo({ id, ativo, nome }: { id: string; ativo: boolean; n
           otimista ? "translate-x-6" : "translate-x-1"
         }`}
       />
-    </button>
+      </button>
+    </span>
   );
 }

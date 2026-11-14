@@ -134,19 +134,35 @@ export function acaoDoPainel<T, D>(def: DefBanco<T, D> | DefDominio<T, D, string
 
 // --- Comando sem formulário (botões: ativar, remover) ------------------------
 
+/** O que o botão mostra: nada (deu certo, a tela atualiza) ou o erro. */
+export type ResultadoComando = { erro?: string };
+
+const RECARREGUE = "Recarregue a página e tente de novo.";
+
 export function comandoDoPainel<T>(def: {
   permissao: Permissao;
   senao?: string;
   ler: (fd: FormData) => T | null;
+  /**
+   * Devolva as linhas afetadas (`.select("id")`): nenhuma linha (id que não existe ou que a RLS
+   * esconde) também é erro, em vez de um sucesso silencioso.
+   */
   executar: (valor: T, ctx: Contexto) => PromiseLike<RespostaBanco<unknown>>;
+  mensagens?: Mensagens;
 }) {
-  return async function (fd: FormData): Promise<void> {
+  return async function (fd: FormData): Promise<ResultadoComando> {
     const vinculo = await exigirPermissao(def.permissao, def.senao);
     const valor = def.ler(fd);
-    if (valor === null) return;
+    if (valor === null) return { erro: RECARREGUE };
     const supabase = await createClient();
-    await def.executar(valor, { vinculo, supabase });
+    const { error, data } = await def.executar(valor, { vinculo, supabase });
+    if (error) {
+      const m = mensagemDoErro(error, def.mensagens);
+      return { erro: m.erro ?? Object.values(m.erros ?? {})[0] ?? PADRAO.outro };
+    }
+    if (Array.isArray(data) && data.length === 0) return { erro: PADRAO["nao-encontrado"] };
     refresh();
+    return {};
   };
 }
 
