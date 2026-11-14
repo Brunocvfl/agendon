@@ -115,5 +115,5 @@ export const removerFolga = comandoDoPainel({
   permissao: "editar-horarios",
   senao: VOLTAR,
   ler: (fd) => (ehUuid(texto(fd, "id")) ? texto(fd, "id") : null),
-  executar: (id, { supabase, vinculo }) => supabase.from("time_off").delete().eq("id", id).eq("salon_id", vinculo.salao.id),
+  executar: (id, { supabase, vinculo }) => supabase.from("time_off").delete().eq("id", id).eq("salon_id", vinculo.salao.id).select("id"),
 });

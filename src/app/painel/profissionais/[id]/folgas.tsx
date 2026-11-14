@@ -74,8 +74,15 @@ export function Folgas({ id, folgas, fuso, podeEditar }: Props) {
 }
 
 // "Remover" pede confirmação na própria linha e fica desabilitado enquanto envia (sem envio duplo).
+// Se o servidor recusar, o erro aparece na linha e a folga continua na lista.
 function RemoverFolga({ id }: { id: string }) {
   const [confirmando, setConfirmando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+  const remover = async (fd: FormData) => {
+    setErro(null);
+    const r = await removerFolga(fd);
+    if (r.erro) setErro(r.erro);
+  };
   if (!confirmando) {
     return (
       <button
@@ -88,7 +95,12 @@ function RemoverFolga({ id }: { id: string }) {
     );
   }
   return (
-    <form action={removerFolga} className="flex shrink-0 items-center gap-3">
+    <form action={remover} className="flex shrink-0 flex-wrap items-center justify-end gap-3">
+      {erro ? (
+        <span role="alert" className="text-sm text-red-600">
+          {erro}
+        </span>
+      ) : null}
       <input type="hidden" name="id" value={id} />
       <BotaoConfirmarRemocao />
       <button

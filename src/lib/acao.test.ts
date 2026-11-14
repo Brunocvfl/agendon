@@ -13,7 +13,7 @@ const exigirPermissao = vi.fn();
 vi.mock("@/lib/auth", () => ({ exigirPermissao: (...a: unknown[]) => exigirPermissao(...a) }));
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({}) }));
 
-const { acaoDoPainel, traduzirErroBanco, ERRO_GERAL } = await import("./acao");
+const { acaoDoPainel, comandoDoPainel, traduzirErroBanco, ERRO_GERAL } = await import("./acao");
 const { invalido, valido } = await import("./regras/resultado");
 
 const VINCULO = { membroId: "m1", perfil: "dono", salao: { id: "s1", nome: "S", slug: "s", fuso: "America/Sao_Paulo" } };
@@ -124,5 +124,42 @@ describe("acaoDoPainel com resposta de módulo de domínio", () => {
   it("sucesso segue para o destino com o dado devolvido", async () => {
     executar.mockResolvedValue({ ok: true, data: "a1" });
     await expect(acao({}, form({}))).rejects.toThrow("REDIRECT:/painel/agenda/a1");
+  });
+});
+
+describe("comandoDoPainel", () => {
+  const executar = vi.fn();
+  const comando = comandoDoPainel({
+    permissao: "editar-servicos",
+    ler: (fd: FormData) => (fd.get("id") ? String(fd.get("id")) : null),
+    executar,
+    mensagens: { "sem-permissao": "Só o Dono(a) pode." },
+  });
+
+  beforeEach(() => executar.mockReset());
+
+  it("sucesso atualiza a tela e não devolve erro", async () => {
+    executar.mockResolvedValue({ error: null, data: [{ id: "x" }] });
+    expect(await comando(form({ id: "x" }))).toEqual({});
+    expect(refresh).toHaveBeenCalledOnce();
+  });
+
+  it("erro do banco volta como texto (com a mensagem declarada), sem atualizar a tela", async () => {
+    executar.mockResolvedValue({ error: { code: "42501" } });
+    expect(await comando(form({ id: "x" }))).toEqual({ erro: "Só o Dono(a) pode." });
+    executar.mockResolvedValue({ error: { code: "XX000" } });
+    expect(await comando(form({ id: "x" }))).toEqual({ erro: "Não foi possível salvar agora. Tente de novo em instantes." });
+    expect(refresh).not.toHaveBeenCalled();
+  });
+
+  it("nenhuma linha afetada (id inexistente ou escondido pela RLS) também é erro", async () => {
+    executar.mockResolvedValue({ error: null, data: [] });
+    expect(await comando(form({ id: "x" }))).toEqual({ erro: "Não encontramos esse cadastro. Recarregue a página." });
+    expect(refresh).not.toHaveBeenCalled();
+  });
+
+  it("entrada inválida não vai ao banco", async () => {
+    expect((await comando(form({}))).erro).toBe("Recarregue a página e tente de novo.");
+    expect(executar).not.toHaveBeenCalled();
   });
 });

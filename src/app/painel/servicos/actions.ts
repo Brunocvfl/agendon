@@ -33,5 +33,5 @@ export const alternarAtivo = comandoDoPainel({
   senao: VOLTAR,
   ler: (fd) => (ehUuid(texto(fd, "id")) ? { id: texto(fd, "id"), ativo: texto(fd, "ativo") === "true" } : null),
   executar: ({ id, ativo }, { supabase, vinculo }) =>
-    supabase.from("services").update({ ativo }).eq("id", id).eq("salon_id", vinculo.salao.id),
+    supabase.from("services").update({ ativo }).eq("id", id).eq("salon_id", vinculo.salao.id).select("id"),
 });
