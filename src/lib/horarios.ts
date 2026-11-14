@@ -1,5 +1,6 @@
 // Horário semanal: o banco guarda faixas (dia, início, fim); a tela mostra "início, fim e intervalo".
 // 0 = domingo ... 6 = sábado (igual ao Postgres). A tela começa na segunda.
+import { ehHora } from "./datas";
 
 export const DIAS = [
   { n: 1, curto: "Seg", nome: "Segunda" },
@@ -23,7 +24,6 @@ export type DiaTela = {
 };
 
 const hhmm = (t: string) => t.slice(0, 5);
-const HORA_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 // Faixas do banco -> um registro por dia. Mais de duas faixas: usa a primeira e a última.
 export function faixasParaTela(faixas: Faixa[]): DiaTela[] {
@@ -52,7 +52,7 @@ export function telaParaFaixas(dias: DiaTela[]): { faixas: Faixa[]; erros: Recor
 
   for (const d of dias) {
     if (!d.trabalha) continue;
-    if (!HORA_RE.test(d.inicio) || !HORA_RE.test(d.fim)) {
+    if (!ehHora(d.inicio) || !ehHora(d.fim)) {
       erros[d.dia] = "Informe início e fim.";
       continue;
     }
@@ -65,7 +65,7 @@ export function telaParaFaixas(dias: DiaTela[]): { faixas: Faixa[]; erros: Recor
       faixas.push({ dia: d.dia, inicio: d.inicio, fim: d.fim });
       continue;
     }
-    if (!HORA_RE.test(d.intervaloInicio) || !HORA_RE.test(d.intervaloFim)) {
+    if (!ehHora(d.intervaloInicio) || !ehHora(d.intervaloFim)) {
       erros[d.dia] = "Escolha quando a pausa começa e termina.";
       continue;
     }

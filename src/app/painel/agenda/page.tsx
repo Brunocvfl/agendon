@@ -12,6 +12,7 @@ import {
   inicioDaSemana,
   minutosNoFuso,
   paraHora,
+  partesDaData,
   rotuloData,
   rotuloSemana,
   somarDias,
@@ -312,7 +313,7 @@ function Cabecalho({ coluna: c, vista, hoje }: { coluna: ColunaAgenda; vista: Vi
       className={`border-b border-l border-noite/8 px-3 py-3 hover:bg-on/5 ${ehHoje ? "bg-on/5" : ""}`}
     >
       <p className={`truncate font-semibold first-letter:uppercase ${ehHoje ? "text-on" : ""}`}>
-        {ehHoje ? `Hoje, ${rotuloData(c.dia).split(", ")[1]}` : rotuloData(c.dia)}
+        {ehHoje ? `Hoje, ${partesDaData(c.dia).dia}` : rotuloData(c.dia)}
       </p>
       <p className="truncate text-xs text-noite/65">
         {qtd} agend.

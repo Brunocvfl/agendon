@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { assinaturaValida, bearerValido, textosIguais } from "./assinatura";
 import { candidatosDeTelefone, ehPedidoDeSaida, lerEventos } from "./eventos";
 import { lerRespostaDaMeta } from "./graph";
-import { montarMensagem, parametro, quando, TEXTOS } from "./template";
+import { montarMensagem, parametro, TEXTOS } from "./template";
 
 const assinar = (corpo: string, segredo: string) => `sha256=${createHmac("sha256", segredo).update(corpo).digest("hex")}`;
 
@@ -104,11 +104,6 @@ describe("template da confirmação", () => {
     expect(parametro("  Ana \n  Paula\t")).toBe("Ana Paula");
     expect(parametro("   ")).toBe("-");
     expect(parametro("x".repeat(100))).toHaveLength(60);
-  });
-
-  it("quando mostra dia e hora no fuso do salão", () => {
-    // 2026-11-12 18:30Z = 15:30 em São Paulo (quinta-feira).
-    expect(quando("2026-11-12T18:30:00Z", "America/Sao_Paulo")).toBe("qui, 12 nov às 15:30");
   });
 
   it("monta o corpo da Cloud API com cinco variáveis, na ordem do template", () => {

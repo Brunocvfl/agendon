@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { Cartao } from "@/components/ui";
 import { PaginaProtegida } from "@/components/pagina-protegida";
 import type { Vinculo } from "@/lib/auth";
-import { dataNoFuso, minutosNoFuso, paraHora, rotuloData } from "@/lib/datas";
+import { dataNoFuso, horaNoFuso, rotuloData } from "@/lib/datas";
 import { formatarPreco, NOME_STATUS } from "@/lib/formato";
 import { podeRemarcar } from "@/lib/regras/agendamento";
 import { carregarAgendamento, profissionaisParaRemarcar } from "../../dados";
@@ -28,7 +28,7 @@ async function Conteudo({ vinculo, id }: { vinculo: Vinculo; id: string }) {
   if (!ag) notFound();
 
   const dia = dataNoFuso(ag.inicio, fuso);
-  const hora = paraHora(minutosNoFuso(ag.inicio, fuso));
+  const hora = horaNoFuso(ag.inicio, fuso);
 
   return (
     <>

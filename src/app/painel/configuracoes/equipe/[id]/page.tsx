@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { Cartao } from "@/components/ui";
 import { PaginaProtegida } from "@/components/pagina-protegida";
 import type { Vinculo } from "@/lib/auth";
-import { formatarDiaMes } from "@/lib/formato";
+import { formatarDiaMes } from "@/lib/datas";
 import { AcaoDeAcesso } from "../acoes-acesso";
 import { agendasLivres, carregarEquipe } from "../dados";
 import { FormMembro } from "../form-membro";

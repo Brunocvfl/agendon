@@ -4,8 +4,8 @@ import { acaoDoPainel, texto, type EstadoForm } from "@/lib/acao";
 import { exigirPermissao } from "@/lib/auth";
 import { pode } from "@/lib/permissoes";
 import * as agendamento from "@/lib/agendamento";
-import { minutosNoFuso, paraHora } from "@/lib/datas";
-import { formatarData, formatarTelefone } from "@/lib/formato";
+import { formatarData, horaNoFuso } from "@/lib/datas";
+import { formatarTelefone } from "@/lib/formato";
 import { lerAgendamento, lerMudancaDeStatus, lerRemarcacao } from "@/lib/regras/agendamento";
 import { invalido, valido } from "@/lib/regras/resultado";
 import { createClient } from "@/lib/supabase/server";
@@ -131,5 +131,5 @@ export async function buscarClientes(busca: string): Promise<ClienteEncontrado[]
 export async function horariosLivres(profissional: string, servico: string, dia: string, ignorar?: string): Promise<string[] | null> {
   const { salao } = await exigirPermissao("criar-agendamento", VOLTAR);
   const r = await agendamento.horariosLivres({ profissional, servico, dia, ignorar }, { supabase: await createClient() });
-  return r.ok ? r.data.map((h) => paraHora(minutosNoFuso(h, salao.fuso))) : null;
+  return r.ok ? r.data.map((h) => horaNoFuso(h, salao.fuso)) : null;
 }

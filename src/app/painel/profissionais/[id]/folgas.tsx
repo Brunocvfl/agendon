@@ -4,44 +4,12 @@ import { startTransition, useActionState, useState, type FormEvent } from "react
 import { useFormStatus } from "react-dom";
 import { SeletorHora } from "@/components/seletor-hora";
 import { Alerta, Botao, Campo } from "@/components/ui";
-import { LIMITES_FOLGA, proximoDia, type ModoFolga } from "@/lib/regras/folga";
+import { dataNoFuso, periodoLegivel } from "@/lib/datas";
+import { LIMITES_FOLGA, type ModoFolga } from "@/lib/regras/folga";
 import { adicionarFolga, removerFolga, type EstadoForm } from "../actions";
 
 type Folga = { id: string; inicio: string; fim: string; motivo: string | null };
 type Props = { id: string; folgas: Folga[]; fuso: string; podeEditar: boolean };
-
-// "AAAA-MM-DD" do instante no fuso do salão.
-const dataNoFuso = (d: Date, fuso: string) =>
-  new Intl.DateTimeFormat("en-CA", { timeZone: fuso, year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
-
-// "19 nov" / "qua, 19 nov" a partir de "AAAA-MM-DD" (sem fuso: a data já é do salão).
-function rotuloDia(data: string, comSemana = false) {
-  const d = new Date(`${data}T12:00:00Z`);
-  const parte = (o: Intl.DateTimeFormatOptions) =>
-    new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC", ...o }).format(d).replace(".", "");
-  const dia = `${parte({ day: "2-digit" })} ${parte({ month: "short" })}`;
-  return comSemana ? `${parte({ weekday: "short" })}, ${dia}` : dia;
-}
-
-function formatarPeriodo(inicio: string, fim: string, fuso: string) {
-  const hora = new Intl.DateTimeFormat("pt-BR", { timeZone: fuso, hour: "2-digit", minute: "2-digit" });
-  const i = new Date(inicio);
-  const f = new Date(fim);
-  const di = dataNoFuso(i, fuso);
-  const df = dataNoFuso(f, fuso);
-
-  // Dias inteiros: de 00:00 a 00:00 (fim exclusivo); o último dia é o anterior ao fim.
-  if (hora.format(i) === "00:00" && hora.format(f) === "00:00") {
-    const ultimo = proximoDia(df, -1);
-    if (ultimo === di) return rotuloDia(di, true);
-    return di.slice(0, 7) === ultimo.slice(0, 7)
-      ? `${di.slice(8)} a ${rotuloDia(ultimo)}`
-      : `${rotuloDia(di)} a ${rotuloDia(ultimo)}`;
-  }
-  return di === df
-    ? `${rotuloDia(di, true)} · ${hora.format(i)}–${hora.format(f)}`
-    : `${rotuloDia(di, true)} ${hora.format(i)} até ${rotuloDia(df, true)} ${hora.format(f)}`;
-}
 
 export function Folgas({ id, folgas, fuso, podeEditar }: Props) {
   const [estado, acao, pendente] = useActionState<EstadoForm, FormData>(adicionarFolga, {});
@@ -70,7 +38,7 @@ export function Folgas({ id, folgas, fuso, podeEditar }: Props) {
             <li key={f.id} className="flex items-center justify-between gap-3 rounded-xl bg-fundo px-4 py-3 text-sm">
               <div className="min-w-0">
                 <p className="font-medium">{f.motivo ?? "Bloqueio"}</p>
-                <p className="text-noite/65">{formatarPeriodo(f.inicio, f.fim, fuso)}</p>
+                <p className="text-noite/65">{periodoLegivel(f.inicio, f.fim, fuso)}</p>
               </div>
               {podeEditar ? <RemoverFolga id={f.id} /> : null}
             </li>

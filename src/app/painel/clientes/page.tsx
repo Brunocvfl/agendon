@@ -4,7 +4,8 @@ import Link from "next/link";
 import { Alerta, BotaoLink, Cartao } from "@/components/ui";
 import { PaginaProtegida } from "@/components/pagina-protegida";
 import type { Vinculo } from "@/lib/auth";
-import { formatarDiaMes, formatarMesAno, formatarTelefone, iniciais } from "@/lib/formato";
+import { formatarDiaMes, formatarMesAno } from "@/lib/datas";
+import { formatarTelefone, iniciais } from "@/lib/formato";
 import { listarClientes, POR_PAGINA, type ClienteDaLista } from "./dados";
 
 type Datas = { diaMes: (iso: string) => string; mesAno: (iso: string) => string };
