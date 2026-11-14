@@ -1,6 +1,7 @@
 // Leitura do que a Meta manda no webhook: status das mensagens enviadas e respostas dos clientes.
 // Só interessa o que o AgendOn usa: status (enviada, entregue, lida, falhou) e o pedido SAIR.
 // Nada daqui guarda texto de cliente nem telefone além do necessário para o opt-out.
+import type { FilaWhatsApp } from "./fila";
 
 export type StatusMensagem = "enviada" | "entregue" | "lida" | "falhou";
 
@@ -93,4 +94,13 @@ export function lerEventos(corpo: unknown): EventosWhatsApp {
     }
   }
   return eventos;
+}
+
+/**
+ * Aplica no banco os status e os pedidos de SAIR do webhook. Lança erro se a fila falhar: a rota
+ * responde 500 e a Meta manda de novo (as operações são idempotentes).
+ */
+export async function aplicarEventos(eventos: EventosWhatsApp, fila: Pick<FilaWhatsApp, "statusDaMeta" | "optout">) {
+  for (const s of eventos.statuses) await fila.statusDaMeta(s.wamid, s.status, s.erro);
+  for (const telefones of eventos.saidas) await fila.optout(telefones);
 }

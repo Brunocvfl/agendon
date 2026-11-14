@@ -2,9 +2,9 @@
 // Regras: validar a assinatura antes de ler o corpo, responder rápido e processar de forma idempotente
 // (status nunca volta para trás; SAIR repetido não muda nada). Nada de dado pessoal em log.
 import { connection } from "next/server";
-import { clienteWhatsApp } from "@/lib/supabase/whatsapp";
 import { assinaturaValida, textosIguais } from "@/lib/whatsapp/assinatura";
-import { lerEventos } from "@/lib/whatsapp/eventos";
+import { aplicarEventos, lerEventos } from "@/lib/whatsapp/eventos";
+import { filaWhatsApp } from "@/lib/whatsapp/fila";
 
 const LIMITE_DO_CORPO = 1_000_000; // 1 MB
 
@@ -44,20 +44,8 @@ export async function POST(request: Request) {
   const eventos = lerEventos(json);
   if (eventos.statuses.length === 0 && eventos.saidas.length === 0) return new Response("ok", { status: 200 });
 
-  const supabase = await clienteWhatsApp();
   try {
-    for (const s of eventos.statuses) {
-      const { error } = await supabase.rpc("whatsapp_status_meta", {
-        p_wamid: s.wamid,
-        p_status: s.status,
-        p_erro: s.erro as string,
-      });
-      if (error) throw new Error(`whatsapp_status_meta falhou (${error.code})`);
-    }
-    for (const telefones of eventos.saidas) {
-      const { error } = await supabase.rpc("whatsapp_optout", { p_telefones: telefones });
-      if (error) throw new Error(`whatsapp_optout falhou (${error.code})`);
-    }
+    await aplicarEventos(eventos, await filaWhatsApp());
   } catch (e) {
     // 500 faz a Meta tentar de novo mais tarde; as funções são idempotentes.
     console.error(e instanceof Error ? e.message : "whatsapp: webhook falhou");

@@ -4,11 +4,10 @@
 // painel, por causa da RLS; o da chave secreta na página pública) e transforma o erro em texto.
 import "server-only";
 import { after } from "next/server";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { ehData } from "@/lib/datas";
 import { ehUuid } from "@/lib/ids";
 import type { AgendamentoPublicoValido, AgendamentoValido, RemarcacaoValida, Status } from "@/lib/regras/agendamento";
-import type { Database } from "@/lib/supabase/database.types";
+import type { NomeRpc, Rpc } from "@/lib/supabase/rpc";
 import { processarFila } from "@/lib/whatsapp/enviar";
 
 // --- Erros ---------------------------------------------------------------------
@@ -100,9 +99,10 @@ function erroDa<E extends ErroAgendamento>(e: ErroPostgres, permitidos: readonly
 
 // --- Dependências --------------------------------------------------------------
 
-type Deps = {
+/** `F`: as funções do banco que a operação chama (a página pública só tem as dela). */
+type Deps<F extends NomeRpc> = {
   /** Cliente do usuário (painel) ou da chave secreta (página pública). */
-  supabase: Pick<SupabaseClient<Database>, "rpc">;
+  supabase: Rpc<F>;
   /** Envia o que está na fila do WhatsApp depois da resposta. Troca nos testes. */
   avisarFila?: () => void;
 };
@@ -113,7 +113,7 @@ const avisarFilaPadrao = () =>
 // --- Operações -----------------------------------------------------------------
 
 /** Agendamento pelo painel. O gatilho do banco põe a confirmação na fila (se o cliente deu opt-in). */
-export async function criar(a: AgendamentoValido, deps: Deps): Promise<Resposta<string, ErroCriar>> {
+export async function criar(a: AgendamentoValido, deps: Deps<"criar_agendamento">): Promise<Resposta<string, ErroCriar>> {
   const { data, error } = await deps.supabase.rpc("criar_agendamento", {
     p_professional: a.profissional,
     p_service: a.servico,
@@ -129,7 +129,7 @@ export async function criar(a: AgendamentoValido, deps: Deps): Promise<Resposta<
 }
 
 /** Novo dia, hora e (opcionalmente) profissional. Serviço, cliente e preço não mudam. */
-export async function remarcar(r: RemarcacaoValida, deps: Deps): Promise<Resposta<null, ErroRemarcar>> {
+export async function remarcar(r: RemarcacaoValida, deps: Deps<"remarcar_agendamento">): Promise<Resposta<null, ErroRemarcar>> {
   const { error } = await deps.supabase.rpc("remarcar_agendamento", {
     p_appointment: r.id,
     p_professional: r.profissional,
@@ -139,7 +139,7 @@ export async function remarcar(r: RemarcacaoValida, deps: Deps): Promise<Respost
   return error ? erroDa(error, ERROS_REMARCAR) : { ok: true, data: null };
 }
 
-export async function mudarStatus(v: { id: string; status: Status }, deps: Deps): Promise<Resposta<null, ErroStatus>> {
+export async function mudarStatus(v: { id: string; status: Status }, deps: Deps<"mudar_status">): Promise<Resposta<null, ErroStatus>> {
   const { error } = await deps.supabase.rpc("mudar_status", { p_appointment: v.id, p_status: v.status });
   return error ? erroDa(error, ERROS_STATUS) : { ok: true, data: null };
 }
@@ -154,7 +154,7 @@ export async function agendarPublico(
   slug: string,
   a: AgendamentoPublicoValido,
   origem: string,
-  deps: Deps,
+  deps: Deps<"agendar_publico">,
 ): Promise<Resposta<Confirmacao, ErroPublico>> {
   const { data, error } = await deps.supabase.rpc("agendar_publico", {
     p_slug: slug,
@@ -181,7 +181,7 @@ export async function agendarPublico(
  */
 export async function horariosLivres(
   q: { profissional: string; servico: string; dia: string; ignorar?: string },
-  deps: Deps,
+  deps: Deps<"horarios_livres">,
 ): Promise<Resposta<string[], "outro">> {
   if (!ehUuid(q.profissional) || !ehUuid(q.servico) || !ehData(q.dia)) return { ok: true, data: [] };
   const { data, error } = await deps.supabase.rpc("horarios_livres", {
@@ -196,7 +196,7 @@ export async function horariosLivres(
 /** Horários livres da página pública (instantes ISO). `profissional` null = qualquer um. */
 export async function horariosPublicos(
   q: { slug: string; servico: string; profissional: string | null; dia: string },
-  deps: Deps,
+  deps: Deps<"horarios_publicos">,
 ): Promise<Resposta<string[], "outro">> {
   if (!ehUuid(q.servico) || (q.profissional !== null && !ehUuid(q.profissional)) || !ehData(q.dia)) {
     return { ok: true, data: [] };
