@@ -8,6 +8,7 @@ import { formatarData, horaNoFuso } from "@/lib/datas";
 import { formatarTelefone } from "@/lib/formato";
 import { lerAgendamento, lerMudancaDeStatus, lerRemarcacao } from "@/lib/regras/agendamento";
 import { invalido, valido } from "@/lib/regras/resultado";
+import { paraRpc } from "@/lib/supabase/rpc";
 import { createClient } from "@/lib/supabase/server";
 
 export type { EstadoForm };
@@ -38,7 +39,7 @@ export const criarAgendamento = acaoDoPainel({
       telefone: texto(fd, "telefone"),
       encaixe: texto(fd, "encaixe") === "on",
     }),
-  executar: (a, { supabase }) => agendamento.criar(a, { supabase }),
+  executar: (a, { supabase }) => agendamento.criar(a, { supabase: paraRpc(supabase) }),
   mensagens: {
     ocupado: OCUPADO,
     "fora-do-expediente": FORA,
@@ -65,7 +66,7 @@ export const remarcarAgendamento = acaoDoPainel({
       hora: texto(fd, "hora"),
       encaixe: texto(fd, "encaixe") === "on",
     }),
-  executar: (r, { supabase }) => agendamento.remarcar(r, { supabase }),
+  executar: (r, { supabase }) => agendamento.remarcar(r, { supabase: paraRpc(supabase) }),
   mensagens: {
     ocupado: OCUPADO,
     "fora-do-expediente": FORA,
@@ -87,7 +88,7 @@ export const mudarStatus = acaoDoPainel({
     const v = lerMudancaDeStatus({ id: texto(fd, "id"), status: texto(fd, "status") });
     return v ? valido(v) : invalido({ _geral: "Recarregue a página e tente de novo." });
   },
-  executar: (v, { supabase }) => agendamento.mudarStatus(v, { supabase }),
+  executar: (v, { supabase }) => agendamento.mudarStatus(v, { supabase: paraRpc(supabase) }),
   mensagens: {
     ocupado: "O horário já foi ocupado por outro agendamento. Para atender este cliente, crie um agendamento novo.",
     "ainda-nao-comecou": "Concluído e faltou só podem ser marcados a partir do horário de início.",
@@ -130,6 +131,6 @@ export async function buscarClientes(busca: string): Promise<ClienteEncontrado[]
  */
 export async function horariosLivres(profissional: string, servico: string, dia: string, ignorar?: string): Promise<string[] | null> {
   const { salao } = await exigirPermissao("criar-agendamento", VOLTAR);
-  const r = await agendamento.horariosLivres({ profissional, servico, dia, ignorar }, { supabase: await createClient() });
+  const r = await agendamento.horariosLivres({ profissional, servico, dia, ignorar }, { supabase: paraRpc(await createClient()) });
   return r.ok ? r.data.map((h) => horaNoFuso(h, salao.fuso)) : null;
 }

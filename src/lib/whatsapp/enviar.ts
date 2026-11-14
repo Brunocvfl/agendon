@@ -1,9 +1,8 @@
 // Envio das mensagens da fila pela Cloud API da Meta. Chamado depois de um agendamento (after()) e pelo
 // job do pg_cron a cada 15 min (rota /api/whatsapp/processar: lembretes e novas tentativas).
-// Só a fila fala com o banco, por funções próprias; telefone e nome do cliente existem aqui só na
-// memória, durante o envio, e nunca vão para log.
+// Telefone e nome do cliente existem aqui só na memória, durante o envio, e nunca vão para log.
 import "server-only";
-import { clienteWhatsApp } from "@/lib/supabase/whatsapp";
+import { filaWhatsApp, type FilaWhatsApp, type StatusDoEnvio } from "./fila";
 import { lerRespostaDaMeta } from "./graph";
 import { montarMensagem } from "./template";
 
@@ -12,25 +11,38 @@ const VERSAO_PADRAO = "v23.0";
 
 export type ResumoDoEnvio = { enviadas: number; falhas: number; adiadas: number };
 
-export async function processarFila(): Promise<ResumoDoEnvio> {
+type Credenciais = { token?: string; numeroId?: string; versao?: string };
+
+/** Tudo é opcional: sem nada, usa a fila de verdade, o fetch global e as variáveis de ambiente. */
+export type DepsDoEnvio = {
+  fila?: FilaWhatsApp | (() => Promise<FilaWhatsApp>);
+  fetch?: typeof fetch;
+  credenciais?: Credenciais;
+};
+
+const credenciaisDoAmbiente = (): Credenciais => ({
+  token: process.env.META_ACCESS_TOKEN,
+  numeroId: process.env.META_PHONE_NUMBER_ID,
+  versao: process.env.META_GRAPH_VERSION,
+});
+
+/** Um lote: reserva até LOTE mensagens, envia cada uma e grava o resultado. */
+export async function processarFila(deps: DepsDoEnvio = {}): Promise<ResumoDoEnvio> {
   const resumo: ResumoDoEnvio = { enviadas: 0, falhas: 0, adiadas: 0 };
-  const token = process.env.META_ACCESS_TOKEN;
-  const numeroId = process.env.META_PHONE_NUMBER_ID;
+  const { token, numeroId, versao } = deps.credenciais ?? credenciaisDoAmbiente();
   if (!token || !numeroId) {
     // Sem credenciais (ex.: ambiente local): a fila fica como está.
     console.warn("whatsapp: faltam META_ACCESS_TOKEN e/ou META_PHONE_NUMBER_ID; fila não processada.");
     return resumo;
   }
-  const url = `https://graph.facebook.com/${process.env.META_GRAPH_VERSION || VERSAO_PADRAO}/${numeroId}/messages`;
+  const url = `https://graph.facebook.com/${versao || VERSAO_PADRAO}/${numeroId}/messages`;
+  const enviar = deps.fetch ?? fetch;
+  const fila = typeof deps.fila === "function" ? await deps.fila() : (deps.fila ?? (await filaWhatsApp()));
 
-  const supabase = await clienteWhatsApp();
-  const { data: mensagens, error } = await supabase.rpc("whatsapp_reservar", { p_limite: LOTE });
-  if (error) throw new Error(`whatsapp_reservar falhou (${error.code})`);
-
-  for (const m of mensagens ?? []) {
+  for (const m of await fila.reservar(LOTE)) {
     let resultado: ReturnType<typeof lerRespostaDaMeta>;
     try {
-      const resposta = await fetch(url, {
+      const resposta = await enviar(url, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify(
@@ -50,14 +62,13 @@ export async function processarFila(): Promise<ResumoDoEnvio> {
       resultado = { ok: false, tentarDepois: true, erro: "sem resposta da Meta" };
     }
 
-    const status = resultado.ok ? "enviada" : resultado.tentarDepois ? "na_fila" : "falhou";
-    const { error: erroResultado } = await supabase.rpc("whatsapp_resultado", {
-      p_id: m.mensagem_id,
-      p_status: status,
-      p_wamid: resultado.ok ? resultado.wamid : (null as unknown as string),
-      p_erro: resultado.ok ? (null as unknown as string) : resultado.erro,
-    });
-    if (erroResultado) console.error(`whatsapp: resultado não gravado (${erroResultado.code}), mensagem ${m.mensagem_id}`);
+    const status: StatusDoEnvio = resultado.ok ? "enviada" : resultado.tentarDepois ? "na_fila" : "falhou";
+    try {
+      await fila.resultado(m.mensagem_id, status, resultado.ok ? { wamid: resultado.wamid } : { erro: resultado.erro });
+    } catch (e) {
+      // A mensagem fica em "enviando"; o lote continua.
+      console.error(`whatsapp: resultado não gravado (${e instanceof Error ? e.message : "erro"}), mensagem ${m.mensagem_id}`);
+    }
 
     if (resultado.ok) resumo.enviadas++;
     else if (resultado.tentarDepois) resumo.adiadas++;
@@ -67,4 +78,22 @@ export async function processarFila(): Promise<ResumoDoEnvio> {
     }
   }
   return resumo;
+}
+
+/**
+ * Vários lotes seguidos (job do pg_cron). Para quando a fila acaba (lote incompleto) ou quando a
+ * Meta pediu para esperar (alguma adiada): o próximo job tenta de novo.
+ */
+export async function processarTudo(lotes: number, deps: DepsDoEnvio = {}): Promise<ResumoDoEnvio> {
+  const total: ResumoDoEnvio = { enviadas: 0, falhas: 0, adiadas: 0 };
+  // Uma fila só para todos os lotes.
+  const fila = typeof deps.fila === "function" ? await deps.fila() : (deps.fila ?? (await filaWhatsApp()));
+  for (let i = 0; i < lotes; i++) {
+    const r = await processarFila({ ...deps, fila });
+    total.enviadas += r.enviadas;
+    total.falhas += r.falhas;
+    total.adiadas += r.adiadas;
+    if (r.enviadas + r.falhas + r.adiadas < LOTE || r.adiadas > 0) break;
+  }
+  return total;
 }
