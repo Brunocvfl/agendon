@@ -2,7 +2,7 @@
 -- Só o servidor (service_role) chama as funções; Dono(a) lê as mensagens do próprio salão.
 
 begin;
-select plan(43);
+select plan(46);
 
 insert into auth.users (id, email) values
   ('e0000000-0000-0000-0000-000000000001', 'dono.w@teste.local'),
@@ -208,6 +208,21 @@ select results_eq(
     where c.telefone = '+5511987800009'$$,
   $$values ('confirmacao'::text, 'na_fila'::text, 'confirmacao_agendamento_v2'::text, 'pagina_publica'::text)$$,
   'agendamento público com opt-in gera a confirmação na fila');
+
+-- SAIR não se desfaz pela página pública: alguém com o número de C5 (que saiu) agenda com opt-in.
+set local role service_role;
+select lives_ok(
+  $$select * from public.agendar_publico('salao-wpp-w', 'e4000000-0000-0000-0000-000000000001', null,
+    ((now() at time zone 'America/Sao_Paulo')::date + 11) + time '10:00', 'Outra Pessoa', '+5511987800005', true, 'origem-wpp-2')$$,
+  'agendar com opt-in usando o WhatsApp de quem saiu');
+reset role;
+select isnt(
+  (select optout_em from public.clients where id = 'e5000000-0000-0000-0000-000000000005'), null,
+  'o opt-in da página pública não desfaz o SAIR');
+select is(
+  (select count(*)::int from public.message_log m join public.appointments a on a.id = m.appointment_id
+   where a.client_id = 'e5000000-0000-0000-0000-000000000005' and a.origem = 'publico'),
+  0, 'quem saiu não recebe confirmação do agendamento público');
 
 select * from finish();
 rollback;
