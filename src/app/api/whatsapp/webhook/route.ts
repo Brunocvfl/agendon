@@ -3,6 +3,7 @@
 // (status nunca volta para trás; SAIR repetido não muda nada). Nada de dado pessoal em log.
 import { connection } from "next/server";
 import { assinaturaValida, textosIguais } from "@/lib/whatsapp/assinatura";
+import { responderSaida } from "@/lib/whatsapp/enviar";
 import { aplicarEventos, lerEventos } from "@/lib/whatsapp/eventos";
 import { filaWhatsApp } from "@/lib/whatsapp/fila";
 
@@ -45,7 +46,7 @@ export async function POST(request: Request) {
   if (eventos.statuses.length === 0 && eventos.saidas.length === 0) return new Response("ok", { status: 200 });
 
   try {
-    await aplicarEventos(eventos, await filaWhatsApp());
+    await aplicarEventos(eventos, await filaWhatsApp(), (para) => responderSaida(para));
   } catch (e) {
     // 500 faz a Meta tentar de novo mais tarde; as funções são idempotentes.
     console.error(e instanceof Error ? e.message : "whatsapp: webhook falhou");

@@ -20,8 +20,8 @@ export interface FilaWhatsApp {
   resultado(id: string, status: StatusDoEnvio, detalhe: { wamid?: string; erro?: string }): Promise<void>;
   /** Status que chegou pelo webhook (entregue, lida, falhou…); nunca volta para trás. */
   statusDaMeta(wamid: string, status: string, erro: string | null): Promise<void>;
-  /** SAIR: todas as formas do número de quem pediu para não receber mais. */
-  optout(telefones: string[]): Promise<void>;
+  /** SAIR: todas as formas do número de quem pediu para não receber mais. Devolve quantos clientes saíram agora. */
+  optout(telefones: string[]): Promise<number>;
 }
 
 type Funcoes = "whatsapp_reservar" | "whatsapp_resultado" | "whatsapp_status_meta" | "whatsapp_optout";
@@ -50,8 +50,9 @@ export async function filaWhatsApp(): Promise<FilaWhatsApp> {
       falhou("whatsapp_status_meta", error);
     },
     async optout(telefones) {
-      const { error } = await db.rpc("whatsapp_optout", { p_telefones: telefones });
+      const { data, error } = await db.rpc("whatsapp_optout", { p_telefones: telefones });
       falhou("whatsapp_optout", error);
+      return data ?? 0;
     },
   };
 }

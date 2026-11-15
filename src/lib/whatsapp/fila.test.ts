@@ -9,7 +9,7 @@ vi.mock("@/lib/supabase/secreto", () => ({
   },
 }));
 
-const { LOTE, processarFila, processarTudo } = await import("./enviar");
+const { LOTE, TEXTO_DA_SAIDA, processarFila, processarTudo, responderSaida } = await import("./enviar");
 const { aplicarEventos } = await import("./eventos");
 type FilaWhatsApp = import("./fila").FilaWhatsApp;
 type MensagemReservada = import("./fila").MensagemReservada;
@@ -35,7 +35,7 @@ function filaFalsa(lotes: MensagemReservada[][]) {
     reservar: vi.fn(async () => lotes.shift() ?? []),
     resultado: vi.fn(async () => {}),
     statusDaMeta: vi.fn(async () => {}),
-    optout: vi.fn(async () => {}),
+    optout: vi.fn(async (): Promise<number> => 1),
   } satisfies FilaWhatsApp;
   return fila;
 }
@@ -118,7 +118,7 @@ describe("processarTudo", () => {
 describe("aplicarEventos (webhook)", () => {
   const eventos = {
     statuses: [{ wamid: "wamid.1", status: "entregue" as const, erro: null }],
-    saidas: [["+5511987654321", "+551187654321"]],
+    saidas: [{ para: "5511987654321", telefones: ["+5511987654321", "+551187654321"] }],
   };
 
   it("aplica os status e os pedidos de SAIR", async () => {
@@ -132,5 +132,45 @@ describe("aplicarEventos (webhook)", () => {
     const fila = filaFalsa([]);
     fila.optout.mockRejectedValueOnce(new Error("whatsapp_optout falhou (XX000)"));
     await expect(aplicarEventos(eventos, fila)).rejects.toThrow("whatsapp_optout falhou");
+  });
+
+  it("responde ao SAIR só quando alguém saiu agora (webhook repetido não responde de novo)", async () => {
+    const fila = filaFalsa([]);
+    const responder = vi.fn(async () => true);
+    await aplicarEventos(eventos, fila, responder);
+    expect(responder).toHaveBeenCalledWith("5511987654321");
+
+    fila.optout.mockResolvedValueOnce(0);
+    responder.mockClear();
+    await aplicarEventos(eventos, fila, responder);
+    expect(responder).not.toHaveBeenCalled();
+  });
+
+  it("falha ao responder não derruba o webhook", async () => {
+    const fila = filaFalsa([]);
+    await expect(aplicarEventos(eventos, fila, vi.fn().mockRejectedValue(new Error("rede")))).resolves.toBeUndefined();
+  });
+});
+
+describe("responderSaida", () => {
+  it("manda texto livre pela Cloud API para o número que pediu", async () => {
+    const fetch = vi.fn().mockResolvedValue(sucesso("wamid.r"));
+    expect(await responderSaida("5511987654321", { fetch, credenciais: CREDENCIAIS })).toBe(true);
+    const [url, init] = fetch.mock.calls[0];
+    expect(url).toBe("https://graph.facebook.com/v23.0/123/messages");
+    expect(JSON.parse(init.body)).toEqual({
+      messaging_product: "whatsapp",
+      to: "5511987654321",
+      type: "text",
+      text: { body: TEXTO_DA_SAIDA },
+    });
+  });
+
+  it("devolve false sem credenciais, com número estranho ou erro da Meta", async () => {
+    const fetch = vi.fn().mockResolvedValue(erroMeta(400, 131047));
+    expect(await responderSaida("5511987654321", { fetch, credenciais: {} })).toBe(false);
+    expect(await responderSaida("abc", { fetch, credenciais: CREDENCIAIS })).toBe(false);
+    expect(fetch).not.toHaveBeenCalled();
+    expect(await responderSaida("5511987654321", { fetch, credenciais: CREDENCIAIS })).toBe(false);
   });
 });
