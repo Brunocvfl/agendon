@@ -97,3 +97,28 @@ export async function processarTudo(lotes: number, deps: DepsDoEnvio = {}): Prom
   }
   return total;
 }
+
+/** Resposta ao SAIR (texto livre: a pessoa acabou de escrever, a janela de 24 h está aberta). */
+export const TEXTO_DA_SAIDA =
+  "Pronto: você não vai mais receber confirmações nem lembretes de agendamento por este número.";
+
+/** Confirma o SAIR para quem pediu. `para` é o número como a Meta mandou (só dígitos). */
+export async function responderSaida(para: string, deps: Pick<DepsDoEnvio, "fetch" | "credenciais"> = {}): Promise<boolean> {
+  const { token, numeroId, versao } = deps.credenciais ?? credenciaisDoAmbiente();
+  if (!token || !numeroId || !/^[1-9][0-9]{7,14}$/.test(para)) return false;
+  const enviar = deps.fetch ?? fetch;
+  try {
+    const resposta = await enviar(`https://graph.facebook.com/${versao || VERSAO_PADRAO}/${numeroId}/messages`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ messaging_product: "whatsapp", to: para, type: "text", text: { body: TEXTO_DA_SAIDA } }),
+      signal: AbortSignal.timeout(10_000),
+    });
+    const resultado = lerRespostaDaMeta(resposta.status, await resposta.json().catch(() => null));
+    if (!resultado.ok) console.error(`whatsapp: resposta ao SAIR falhou (${resultado.erro})`);
+    return resultado.ok;
+  } catch {
+    console.error("whatsapp: resposta ao SAIR sem resposta da Meta");
+    return false;
+  }
+}

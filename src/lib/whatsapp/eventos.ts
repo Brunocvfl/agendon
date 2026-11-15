@@ -7,10 +7,12 @@ export type StatusMensagem = "enviada" | "entregue" | "lida" | "falhou";
 
 export type StatusMeta = { wamid: string; status: StatusMensagem; erro: string | null };
 
+/** Pedido de SAIR: o número como a Meta mandou (para responder) e as formas E.164 que podem estar no cadastro. */
+export type PedidoDeSaida = { para: string; telefones: string[] };
+
 export type EventosWhatsApp = {
   statuses: StatusMeta[];
-  /** Quem pediu SAIR: as formas possíveis do número (E.164) de cada pessoa. */
-  saidas: string[][];
+  saidas: PedidoDeSaida[];
 };
 
 const STATUS_DA_META: Record<string, StatusMensagem> = {
@@ -87,8 +89,8 @@ export function lerEventos(corpo: unknown): EventosWhatsApp {
         const de = texto(m.from);
         const conteudo = m.type === "button" ? texto(objeto(m.button).text) : texto(objeto(m.text).body);
         if (de && conteudo && ehPedidoDeSaida(conteudo)) {
-          const formas = candidatosDeTelefone(de);
-          if (formas.length > 0) eventos.saidas.push(formas);
+          const telefones = candidatosDeTelefone(de);
+          if (telefones.length > 0) eventos.saidas.push({ para: de.replace(/\D/g, ""), telefones });
         }
       }
     }
@@ -99,8 +101,24 @@ export function lerEventos(corpo: unknown): EventosWhatsApp {
 /**
  * Aplica no banco os status e os pedidos de SAIR do webhook. Lança erro se a fila falhar: a rota
  * responde 500 e a Meta manda de novo (as operações são idempotentes).
+ *
+ * `responder` confirma o SAIR para a pessoa, só quando alguém saiu de fato: o mesmo webhook repetido
+ * pela Meta não gera segunda resposta. Falha ao responder não desfaz nem repete o SAIR.
  */
-export async function aplicarEventos(eventos: EventosWhatsApp, fila: Pick<FilaWhatsApp, "statusDaMeta" | "optout">) {
+export async function aplicarEventos(
+  eventos: EventosWhatsApp,
+  fila: Pick<FilaWhatsApp, "statusDaMeta" | "optout">,
+  responder?: (para: string) => Promise<unknown>,
+) {
   for (const s of eventos.statuses) await fila.statusDaMeta(s.wamid, s.status, s.erro);
-  for (const telefones of eventos.saidas) await fila.optout(telefones);
+  for (const { para, telefones } of eventos.saidas) {
+    const sairam = await fila.optout(telefones);
+    if (sairam > 0 && responder) {
+      try {
+        await responder(para);
+      } catch {
+        console.error("whatsapp: resposta ao SAIR não enviada");
+      }
+    }
+  }
 }
