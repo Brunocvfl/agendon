@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { BotaoLink } from "@/components/ui";
+import { EMAIL_LEGAL, EMPRESA } from "@/lib/legal";
 
 // Página inicial provisória. A landing page de verdade vem depois do MVP.
 export default function Home() {
@@ -29,6 +30,13 @@ export default function Home() {
           Privacidade
         </Link>
       </nav>
+      {/* Quem está por trás da marca: a Meta confere o nome de exibição do WhatsApp com o site. */}
+      <footer className="max-w-md text-xs text-noite/50">
+        AgendOn é um serviço de {EMPRESA.nome} · {EMPRESA.documento} · {EMPRESA.cidade} ·{" "}
+        <a href={`mailto:${EMAIL_LEGAL}`} className="hover:text-on">
+          {EMAIL_LEGAL}
+        </a>
+      </footer>
     </main>
   );
 }
