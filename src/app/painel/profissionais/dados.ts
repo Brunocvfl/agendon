@@ -17,6 +17,7 @@ export async function listarProfissionais(salonId: string): Promise<Profissional
     .from("professionals")
     .select("id, nome, ativo, member_id, professional_services(services(nome, ativo)), working_hours(dia_semana)")
     .eq("salon_id", salonId)
+    .is("arquivado_em", null) // excluídos (arquivados) ficam só no histórico
     .order("ativo", { ascending: false })
     .order("nome");
 
@@ -57,6 +58,7 @@ export async function buscarProfissional(salonId: string, id: string): Promise<P
     )
     .eq("salon_id", salonId)
     .eq("id", id)
+    .is("arquivado_em", null)
     .maybeSingle();
 
   if (!data) return null;

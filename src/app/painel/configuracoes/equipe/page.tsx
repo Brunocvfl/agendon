@@ -18,6 +18,9 @@ const AVISOS: Record<string, string> = {
   salvo: "Alterações salvas.",
   desativado: "Acesso desativado.",
   reativado: "Acesso reativado.",
+  removido: "Pessoa removida da equipe.",
+  restaurado:
+    "Esse e-mail já tinha sido removido da equipe e voltou para a lista, com o acesso desativado. Abra a pessoa, confira o perfil e a agenda e reative o acesso.",
 };
 
 export default function PaginaEquipe({ searchParams }: PageProps<"/painel/configuracoes/equipe">) {

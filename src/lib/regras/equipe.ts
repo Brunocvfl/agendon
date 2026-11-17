@@ -62,6 +62,6 @@ export const ERROS_EQUIPE: Record<string, string> = {
   proprio_acesso: "Você não pode mudar o seu próprio perfil nem desativar o seu acesso.",
   ultimo_dono: "O salão precisa de pelo menos um Dono(a) ativo.",
   convite_pendente: "Essa pessoa ainda não aceitou o convite.",
-  membro_nao_apaga: "Quem já entrou no salão não é removido: desative o acesso.",
+  membro_nao_apaga: "Quem já entrou no salão não é apagado: use “Remover da equipe”.",
   membro_imutavel: "Não foi possível salvar. Recarregue a página.",
 };
