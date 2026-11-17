@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import { getUsuario, getVinculo } from "@/lib/auth";
+import { ehAdminDaPlataforma } from "@/lib/whatsapp/conta";
 import { DATA_DOCUMENTOS, VERSAO_DOCUMENTOS } from "@/lib/legal";
 import { sair } from "@/app/(acesso)/actions";
 import { AvisoNovosTermos } from "./aviso-termos";
@@ -55,13 +56,19 @@ export default function LayoutPainel({ children }: { children: ReactNode }) {
 
 // O menu depende do perfil (itens com permissão); lido aqui, dentro do <Suspense>.
 async function NavDoVinculo() {
-  const vinculo = await getVinculo();
-  return <NavPainel perfil={vinculo?.perfil ?? null} />;
+  const [vinculo, admin] = await Promise.all([getVinculo(), ehAdmin()]);
+  return <NavPainel perfil={vinculo?.perfil ?? null} admin={admin} />;
 }
 
 async function MenuCelularDoVinculo() {
-  const vinculo = await getVinculo();
-  return <MenuCelular conta={<Conta />} perfil={vinculo?.perfil ?? null} />;
+  const [vinculo, admin] = await Promise.all([getVinculo(), ehAdmin()]);
+  return <MenuCelular conta={<Conta />} perfil={vinculo?.perfil ?? null} admin={admin} />;
+}
+
+// Administrador da plataforma (tela temporária "Conta do WhatsApp").
+async function ehAdmin() {
+  const usuario = await getUsuario();
+  return ehAdminDaPlataforma(usuario?.email ?? null);
 }
 
 async function NomeSalao() {
