@@ -1,5 +1,5 @@
 // Conta do WhatsApp do AgendOn (WABA) pela WhatsApp Business Management API: número, modelos e
-// assinatura do webhook, e a criação do modelo de confirmação v3 (acentos em UTF-8).
+// assinatura do webhook, e a criação do modelo de confirmação v4 (acentos em UTF-8).
 // Temporário (análise do app na Meta, permissão whatsapp_business_management): só administradores
 // da plataforma (ADMINS_PLATAFORMA) veem a tela. Com o Tech Provider, isso vira por salão.
 import "server-only";
@@ -153,9 +153,10 @@ export async function lerConta(deps: DepsConta = {}): Promise<Conta | null> {
   return { numero, modelos, webhook };
 }
 
-/** Modelo de confirmação v3: mesmo texto do v2, com os acentos em UTF-8 (o v2 foi cadastrado com "Ol?"). */
-export const MODELO_CONFIRMACAO_V3 = {
-  name: "confirmacao_agendamento_v3",
+/** Modelo de confirmação v4: mesmo texto do v2, com os acentos em UTF-8 (o v2 foi cadastrado com "Ol?").
+// O v3 foi criado num teste e excluído; a Meta não deixa recriar o mesmo nome logo depois. */
+export const MODELO_CONFIRMACAO = {
+  name: "confirmacao_agendamento_v4",
   language: "pt_BR",
   category: "UTILITY",
   components: [
@@ -169,10 +170,10 @@ export const MODELO_CONFIRMACAO_V3 = {
 
 export type ResultadoCriacao = { ok: true; id: string; status: string } | { ok: false; erro: string };
 
-export async function criarModeloConfirmacaoV3(deps: DepsConta = {}): Promise<ResultadoCriacao> {
+export async function criarModeloConfirmacao(deps: DepsConta = {}): Promise<ResultadoCriacao> {
   const c = cliente(deps);
   if (!c) return { ok: false, erro: "Faltam as credenciais da Meta no servidor." };
-  const r = await c.pedir({ metodo: "POST", caminho: `/${c.wabaId}/message_templates` }, MODELO_CONFIRMACAO_V3);
+  const r = await c.pedir({ metodo: "POST", caminho: `/${c.wabaId}/message_templates` }, MODELO_CONFIRMACAO);
   if (!r.ok) return r;
   const o = objeto(r.corpo);
   return { ok: true, id: textoDe(o.id), status: textoDe(o.status) };

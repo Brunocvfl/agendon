@@ -7,7 +7,7 @@ import { getUsuario } from "@/lib/auth";
 import {
   ehAdminDaPlataforma,
   lerConta,
-  MODELO_CONFIRMACAO_V3,
+  MODELO_CONFIRMACAO,
   rotuloDoLimite,
   type Chamada,
   type Leitura,
@@ -45,7 +45,7 @@ async function Conteudo() {
     );
   }
   const { numero, modelos, webhook } = conta;
-  const temV3 = modelos.ok && modelos.dados.some((m) => m.nome === MODELO_CONFIRMACAO_V3.name);
+  const temModelo = modelos.ok && modelos.dados.some((m) => m.nome === MODELO_CONFIRMACAO.name);
 
   return (
     <>
@@ -105,20 +105,20 @@ async function Conteudo() {
       <Cartao className="mt-6">
         <h2 className="text-lg font-semibold">Criar modelo de confirmação</h2>
         <p className="mt-1 text-sm text-noite/70">
-          Cadastra na conta o modelo <code className="font-mono">{MODELO_CONFIRMACAO_V3.name}</code> (utilidade, pt_BR).
+          Cadastra na conta o modelo <code className="font-mono">{MODELO_CONFIRMACAO.name}</code> (utilidade, pt_BR).
           A Meta analisa antes de liberar o uso.
         </p>
         <figure className="mt-4">
           <figcaption className="text-xs font-semibold uppercase tracking-wide text-noite/60">Texto do modelo</figcaption>
           <div className="mt-2 rounded-2xl bg-[#E9E2D8] p-4">
             <p className="max-w-md rounded-xl rounded-tl-none bg-white px-4 py-3 text-sm text-noite shadow-sm">
-              {MODELO_CONFIRMACAO_V3.components[0].text}
+              {MODELO_CONFIRMACAO.components[0].text}
             </p>
           </div>
         </figure>
         <Endpoint chamada={{ metodo: "POST", caminho: "/{waba-id}/message_templates" }} />
         <div className="mt-4">
-          {temV3 ? (
+          {temModelo ? (
             <p className="text-sm text-noite/70">O modelo já está na conta (veja o status na lista acima).</p>
           ) : (
             <BotaoCriarModelo />

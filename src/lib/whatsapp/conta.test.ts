@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
-import { criarModeloConfirmacaoV3, ehAdminDaPlataforma, lerConta, MODELO_CONFIRMACAO_V3, rotuloDoLimite } from "./conta";
+import { criarModeloConfirmacao, ehAdminDaPlataforma, lerConta, MODELO_CONFIRMACAO, rotuloDoLimite } from "./conta";
 
 const credenciais = { token: "tk", numeroId: "111", wabaId: "222", versao: "v23.0" };
 
@@ -90,15 +90,15 @@ describe("lerConta", () => {
   });
 });
 
-describe("criarModeloConfirmacaoV3", () => {
-  it("envia o modelo v3 em UTF-8 e devolve id e status", async () => {
+describe("criarModeloConfirmacao", () => {
+  it("envia o modelo em UTF-8 e devolve id e status", async () => {
     const { fetch, pedidos } = metaFalsa({
       "/222/message_templates": { corpo: { id: "55", status: "PENDING", category: "UTILITY" } },
     });
-    expect(await criarModeloConfirmacaoV3({ fetch, credenciais })).toEqual({ ok: true, id: "55", status: "PENDING" });
+    expect(await criarModeloConfirmacao({ fetch, credenciais })).toEqual({ ok: true, id: "55", status: "PENDING" });
     expect(pedidos[0].init?.method).toBe("POST");
     const corpo = JSON.parse(String(pedidos[0].init?.body));
-    expect(corpo).toEqual(MODELO_CONFIRMACAO_V3);
+    expect(corpo).toEqual(MODELO_CONFIRMACAO);
     expect(corpo.components[0].text).toContain("Olá, {{1}}! Seu horário");
   });
 
@@ -109,7 +109,7 @@ describe("criarModeloConfirmacaoV3", () => {
         corpo: { error: { code: 100, message: "Invalid parameter", error_user_msg: "Já existe um modelo com esse nome" } },
       },
     });
-    expect(await criarModeloConfirmacaoV3({ fetch, credenciais })).toEqual({
+    expect(await criarModeloConfirmacao({ fetch, credenciais })).toEqual({
       ok: false,
       erro: "100: Já existe um modelo com esse nome",
     });
