@@ -7,7 +7,8 @@ import { pode, type Perfil, type Permissao } from "@/lib/permissoes";
 
 // Telas prontas primeiro; as que ainda vão chegar ficam agrupadas no fim, sem competir com as prontas.
 // Item com `exige` só aparece para quem tem a permissão (sem perfil carregado, fica escondido).
-const PRONTAS: { href: string; rotulo: string; exige?: Permissao }[] = [
+// `soAdmin`: só administradores da plataforma (ADMINS_PLATAFORMA), decidido no servidor.
+const PRONTAS: { href: string; rotulo: string; exige?: Permissao; soAdmin?: boolean }[] = [
   { href: "/painel", rotulo: "Início" },
   { href: "/painel/agenda", rotulo: "Agenda" },
   { href: "/painel/clientes", rotulo: "Clientes", exige: "ver-clientes" },
@@ -15,6 +16,7 @@ const PRONTAS: { href: string; rotulo: string; exige?: Permissao }[] = [
   { href: "/painel/profissionais", rotulo: "Profissionais" },
   { href: "/painel/lembretes", rotulo: "Lembretes", exige: "editar-lembretes" },
   { href: "/painel/configuracoes", rotulo: "Configurações", exige: "gerenciar-salao" },
+  { href: "/painel/whatsapp", rotulo: "Conta do WhatsApp", exige: "gerenciar-salao", soAdmin: true },
 ];
 const EM_BREVE = ["Link de agendamento"];
 
@@ -22,13 +24,23 @@ const ehAtivo = (href: string, pathname: string | null) =>
   pathname !== null && (href === "/painel" ? pathname === "/painel" : pathname.startsWith(href));
 
 // Lê a rota atual para destacar o item. Fica dentro de <Suspense> (exigência do Cache Components).
-export function NavPainel({ perfil }: { perfil: Perfil | null }) {
-  return <ListaMenu pathname={usePathname()} perfil={perfil} />;
+export function NavPainel({ perfil, admin = false }: { perfil: Perfil | null; admin?: boolean }) {
+  return <ListaMenu pathname={usePathname()} perfil={perfil} admin={admin} />;
 }
 
 // Mesma lista, sem destaque: usada como fallback enquanto a rota atual não chega.
-export function ListaMenu({ pathname, perfil = null }: { pathname: string | null; perfil?: Perfil | null }) {
-  const itens = PRONTAS.filter((item) => !item.exige || (perfil !== null && pode(perfil, item.exige)));
+export function ListaMenu({
+  pathname,
+  perfil = null,
+  admin = false,
+}: {
+  pathname: string | null;
+  perfil?: Perfil | null;
+  admin?: boolean;
+}) {
+  const itens = PRONTAS.filter(
+    (item) => (!item.soAdmin || admin) && (!item.exige || (perfil !== null && pode(perfil, item.exige))),
+  );
   return (
     <nav aria-label="Menu do painel" className="flex flex-1 flex-col gap-6 px-3">
       <ul className="flex flex-col gap-1">
@@ -64,7 +76,7 @@ export function ListaMenu({ pathname, perfil = null }: { pathname: string | null
 }
 
 // Celular: botão "Menu" que abre uma gaveta lateral (<dialog> nativo: Esc fecha e o foco fica dentro).
-export function MenuCelular({ conta, perfil }: { conta: ReactNode; perfil: Perfil | null }) {
+export function MenuCelular({ conta, perfil, admin = false }: { conta: ReactNode; perfil: Perfil | null; admin?: boolean }) {
   const dialogo = useRef<HTMLDialogElement>(null);
   const pathname = usePathname();
 
@@ -111,7 +123,7 @@ export function MenuCelular({ conta, perfil }: { conta: ReactNode; perfil: Perfi
             </svg>
           </button>
         </div>
-        <ListaMenu pathname={pathname} perfil={perfil} />
+        <ListaMenu pathname={pathname} perfil={perfil} admin={admin} />
         {conta}
       </dialog>
     </>
