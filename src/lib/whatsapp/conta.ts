@@ -50,6 +50,16 @@ const objeto = (v: unknown): Record<string, unknown> =>
 const textoDe = (v: unknown) => (typeof v === "string" ? v : "");
 const lista = (v: unknown) => (Array.isArray(v) ? v.map(objeto) : []);
 
+/** "TIER_2K" → "2.000 conversas iniciadas pela empresa a cada 24 h"; sem limite ou desconhecido, o próprio código. */
+export function rotuloDoLimite(tier: string): string {
+  const m = tier.match(/^TIER_(\d+)(K)?$/);
+  if (m) {
+    const n = Number(m[1]) * (m[2] ? 1000 : 1);
+    return `${n.toLocaleString("pt-BR")} conversas iniciadas pela empresa a cada 24 h`;
+  }
+  return tier === "TIER_UNLIMITED" ? "Sem limite de conversas iniciadas pela empresa" : tier;
+}
+
 function erroDaMeta(http: number, corpo: unknown): string {
   const e = objeto(objeto(corpo).error);
   const msg = textoDe(e.error_user_msg) || textoDe(e.message);
@@ -63,7 +73,8 @@ export const lerNumero = (c: unknown): Numero => {
     nome: textoDe(o.verified_name),
     status: textoDe(o.status),
     qualidade: textoDe(o.quality_rating),
-    limite: textoDe(o.messaging_limit_tier),
+    // O limite agora é da conta comercial (o mesmo do WhatsApp Manager); messaging_limit_tier é o antigo, por número.
+    limite: textoDe(o.whatsapp_business_manager_messaging_limit) || textoDe(o.messaging_limit_tier),
     statusNome: textoDe(o.name_status),
   };
 };
@@ -132,7 +143,7 @@ export async function lerConta(deps: DepsConta = {}): Promise<Conta | null> {
       c,
       {
         metodo: "GET",
-        caminho: `/${c.numeroId}?fields=display_phone_number,verified_name,status,quality_rating,messaging_limit_tier,name_status`,
+        caminho: `/${c.numeroId}?fields=display_phone_number,verified_name,status,quality_rating,whatsapp_business_manager_messaging_limit,name_status`,
       },
       lerNumero,
     ),
