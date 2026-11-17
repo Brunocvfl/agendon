@@ -4,7 +4,14 @@ import type { ReactNode } from "react";
 import { Alerta, Cartao } from "@/components/ui";
 import { PaginaProtegida } from "@/components/pagina-protegida";
 import { getUsuario } from "@/lib/auth";
-import { ehAdminDaPlataforma, lerConta, MODELO_CONFIRMACAO_V3, type Chamada, type Leitura } from "@/lib/whatsapp/conta";
+import {
+  ehAdminDaPlataforma,
+  lerConta,
+  MODELO_CONFIRMACAO_V3,
+  rotuloDoLimite,
+  type Chamada,
+  type Leitura,
+} from "@/lib/whatsapp/conta";
 import { BotaoCriarModelo } from "./botao-criar-modelo";
 
 export const metadata: Metadata = { title: "Conta do WhatsApp · AgendOn" };
@@ -55,7 +62,9 @@ async function Conteudo() {
             <Item rotulo="Qualidade">
               <Selo valor={n.qualidade} />
             </Item>
-            <Item rotulo="Limite de conversas">{n.limite}</Item>
+            <Item rotulo="Limite de mensagens">
+              {rotuloDoLimite(n.limite)} <span className="text-noite/60">({n.limite})</span>
+            </Item>
           </dl>
         )}
       </Secao>

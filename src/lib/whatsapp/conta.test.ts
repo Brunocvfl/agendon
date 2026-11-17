@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
-import { criarModeloConfirmacaoV3, ehAdminDaPlataforma, lerConta, MODELO_CONFIRMACAO_V3 } from "./conta";
+import { criarModeloConfirmacaoV3, ehAdminDaPlataforma, lerConta, MODELO_CONFIRMACAO_V3, rotuloDoLimite } from "./conta";
 
 const credenciais = { token: "tk", numeroId: "111", wabaId: "222", versao: "v23.0" };
 
@@ -30,6 +30,16 @@ describe("administrador da plataforma", () => {
   });
 });
 
+describe("limite de mensagens", () => {
+  it("escreve o limite por extenso", () => {
+    expect(rotuloDoLimite("TIER_2K")).toBe("2.000 conversas iniciadas pela empresa a cada 24 h");
+    expect(rotuloDoLimite("TIER_250")).toBe("250 conversas iniciadas pela empresa a cada 24 h");
+    expect(rotuloDoLimite("TIER_100K")).toBe("100.000 conversas iniciadas pela empresa a cada 24 h");
+    expect(rotuloDoLimite("TIER_UNLIMITED")).toBe("Sem limite de conversas iniciadas pela empresa");
+    expect(rotuloDoLimite("OUTRO")).toBe("OUTRO");
+  });
+});
+
 describe("lerConta", () => {
   it("sem credenciais não chama a Meta", async () => {
     const { fetch, pedidos } = metaFalsa({});
@@ -46,6 +56,7 @@ describe("lerConta", () => {
           status: "CONNECTED",
           quality_rating: "GREEN",
           messaging_limit_tier: "TIER_250",
+          whatsapp_business_manager_messaging_limit: "TIER_2K",
           name_status: "PENDING_REVIEW",
         },
       },
@@ -55,7 +66,7 @@ describe("lerConta", () => {
       "/222/subscribed_apps": { corpo: { data: [{ whatsapp_business_api_data: { id: "77", name: "AgendOn" } }] } },
     });
     const conta = await lerConta({ fetch, credenciais });
-    expect(conta?.numero).toMatchObject({ ok: true, dados: { telefone: "+55 11 95713-1962", qualidade: "GREEN", statusNome: "PENDING_REVIEW" } });
+    expect(conta?.numero).toMatchObject({ ok: true, dados: { telefone: "+55 11 95713-1962", qualidade: "GREEN", limite: "TIER_2K", statusNome: "PENDING_REVIEW" } });
     expect(conta?.modelos).toMatchObject({ ok: true, dados: [{ nome: "lembrete_agendamento", status: "APPROVED" }] });
     expect(conta?.webhook).toMatchObject({ ok: true, dados: [{ id: "77", nome: "AgendOn" }] });
     expect(pedidos).toHaveLength(3);
