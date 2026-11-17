@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { Alerta, Botao } from "@/components/ui";
-import { cancelarConvite, desativar, reativar, reenviarConvite, type EstadoForm } from "./actions";
+import { cancelarConvite, desativar, reativar, reenviarConvite, remover, type EstadoForm } from "./actions";
 
 const ACOES = {
   reenviar: { acao: reenviarConvite, rotulo: "Reenviar convite", confirmar: null },
@@ -20,6 +20,15 @@ const ACOES = {
     },
   },
   reativar: { acao: reativar, rotulo: "Reativar acesso", confirmar: null },
+  remover: {
+    acao: remover,
+    rotulo: "Remover da equipe",
+    confirmar: {
+      pergunta:
+        "Remover da equipe? A pessoa perde o acesso e sai desta lista; a agenda ligada a ela fica livre. Os agendamentos e o histórico continuam. Para trazê-la de volta, convide o mesmo e-mail.",
+      sim: "Sim, remover",
+    },
+  },
 } as const;
 
 export type AcaoAcesso = keyof typeof ACOES;

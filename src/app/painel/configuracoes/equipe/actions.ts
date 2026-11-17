@@ -30,6 +30,8 @@ function mensagemEquipe(e: Erro) {
       return { campo: "agenda", msg: "Essa agenda já está ligada a outro login. Escolha outra." };
     case "23505":
       return { campo: "agenda", msg: "Já existe uma agenda com esse nome. Escolha-a na lista." };
+    case "P0002":
+      return "Essa pessoa já foi removida. Recarregue a página.";
     case "ja_aceitou":
       return "Essa pessoa já aceitou o convite.";
     case "over_email_send_rate_limit":
@@ -89,7 +91,12 @@ export const convidar = acaoDoPainel({
     // O convite só cria login novo: e-mail com conta (de outro salão ou sem salão) fica de fora no MVP.
     const uso = await supabase.rpc("email_em_uso", { p_email: v.email });
     if (uso.error) return { error: uso.error };
-    if (uso.data) return erro("email_existe");
+    if (uso.data) {
+      // Removida deste salão antes: volta para a lista, desativada (o Dono(a) confere e reativa).
+      const volta = await supabase.rpc("restaurar_membro", { p_salon: salaoId, p_email: v.email });
+      if (volta.error) return { error: volta.error };
+      return volta.data ? { error: null, data: { semAgenda: false, restaurado: true } } : erro("email_existe");
+    }
 
     const admin = authAdmin();
     const convite = await admin.inviteUserByEmail(v.email, await opcoesDoConvite(vinculo, v.nome));
@@ -108,10 +115,13 @@ export const convidar = acaoDoPainel({
       return { error: novo.error };
     }
     const erroAgenda = await ligarAgenda(supabase, salaoId, novo.data.id, v.nome, v.agenda);
-    return { error: null, data: { semAgenda: erroAgenda !== null } };
+    return { error: null, data: { semAgenda: erroAgenda !== null, restaurado: false } };
   },
   mensagens: MENSAGENS,
-  depois: { ir: (d: { semAgenda: boolean }) => `${LISTA}?aviso=${d.semAgenda ? "convite-sem-agenda" : "convite"}` },
+  depois: {
+    ir: (d: { semAgenda: boolean; restaurado: boolean }) =>
+      `${LISTA}?aviso=${d.restaurado ? "restaurado" : d.semAgenda ? "convite-sem-agenda" : "convite"}`,
+  },
 });
 
 // Edita nome, perfil e agenda. O banco barra mudar o próprio perfil e ficar sem Dono(a).
@@ -149,6 +159,15 @@ function mudarStatus(status: "ativo" | "inativo") {
     depois: { ir: `${LISTA}?aviso=${status === "ativo" ? "reativado" : "desativado"}` },
   });
 }
+
+// Remover da equipe: corta o acesso e tira da lista (o registro fica; convidar de novo traz de volta).
+export const remover = acaoDoPainel({
+  permissao: "gerenciar-salao",
+  ler: lerId,
+  executar: ({ id }, { supabase }) => supabase.rpc("remover_membro", { p_member: id }),
+  mensagens: MENSAGENS,
+  depois: { ir: `${LISTA}?aviso=removido` },
+});
 
 export const desativar = mudarStatus("inativo");
 export const reativar = mudarStatus("ativo");

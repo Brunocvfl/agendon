@@ -12,6 +12,7 @@ import { FormDados } from "./form-dados";
 import { FormServicos } from "./form-servicos";
 import { FormHorarios } from "./form-horarios";
 import { Folgas } from "./folgas";
+import { ExcluirProfissional } from "./excluir";
 
 export const metadata: Metadata = { title: "Profissional · AgendOn" };
 
@@ -108,6 +109,16 @@ async function Conteudo({ vinculo: { salao, perfil, membroId }, id }: { vinculo:
           </p>
           <Folgas id={profissional.id} folgas={profissional.folgas} fuso={salao.fuso} podeEditar={editaHorarios} />
         </Cartao>
+
+        {editaCadastro ? (
+          <Cartao>
+            <h2 className="text-lg font-semibold">Excluir profissional</h2>
+            <p className="mt-1 text-sm text-noite/65">
+              Para quem saiu do salão. Se for só uma pausa, prefira desmarcar “Ativo” em Dados.
+            </p>
+            <ExcluirProfissional id={profissional.id} nome={profissional.nome} />
+          </Cartao>
+        ) : null}
       </div>
     </>
   );

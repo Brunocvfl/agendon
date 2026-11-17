@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { BotaoLink, Cartao } from "@/components/ui";
+import { Alerta, BotaoLink, Cartao } from "@/components/ui";
 import { PaginaProtegida } from "@/components/pagina-protegida";
 import type { Vinculo } from "@/lib/auth";
 import { pode } from "@/lib/permissoes";
@@ -9,19 +9,30 @@ import { listarProfissionais } from "./dados";
 
 export const metadata: Metadata = { title: "Profissionais · AgendOn" };
 
-export default function PaginaProfissionais() {
+const AVISOS: Record<string, string> = {
+  excluido: "Profissional excluído. Os atendimentos antigos continuam no histórico dos clientes.",
+};
+
+export default function PaginaProfissionais({ searchParams }: PageProps<"/painel/profissionais">) {
   return (
     <div className="mx-auto max-w-5xl">
       <PaginaProtegida carregando={<h1 className="text-2xl font-semibold sm:text-3xl">Profissionais</h1>}>
-        {({ vinculo }) => <Conteudo vinculo={vinculo} />}
+        {({ vinculo }) => <Conteudo vinculo={vinculo} searchParams={searchParams} />}
       </PaginaProtegida>
     </div>
   );
 }
 
-async function Conteudo({ vinculo: { salao, perfil, membroId } }: { vinculo: Vinculo }) {
+async function Conteudo({
+  vinculo: { salao, perfil, membroId },
+  searchParams,
+}: {
+  vinculo: Vinculo;
+  searchParams: PageProps<"/painel/profissionais">["searchParams"];
+}) {
   const podeCadastrar = pode(perfil, "editar-profissionais");
-  const profissionais = await listarProfissionais(salao.id);
+  const [profissionais, sp] = await Promise.all([listarProfissionais(salao.id), searchParams]);
+  const aviso = typeof sp.aviso === "string" ? AVISOS[sp.aviso] : undefined;
 
   return (
     <>
@@ -31,6 +42,11 @@ async function Conteudo({ vinculo: { salao, perfil, membroId } }: { vinculo: Vin
           <BotaoLink href="/painel/profissionais/novo">+ Adicionar profissional</BotaoLink>
         ) : null}
       </div>
+      {aviso ? (
+        <div className="mt-6">
+          <Alerta tipo="sucesso">{aviso}</Alerta>
+        </div>
+      ) : null}
 
       {profissionais.length === 0 ? (
         <Cartao className="mt-6 text-center">

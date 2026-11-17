@@ -79,14 +79,14 @@ isOneToOne: false
                   ]
                 },"members": {
                   Row: {
-                    "created_at": string,"id": string,"nome": string | null,"perfil": Database["public"]['Enums']["member_role"],"salon_id": string,"status": string,"user_id": string
+                    "created_at": string,"id": string,"nome": string | null,"perfil": Database["public"]['Enums']["member_role"],"removido_em": string | null,"salon_id": string,"status": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"id"?: string,"nome"?: string | null,"perfil": Database["public"]['Enums']["member_role"],"salon_id": string,"status"?: string,"user_id": string
+                    "created_at"?: string,"id"?: string,"nome"?: string | null,"perfil": Database["public"]['Enums']["member_role"],"removido_em"?: string | null,"salon_id": string,"status"?: string,"user_id": string
                   }
                   Update: {
-                    "created_at"?: string,"id"?: string,"nome"?: string | null,"perfil"?: Database["public"]['Enums']["member_role"],"salon_id"?: string,"status"?: string,"user_id"?: string
+                    "created_at"?: string,"id"?: string,"nome"?: string | null,"perfil"?: Database["public"]['Enums']["member_role"],"removido_em"?: string | null,"salon_id"?: string,"status"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -177,14 +177,14 @@ isOneToOne: false
                   ]
                 },"professionals": {
                   Row: {
-                    "ativo": boolean,"created_at": string,"id": string,"member_id": string | null,"nome": string,"salon_id": string
+                    "arquivado_em": string | null,"ativo": boolean,"created_at": string,"id": string,"member_id": string | null,"nome": string,"salon_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "ativo"?: boolean,"created_at"?: string,"id"?: string,"member_id"?: string | null,"nome": string,"salon_id": string
+                    "arquivado_em"?: string | null,"ativo"?: boolean,"created_at"?: string,"id"?: string,"member_id"?: string | null,"nome": string,"salon_id": string
                   }
                   Update: {
-                    "ativo"?: boolean,"created_at"?: string,"id"?: string,"member_id"?: string | null,"nome"?: string,"salon_id"?: string
+                    "arquivado_em"?: string | null,"ativo"?: boolean,"created_at"?: string,"id"?: string,"member_id"?: string | null,"nome"?: string,"salon_id"?: string
                   }
                   Relationships: [
                     {
@@ -325,6 +325,9 @@ isOneToOne: false
 "anonimizar_cliente":
 { Args: { "p_client": string }; Returns: number
                            },
+"arquivar_profissional":
+{ Args: { "p_professional": string }; Returns: undefined
+                           },
 "buscar_clientes_por_nome":
 { Args: { "p_busca": string,"p_limite"?: number,"p_salon": string }; Returns: {
               "id": string,"nome": string,"ultimo_atendimento": string
@@ -371,6 +374,12 @@ isOneToOne: false
                            },
 "remarcar_agendamento":
 { Args: { "p_appointment": string,"p_encaixe"?: boolean,"p_inicio": string,"p_professional": string }; Returns: undefined
+                           },
+"remover_membro":
+{ Args: { "p_member": string }; Returns: undefined
+                           },
+"restaurar_membro":
+{ Args: { "p_email": string,"p_salon": string }; Returns: string
                            },
 "salvar_horarios":
 { Args: { "p_horarios": Json,"p_professional": string }; Returns: undefined

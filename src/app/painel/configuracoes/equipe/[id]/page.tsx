@@ -65,16 +65,18 @@ async function Conteudo({ vinculo, id }: { vinculo: Vinculo; id: string }) {
             {eu ? (
               <p className="mt-3 text-sm text-noite/65">Você não pode desativar o seu próprio acesso.</p>
             ) : (
-              <div className="mt-4">
+              <div className="mt-4 flex flex-col gap-3">
                 <AcaoDeAcesso id={m.id} tipo="desativar" />
+                <AcaoDeAcesso id={m.id} tipo="remover" />
               </div>
             )}
           </>
         ) : (
           <>
             <p className="mt-1 text-sm text-noite/65">Acesso desativado: essa pessoa não entra no painel.</p>
-            <div className="mt-4">
+            <div className="mt-4 flex flex-col gap-3">
               <AcaoDeAcesso id={m.id} tipo="reativar" />
+              <AcaoDeAcesso id={m.id} tipo="remover" />
             </div>
           </>
         )}

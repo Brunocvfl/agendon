@@ -1,6 +1,7 @@
 "use server";
 
 import { acaoDoPainel, comandoDoPainel, ERRO_GERAL, texto, type EstadoForm } from "@/lib/acao";
+import { ERROS_EXCLUIR_PROFISSIONAL } from "@/lib/regras/profissional";
 import { ehUuid } from "@/lib/ids";
 import { DIAS, telaParaFaixas, type DiaTela } from "@/lib/horarios";
 import { lerFolga } from "@/lib/regras/folga";
@@ -48,6 +49,21 @@ export const salvarDados = acaoDoPainel({
     supabase.from("professionals").update(dados).eq("id", id).eq("salon_id", vinculo.salao.id),
   mensagens: { duplicado: NOME_REPETIDO },
   depois: { ok: "Dados salvos." },
+});
+
+// Excluir = arquivar: some do painel e da página pública; agendamentos antigos continuam com o nome.
+export const excluirProfissional = acaoDoPainel({
+  permissao: "editar-profissionais",
+  senao: VOLTAR,
+  ler: (fd) => (ehUuid(texto(fd, "id")) ? valido({ id: texto(fd, "id") }) : SEM_ID),
+  executar: ({ id }, { supabase }) => supabase.rpc("arquivar_profissional", { p_professional: id }),
+  mensagens: {
+    outro: (e) =>
+      Object.entries(ERROS_EXCLUIR_PROFISSIONAL).find(([regra]) => e.message?.includes(regra))?.[1] ??
+      "Não foi possível excluir agora. Tente de novo em instantes.",
+    "nao-encontrado": "Esse profissional já foi excluído. Recarregue a página.",
+  },
+  depois: { ir: `${VOLTAR}?aviso=excluido` },
 });
 
 export const salvarServicos = acaoDoPainel({
