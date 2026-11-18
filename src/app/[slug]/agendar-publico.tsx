@@ -2,7 +2,7 @@
 
 import { useFocarPrimeiroErro } from "@/components/use-focar-erro";
 import Link from "next/link";
-import { useActionState, useEffect, useRef, useState, useTransition } from "react";
+import { useActionState, useEffect, useId, useRef, useState, useTransition } from "react";
 import { Alerta, Botao, Campo } from "@/components/ui";
 import { dataNoFuso, horaNoFuso, partesDaData, rotuloData, somarDias } from "@/lib/datas";
 import { formatarDuracao, formatarPreco } from "@/lib/formato";
@@ -28,6 +28,9 @@ export function AgendarPublico({ slug, pagina, hoje }: Props) {
   const [horarios, setHorarios] = useState<string[] | null>(null);
   const [carregando, iniciarCarga] = useTransition();
   const [qtdDias, setQtdDias] = useState(DIAS_POR_VEZ);
+  /** Passo já respondido que a pessoa abriu de novo para trocar (os outros respondidos ficam recolhidos). */
+  const [reaberto, setReaberto] = useState<number | null>(null);
+  const alternar = (n: number) => setReaberto((atual) => (atual === n ? null : n));
 
   const passoProfissional = useRef<HTMLElement>(null);
   const passoDia = useRef<HTMLElement>(null);
@@ -49,6 +52,7 @@ export function AgendarPublico({ slug, pagina, hoje }: Props) {
     if (estado.ocupado && dia && ocupadoTratado.current !== estado) {
       ocupadoTratado.current = estado;
       setInicio(null);
+      setReaberto(null);
       carregarHorarios(dia);
       rolarAte(passoDia.current);
     }
@@ -99,13 +103,21 @@ export function AgendarPublico({ slug, pagina, hoje }: Props) {
 
   return (
     <div className="flex flex-col gap-4">
-      <Passo numero={1} titulo="Escolha o serviço">
+      <Passo
+        numero={1}
+        titulo="Escolher serviço"
+        resumo={servicoEscolhido?.nome}
+        aberto={!servico || reaberto === 1}
+        onAlternar={() => alternar(1)}
+      >
         <ul className="flex flex-col gap-2">
           {pagina.servicos.map((s) => (
             <li key={s.id}>
               <Opcao
                 selecionada={servico === s.id}
                 onClick={() => {
+                  setReaberto(null);
+                  if (s.id === servico) return;
                   setServico(s.id);
                   setProfissional(null);
                   setDia(null);
@@ -124,7 +136,14 @@ export function AgendarPublico({ slug, pagina, hoje }: Props) {
       </Passo>
 
       {servico ? (
-        <Passo numero={2} titulo="Com quem?" ref={passoProfissional}>
+        <Passo
+          numero={2}
+          titulo="Escolher profissional"
+          ref={passoProfissional}
+          resumo={profissional === null ? undefined : (profissionalEscolhido?.nome ?? "Qualquer profissional")}
+          aberto={profissional === null || reaberto === 2}
+          onAlternar={() => alternar(2)}
+        >
           <ul className="flex flex-col gap-2">
             {quemAtende.length > 1 ? (
               <li>
@@ -155,7 +174,20 @@ export function AgendarPublico({ slug, pagina, hoje }: Props) {
       ) : null}
 
       {servico && profissional !== null ? (
-        <Passo numero={3} titulo="Dia e horário" ref={passoDia}>
+        <Passo
+          numero={3}
+          titulo="Dia e horário"
+          ref={passoDia}
+          resumo={
+            dia && inicio ? (
+              <>
+                <span className="capitalize">{rotuloData(dia)}</span> às {horaNoFuso(inicio, fuso)}
+              </>
+            ) : undefined
+          }
+          aberto={!(dia && inicio) || reaberto === 3}
+          onAlternar={() => alternar(3)}
+        >
           <div className="-mx-1 flex snap-x gap-2 overflow-x-auto overscroll-x-contain px-1 pb-2" role="group" aria-label="Dias">
             {dias.map((d) => (
               <button
@@ -208,6 +240,7 @@ export function AgendarPublico({ slug, pagina, hoje }: Props) {
                       aria-pressed={inicio === h}
                       onClick={() => {
                         setInicio(h);
+                        setReaberto(null);
                         setTimeout(() => rolarAte(passoDados.current));
                       }}
                       className={`h-11 rounded-xl border text-sm font-medium tabular-nums transition-colors ${
@@ -228,10 +261,6 @@ export function AgendarPublico({ slug, pagina, hoje }: Props) {
 
       {servico && profissional !== null && dia && inicio ? (
         <Passo numero={4} titulo="Seus dados" ref={passoDados}>
-          <p className="mb-4 rounded-xl bg-fundo px-4 py-3 text-sm">
-            <strong>{servicoEscolhido?.nome}</strong> com {profissionalEscolhido?.nome ?? "qualquer profissional"},{" "}
-            <span className="capitalize">{rotuloData(dia)}</span> às {horaNoFuso(inicio, fuso)}
-          </p>
           <form ref={form} action={acao} className="flex flex-col gap-4" noValidate>
             {estado.erro && !estado.ocupado ? <Alerta tipo="erro">{estado.erro}</Alerta> : null}
             <input type="hidden" name="slug" value={slug} />
@@ -286,6 +315,8 @@ export function AgendarPublico({ slug, pagina, hoje }: Props) {
   );
 
   function escolherProfissional(id: string) {
+    setReaberto(null);
+    if (id === profissional) return;
     setProfissional(id);
     setInicio(null);
     if (dia) carregarHorarios(dia, servico, id);
@@ -307,24 +338,68 @@ function faixaDePreco(pagina: PaginaPublica, servico: string, base: number) {
   return min === max ? formatarPreco(min) : `${formatarPreco(min)} a ${formatarPreco(max)}`;
 }
 
+/**
+ * Um passo do agendamento. Depois de respondido (`resumo`), fica recolhido mostrando a escolha, com
+ * "Alterar" para abrir de novo (padrão de divulgação: o botão fica no título, com `aria-expanded`).
+ */
 function Passo({
   numero,
   titulo,
+  resumo,
+  aberto = true,
+  onAlternar,
   ref,
   children,
 }: {
   numero: number;
   titulo: string;
+  resumo?: React.ReactNode;
+  aberto?: boolean;
+  onAlternar?: () => void;
   ref?: React.Ref<HTMLElement>;
   children: React.ReactNode;
 }) {
+  const conteudo = useId();
+  const respondido = resumo !== undefined && onAlternar;
+  const marcador = (
+    <span
+      aria-hidden
+      className={`flex size-6 shrink-0 items-center justify-center rounded-full text-xs ${
+        respondido ? "bg-confirmado/15 text-confirmado-escuro" : "bg-on/10 text-on"
+      }`}
+    >
+      {respondido ? "✓" : numero}
+    </span>
+  );
+
   return (
     <section ref={ref} className="scroll-mt-4 rounded-2xl bg-white p-5 shadow-sm">
-      <h2 className="mb-4 flex items-center gap-2.5 font-semibold">
-        <span className="flex size-6 items-center justify-center rounded-full bg-on/10 text-xs text-on">{numero}</span>
-        {titulo}
-      </h2>
-      {children}
+      {respondido ? (
+        <h2 className={aberto ? "mb-4" : undefined}>
+          <button
+            type="button"
+            aria-expanded={aberto}
+            aria-controls={conteudo}
+            onClick={onAlternar}
+            className="-m-2 flex w-[calc(100%+1rem)] items-center gap-2.5 rounded-xl p-2 text-left hover:bg-fundo"
+          >
+            {marcador}
+            <span className="flex min-w-0 flex-1 flex-col">
+              <span className="font-semibold">{titulo}</span>
+              {!aberto ? <span className="truncate text-sm font-normal text-noite/70">{resumo}</span> : null}
+            </span>
+            <span className="shrink-0 text-sm font-medium text-on">{aberto ? "Fechar" : "Alterar"}</span>
+          </button>
+        </h2>
+      ) : (
+        <h2 className="mb-4 flex items-center gap-2.5 font-semibold">
+          {marcador}
+          {titulo}
+        </h2>
+      )}
+      <div id={conteudo} hidden={!aberto}>
+        {children}
+      </div>
     </section>
   );
 }
