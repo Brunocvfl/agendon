@@ -8,6 +8,7 @@ export type ServicoPublico = { id: string; nome: string; duracao_min: number; pr
 export type ProfissionalPublico = {
   id: string;
   nome: string;
+  foto_path: string | null;
   servicos: { id: string; duracao_min: number; preco: number }[];
 };
 export type PaginaPublica = {

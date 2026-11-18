@@ -1,5 +1,6 @@
 // Logo do salão no Storage (bucket público `logos`, pasta = id do salão). Serve no servidor e no navegador.
-// Os limites espelham o bucket (migration dados_salao): até 1 MB, PNG, JPEG ou WebP.
+// Os limites espelham os buckets `logos` e `fotos`: até 1 MB, PNG, JPEG ou WebP (valem para as duas;
+// o envio é do `CampoImagem`, com caminho `<salão>/logo-<agora>.<ext>`).
 import { supabaseEnv } from "@/lib/supabase/env";
 
 export const LIMITES_LOGO = {
@@ -17,11 +18,6 @@ export function erroDaLogo(arquivo: { type: string; size: number }): string | nu
   if (!(arquivo.type in LIMITES_LOGO.tipos)) return "Use uma imagem PNG, JPG ou WebP.";
   if (arquivo.size > LIMITES_LOGO.bytes) return "A imagem pode ter até 1 MB.";
   return null;
-}
-
-/** Caminho novo para a logo (nome único: troca de logo não esbarra no cache do navegador). */
-export function caminhoDaLogo(salaoId: string, tipo: string, agora = Date.now()): string {
-  return `${salaoId}/logo-${agora}.${LIMITES_LOGO.tipos[tipo]}`;
 }
 
 /** O caminho é de uma logo deste salão, no formato que o app gera? */
