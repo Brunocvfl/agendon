@@ -350,6 +350,11 @@ isOneToOne: false
 "exportar_cliente":
 { Args: { "p_client": string }; Returns: Json
                            },
+"exportar_clientes":
+{ Args: { "p_busca"?: string,"p_salon": string,"p_whatsapp"?: string }; Returns: {
+              "cadastrado_em": string,"cancelamentos": number,"consentimento_origem": string,"consentimento_whatsapp_em": string,"faltas": number,"nome": string,"observacoes": string,"optout_em": string,"proximo_agendamento": string,"telefone": string,"total_gasto": number,"ultimo_atendimento": string,"visitas": number
+            }[]
+                           },
 "horarios_livres":
 { Args: { "p_dia": string,"p_ignorar"?: string,"p_professional": string,"p_service": string }; Returns: string[]
                            },

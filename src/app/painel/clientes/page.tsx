@@ -6,6 +6,8 @@ import { PaginaProtegida } from "@/components/pagina-protegida";
 import type { Vinculo } from "@/lib/auth";
 import { formatarDiaMes, formatarMesAno } from "@/lib/datas";
 import { formatarTelefone, iniciais } from "@/lib/formato";
+import { pode } from "@/lib/permissoes";
+import { FILTROS_WHATSAPP } from "@/lib/regras/cliente";
 import { listarClientes, POR_PAGINA, type ClienteDaLista } from "./dados";
 
 type Datas = { diaMes: (iso: string) => string; mesAno: (iso: string) => string };
@@ -30,7 +32,7 @@ export default function PaginaClientes({ searchParams }: PageProps<"/painel/clie
 
 const umValor = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
 
-async function Conteudo({ vinculo: { salao }, searchParams }: { vinculo: Vinculo; searchParams: Busca }) {
+async function Conteudo({ vinculo: { salao, perfil }, searchParams }: { vinculo: Vinculo; searchParams: Busca }) {
   const sp = await searchParams;
   const busca = umValor(sp.q).trim().slice(0, 80);
   const pagina = Math.max(1, Math.floor(Number(umValor(sp.p)) || 1));
@@ -61,6 +63,30 @@ async function Conteudo({ vinculo: { salao }, searchParams }: { vinculo: Vinculo
           className="h-11 w-full rounded-xl border border-noite/15 bg-white px-3.5 text-base text-noite outline-none transition-colors placeholder:text-noite/35 focus:border-on focus:ring-2 focus:ring-on/20 sm:max-w-md"
         />
       </Form>
+
+      {pode(perfil, "dados-do-titular") && total > 0 ? (
+        // Formulário comum (não next/form): a rota devolve um arquivo para baixar.
+        <form action="/painel/clientes/exportar" method="get" className="mt-3 flex flex-wrap items-center gap-2 text-sm">
+          {busca ? <input type="hidden" name="q" value={busca} /> : null}
+          <label htmlFor="whatsapp" className="text-noite/70">
+            Exportar {busca ? "o resultado da busca" : "a lista"} em CSV:
+          </label>
+          <select
+            id="whatsapp"
+            name="whatsapp"
+            className="h-9 rounded-[10px] border border-noite/15 bg-white px-2.5 text-sm text-noite outline-none focus:border-on focus:ring-2 focus:ring-on/20"
+          >
+            {Object.entries(FILTROS_WHATSAPP).map(([valor, rotulo]) => (
+              <option key={valor} value={valor}>
+                {rotulo}
+              </option>
+            ))}
+          </select>
+          <button type="submit" className="h-9 rounded-[10px] px-3 font-medium text-on hover:underline">
+            Baixar CSV
+          </button>
+        </form>
+      ) : null}
 
       <Cartao className="mt-4 !p-0 sm:!p-0">
         {clientes.length === 0 ? (

@@ -66,3 +66,21 @@ export function arquivoDaExportacao(nome: string, data: string): string {
     .replace(/-+$/, "");
   return `cliente-${base || "dados"}-${data}.json`;
 }
+
+// --- Exportação da lista (CSV) --------------------------------------------------
+
+/** Filtro de autorização do WhatsApp na exportação (o banco aceita os mesmos valores). */
+export const FILTROS_WHATSAPP = {
+  todos: "Todos os clientes",
+  autorizou: "Só quem autorizou o WhatsApp",
+  nao_autorizou: "Só quem não autorizou (ou saiu)",
+} as const;
+export type FiltroWhatsApp = keyof typeof FILTROS_WHATSAPP;
+
+export function lerFiltroWhatsApp(valor: string | undefined): FiltroWhatsApp {
+  return valor && Object.hasOwn(FILTROS_WHATSAPP, valor) ? (valor as FiltroWhatsApp) : "todos";
+}
+
+export function arquivoDaLista(data: string): string {
+  return `clientes-${data}.csv`;
+}
