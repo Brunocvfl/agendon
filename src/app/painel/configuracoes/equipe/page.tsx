@@ -115,6 +115,7 @@ const LINHAS: { rotulo: string; permissao: Permissao }[] = [
   { rotulo: "Criar e remarcar agendamentos", permissao: "criar-agendamento" },
   { rotulo: "Mudar status (confirmar, concluir, faltou)", permissao: "mudar-status" },
   { rotulo: "Ver clientes, histórico e telefone", permissao: "ver-clientes" },
+  { rotulo: "Ver valores da agenda (previsto, confirmado, faltas)", permissao: "ver-valores" },
   { rotulo: "Exportar e anonimizar cliente (LGPD)", permissao: "dados-do-titular" },
   { rotulo: "Editar serviços e preços", permissao: "editar-servicos" },
   { rotulo: "Editar horários e folgas", permissao: "editar-horarios" },

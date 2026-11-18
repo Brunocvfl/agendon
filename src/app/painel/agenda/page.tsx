@@ -5,7 +5,7 @@ import type { CSSProperties } from "react";
 import { BotaoLink, Cartao } from "@/components/ui";
 import { PaginaProtegida } from "@/components/pagina-protegida";
 import type { Vinculo } from "@/lib/auth";
-import { ladoALado, regua, semAtendimento, type Periodo } from "@/lib/agenda";
+import { ladoALado, regua, semAtendimento, valoresDaAgenda, type Periodo } from "@/lib/agenda";
 import {
   dataNoFuso,
   ehData,
@@ -73,7 +73,7 @@ async function Conteudo({ vinculo, searchParams }: { vinculo: Vinculo; searchPar
   // Um agendamento que passa da meia-noite aparece em dois dias: conta uma vez.
   const unicos = [...new Map(colunas.flatMap((c) => c.itens).map((i) => [i.id, i])).values()];
   const ativos = unicos.filter((i) => i.status !== "cancelado");
-  const previsto = ativos.filter((i) => i.status !== "faltou").reduce((s, i) => s + i.preco, 0);
+  const valores = pode(perfil, "ver-valores") ? valoresDaAgenda(unicos) : null;
   const r = regua(colunas.flatMap((c) => [...c.faixas, ...c.itens.map((i) => i.periodo)]));
   const agora = dias.includes(hoje) ? minutosNoFuso(new Date(), salao.fuso) : null;
 
@@ -154,12 +154,18 @@ async function Conteudo({ vinculo, searchParams }: { vinculo: Vinculo; searchPar
         </div>
       </div>
 
-      <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <Resumo valor={String(ativos.length)} rotulo={ativos.length === 1 ? "agendamento" : "agendamentos"} />
         <Resumo valor={String(ativos.filter((i) => i.status === "confirmado").length)} rotulo="confirmados" />
         <Resumo valor={String(ativos.filter((i) => i.status === "agendado").length)} rotulo="aguardando confirmação" />
-        <Resumo valor={formatarPreco(previsto)} rotulo={semana ? "previsto na semana" : "previsto no dia"} />
       </div>
+      {valores ? (
+        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <Resumo valor={formatarPreco(valores.previsto)} rotulo={semana ? "previsto na semana" : "previsto no dia"} />
+          <Resumo valor={formatarPreco(valores.confirmado)} rotulo="confirmado" />
+          <Resumo valor={formatarPreco(valores.faltas)} rotulo="perdido com faltas" destaque={valores.faltas > 0} />
+        </div>
+      ) : null}
 
       <Legenda />
 
@@ -189,10 +195,10 @@ async function Conteudo({ vinculo, searchParams }: { vinculo: Vinculo; searchPar
 const BOTAO_DIA =
   "flex size-10 items-center justify-center rounded-xl border border-noite/12 bg-white text-lg text-noite hover:border-on/50";
 
-function Resumo({ valor, rotulo }: { valor: string; rotulo: string }) {
+function Resumo({ valor, rotulo, destaque = false }: { valor: string; rotulo: string; destaque?: boolean }) {
   return (
     <div className="flex items-baseline gap-2 rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-noite/5">
-      <span className="text-xl font-semibold tabular-nums sm:text-2xl">{valor}</span>
+      <span className={`text-xl font-semibold tabular-nums sm:text-2xl ${destaque ? "text-red-600" : ""}`}>{valor}</span>
       <span className="text-sm text-noite/65">{rotulo}</span>
     </div>
   );

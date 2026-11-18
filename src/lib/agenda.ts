@@ -86,3 +86,18 @@ export function ladoALado(itens: Periodo[]): { coluna: number; colunas: number }
   fecharGrupo();
   return resultado;
 }
+
+type ItemComValor = { status: "agendado" | "confirmado" | "concluido" | "faltou" | "cancelado"; preco: number };
+
+/**
+ * Totais em R$ da agenda. Previsto: tudo que não foi cancelado nem faltou. Confirmado: confirmado ou
+ * concluído. Perdido com faltas: status faltou. Cancelado não entra em nada.
+ */
+export function valoresDaAgenda(itens: ItemComValor[]): { previsto: number; confirmado: number; faltas: number } {
+  const soma = (f: (i: ItemComValor) => boolean) => itens.filter(f).reduce((s, i) => s + i.preco, 0);
+  return {
+    previsto: soma((i) => i.status === "agendado" || i.status === "confirmado" || i.status === "concluido"),
+    confirmado: soma((i) => i.status === "confirmado" || i.status === "concluido"),
+    faltas: soma((i) => i.status === "faltou"),
+  };
+}
