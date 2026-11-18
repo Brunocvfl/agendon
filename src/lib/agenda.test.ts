@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { faixasEmMinutos, ladoALado, periodoNoDia, regua, semAtendimento } from "./agenda";
+import { faixasEmMinutos, ladoALado, periodoNoDia, regua, semAtendimento, valoresDaAgenda } from "./agenda";
 import {
   dataNoFuso,
   diaDaSemana,
@@ -98,4 +98,21 @@ describe("ladoALado", () => {
       { coluna: 0, colunas: 2 },
       { coluna: 0, colunas: 2 },
     ]));
+});
+
+describe("valoresDaAgenda", () => {
+  it("separa previsto, confirmado e perdido com faltas; cancelado não conta", () => {
+    expect(
+      valoresDaAgenda([
+        { status: "agendado", preco: 50 },
+        { status: "confirmado", preco: 80 },
+        { status: "concluido", preco: 100 },
+        { status: "faltou", preco: 70 },
+        { status: "cancelado", preco: 999 },
+      ]),
+    ).toEqual({ previsto: 230, confirmado: 180, faltas: 70 });
+  });
+  it("sem agendamentos, tudo zero", () => {
+    expect(valoresDaAgenda([])).toEqual({ previsto: 0, confirmado: 0, faltas: 0 });
+  });
 });
