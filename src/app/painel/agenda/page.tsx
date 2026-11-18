@@ -433,7 +433,7 @@ function Bloco({
   const prefixo = item.status === "faltou" ? "Faltou · " : item.status === "cancelado" ? "Cancelado · " : "";
   const conteudo = (
     <>
-      <span className="block truncate text-sm font-semibold">{item.clienteNome}</span>
+      <span className="block truncate text-sm font-semibold">{item.nome}</span>
       {altura >= 40 ? (
         <span className="block truncate text-xs opacity-80">
           {prefixo}
@@ -449,7 +449,7 @@ function Bloco({
     left: `calc(${posicao.coluna * largura}% + 4px)`,
     width: `calc(${largura}% - 8px)`,
   };
-  const titulo = `${item.clienteNome} · ${item.servico} · ${rotuloDia ? `${rotuloDia}, ` : ""}${hora} · ${NOME_STATUS[item.status]}`;
+  const titulo = `${item.nome}${item.agendadoPor ? ` (agendado por ${item.agendadoPor})` : ""} · ${item.servico} · ${rotuloDia ? `${rotuloDia}, ` : ""}${hora} · ${NOME_STATUS[item.status]}`;
 
   return (
     <Link

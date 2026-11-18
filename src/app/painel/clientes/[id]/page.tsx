@@ -133,7 +133,10 @@ function ItemHistorico({ a, data }: { a: Atendimento; data: Datas }) {
     <li className="grid grid-cols-[4rem_1fr] gap-3 border-b border-noite/8 py-3 text-sm last:border-b-0">
       <span className="text-noite/65">{data.diaMes(a.inicio)}</span>
       <div className="min-w-0">
-        <p className="font-medium">{a.servico}</p>
+        <p className="font-medium">
+          {a.servico}
+          {a.para ? <span className="font-normal text-noite/65"> · para {a.para}</span> : null}
+        </p>
         <p className={corStatus}>
           {a.profissional} · {NOME_STATUS[a.status]}
         </p>

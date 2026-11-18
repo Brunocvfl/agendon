@@ -37,7 +37,7 @@ async function Conteudo({ vinculo, id }: { vinculo: Vinculo; id: string }) {
       </Link>
       <h1 className="mt-4 text-2xl font-semibold sm:text-3xl">Remarcar</h1>
       <p className="mt-2 text-noite/65">
-        {ag.clienteNome} · {ag.servico} · {formatarPreco(ag.preco)}
+        {ag.nome} · {ag.servico} · {formatarPreco(ag.preco)}
         <br />
         Hoje: {rotuloData(dia)}, {hora}, com {ag.profissional}
       </p>

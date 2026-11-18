@@ -166,6 +166,7 @@ export async function agendarPublico(
     p_telefone: a.telefone,
     p_optin: a.optin,
     p_origem: origem,
+    ...(a.atendido ? { p_atendido: a.atendido } : {}),
   });
   if (error) return erroDa(error, ERROS_PUBLICO);
   const r = data?.[0];

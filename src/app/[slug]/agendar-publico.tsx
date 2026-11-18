@@ -28,6 +28,7 @@ export function AgendarPublico({ slug, pagina, hoje }: Props) {
   const [horarios, setHorarios] = useState<string[] | null>(null);
   const [carregando, iniciarCarga] = useTransition();
   const [qtdDias, setQtdDias] = useState(DIAS_POR_VEZ);
+  const [outraPessoa, setOutraPessoa] = useState(false);
   /** Passo já respondido que a pessoa abriu de novo para trocar (os outros respondidos ficam recolhidos). */
   const [reaberto, setReaberto] = useState<number | null>(null);
   const alternar = (n: number) => setReaberto((atual) => (atual === n ? null : n));
@@ -77,6 +78,12 @@ export function AgendarPublico({ slug, pagina, hoje }: Props) {
           Agendamento feito!
         </h2>
         <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
+          {c.atendido ? (
+            <>
+              <dt className="text-noite/65">Para</dt>
+              <dd className="font-medium">{c.atendido}</dd>
+            </>
+          ) : null}
           <dt className="text-noite/65">Serviço</dt>
           <dd className="font-medium">{c.servico}</dd>
           <dt className="text-noite/65">Profissional</dt>
@@ -290,6 +297,31 @@ export function AgendarPublico({ slug, pagina, hoje }: Props) {
               defaultValue={estado.campos?.telefone}
               erro={estado.erros?.telefone}
             />
+            <label className="flex items-start gap-3 text-sm text-noite/75">
+              <input
+                type="checkbox"
+                name="outra_pessoa"
+                value="sim"
+                // Não controlada: depois da action o React limpa o formulário e a caixa volta ao
+                // defaultChecked, que é o que a pessoa enviou.
+                defaultChecked={estado.campos?.outraPessoa}
+                onChange={(e) => setOutraPessoa(e.target.checked)}
+                className="mt-0.5 size-5 shrink-0 accent-on"
+              />
+              <span>O horário é para outra pessoa (ex.: filho, mãe)</span>
+            </label>
+            {outraPessoa ? (
+              <Campo
+                id="atendido"
+                name="atendido"
+                label="Nome de quem será atendido"
+                autoComplete="off"
+                required
+                maxLength={80}
+                defaultValue={estado.campos?.atendido}
+                erro={estado.erros?.atendido}
+              />
+            ) : null}
             <label className="flex items-start gap-3 text-sm text-noite/75">
               <input type="checkbox" name="optin" value="sim" className="mt-0.5 size-5 shrink-0 accent-on" />
               <span>
