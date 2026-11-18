@@ -7,6 +7,7 @@ export type ProfissionalResumo = {
   nome: string;
   ativo: boolean;
   memberId: string | null;
+  fotoPath: string | null;
   servicos: string[];
   diasTrabalho: number;
 };
@@ -15,7 +16,7 @@ export async function listarProfissionais(salonId: string): Promise<Profissional
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("professionals")
-    .select("id, nome, ativo, member_id, professional_services(services(nome, ativo)), working_hours(dia_semana)")
+    .select("id, nome, ativo, member_id, foto_path, professional_services(services(nome, ativo)), working_hours(dia_semana)")
     .eq("salon_id", salonId)
     .is("arquivado_em", null) // excluídos (arquivados) ficam só no histórico
     .order("ativo", { ascending: false })
@@ -28,6 +29,7 @@ export async function listarProfissionais(salonId: string): Promise<Profissional
     nome: p.nome,
     ativo: p.ativo,
     memberId: p.member_id,
+    fotoPath: p.foto_path,
     servicos: p.professional_services
       .map((ps) => ps.services)
       .filter((s): s is { nome: string; ativo: boolean } => Boolean(s?.ativo))
@@ -44,6 +46,7 @@ export type ProfissionalDetalhe = {
   nome: string;
   ativo: boolean;
   memberId: string | null;
+  fotoPath: string | null;
   servicoIds: string[];
   faixas: Faixa[];
   folgas: Folga[];
@@ -54,7 +57,7 @@ export async function buscarProfissional(salonId: string, id: string): Promise<P
   const { data } = await supabase
     .from("professionals")
     .select(
-      "id, nome, ativo, member_id, professional_services(service_id), working_hours(dia_semana, inicio, fim), time_off(id, inicio, fim, motivo)",
+      "id, nome, ativo, member_id, foto_path, professional_services(service_id), working_hours(dia_semana, inicio, fim), time_off(id, inicio, fim, motivo)",
     )
     .eq("salon_id", salonId)
     .eq("id", id)
@@ -69,6 +72,7 @@ export async function buscarProfissional(salonId: string, id: string): Promise<P
     nome: data.nome,
     ativo: data.ativo,
     memberId: data.member_id,
+    fotoPath: data.foto_path,
     servicoIds: data.professional_services.map((ps) => ps.service_id),
     faixas: data.working_hours.map((w) => ({ dia: w.dia_semana, inicio: w.inicio, fim: w.fim })),
     // Só folgas atuais e futuras, da mais próxima para a mais distante.

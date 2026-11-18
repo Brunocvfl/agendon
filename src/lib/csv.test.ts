@@ -24,3 +24,4 @@ describe("exportação da lista de clientes", () => {
     expect(arquivoDaLista("2026-11-18")).toBe("clientes-2026-11-18.csv");
   });
 });
+

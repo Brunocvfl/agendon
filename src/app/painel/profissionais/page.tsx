@@ -4,7 +4,8 @@ import { Alerta, BotaoLink, Cartao } from "@/components/ui";
 import { PaginaProtegida } from "@/components/pagina-protegida";
 import type { Vinculo } from "@/lib/auth";
 import { pode } from "@/lib/permissoes";
-import { iniciais } from "@/lib/formato";
+import { Avatar } from "@/components/avatar";
+import { urlDaFoto } from "@/lib/foto";
 import { listarProfissionais } from "./dados";
 
 export const metadata: Metadata = { title: "Profissionais · AgendOn" };
@@ -65,14 +66,7 @@ async function Conteudo({
                 href={`/painel/profissionais/${p.id}`}
                 className="flex h-full gap-4 rounded-2xl border border-noite/8 bg-white p-5 shadow-sm transition-colors hover:border-on/40"
               >
-                <span
-                  aria-hidden
-                  className={`flex size-12 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${
-                    p.ativo ? "bg-on/10 text-on" : "bg-noite/5 text-noite/65"
-                  }`}
-                >
-                  {iniciais(p.nome)}
-                </span>
+                <Avatar nome={p.nome} foto={urlDaFoto(p.fotoPath)} className={p.ativo ? "bg-on/10 text-on" : "bg-noite/5 text-noite/65"} />
                 <div className="min-w-0">
                   <p className="break-words font-semibold">
                     {p.nome}

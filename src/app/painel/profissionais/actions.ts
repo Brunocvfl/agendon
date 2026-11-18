@@ -7,6 +7,10 @@ import { DIAS, telaParaFaixas, type DiaTela } from "@/lib/horarios";
 import { lerFolga } from "@/lib/regras/folga";
 import { lerNomeProfissional } from "@/lib/regras/profissional";
 import { invalido, valido } from "@/lib/regras/resultado";
+import { ehCaminhoDeFoto } from "@/lib/foto";
+import type { createClient } from "@/lib/supabase/server";
+
+type Supabase = Awaited<ReturnType<typeof createClient>>;
 
 export type { EstadoForm };
 
@@ -132,4 +136,40 @@ export const removerFolga = comandoDoPainel({
   senao: VOLTAR,
   ler: (fd) => (ehUuid(texto(fd, "id")) ? texto(fd, "id") : null),
   executar: (id, { supabase, vinculo }) => supabase.from("time_off").delete().eq("id", id).eq("salon_id", vinculo.salao.id).select("id"),
+});
+
+// --- Foto (editar-profissionais) ----------------------------------------------
+// O arquivo já foi enviado pelo navegador (Storage, policy do Dono(a)); aqui só liga ao profissional
+// e apaga a foto anterior.
+
+async function trocarFoto(supabase: Supabase, salaoId: string, id: string, nova: string | null) {
+  const atual = await supabase.from("professionals").select("foto_path").eq("salon_id", salaoId).eq("id", id).single();
+  if (atual.error) return { data: null, error: atual.error };
+  const r = await supabase.from("professionals").update({ foto_path: nova }).eq("salon_id", salaoId).eq("id", id).select("id");
+  if (r.error) return r;
+  // Nenhuma linha afetada (RLS ou profissional de outro salão) também é erro.
+  if (!r.data.length) return { data: null, error: { code: "P0002", message: "profissional_nao_encontrado" } };
+  const antiga = atual.data.foto_path;
+  if (antiga && antiga !== nova) await supabase.storage.from("fotos").remove([antiga]);
+  return r;
+}
+
+export const salvarFoto = acaoDoPainel({
+  permissao: "editar-profissionais",
+  ler: (fd, vinculo) => {
+    const id = texto(fd, "id");
+    const caminho = texto(fd, "caminho");
+    return ehUuid(id) && ehCaminhoDeFoto(vinculo.salao.id, id, caminho)
+      ? valido({ id, caminho })
+      : invalido<{ id: string; caminho: string }>({ [ERRO_GERAL]: "Não foi possível usar essa imagem. Tente de novo." });
+  },
+  executar: ({ id, caminho }, { supabase, vinculo }) => trocarFoto(supabase, vinculo.salao.id, id, caminho),
+  depois: { ok: "Foto atualizada." },
+});
+
+export const removerFoto = acaoDoPainel({
+  permissao: "editar-profissionais",
+  ler: (fd) => (ehUuid(texto(fd, "id")) ? valido({ id: texto(fd, "id") }) : SEM_ID),
+  executar: ({ id }, { supabase, vinculo }) => trocarFoto(supabase, vinculo.salao.id, id, null),
+  depois: { ok: "Foto removida." },
 });

@@ -3,7 +3,9 @@
 import { useFocarPrimeiroErro } from "@/components/use-focar-erro";
 import Link from "next/link";
 import { useActionState, useEffect, useId, useRef, useState, useTransition } from "react";
+import { Avatar } from "@/components/avatar";
 import { Alerta, Botao, Campo } from "@/components/ui";
+import { urlDaFoto } from "@/lib/foto";
 import { dataNoFuso, horaNoFuso, partesDaData, rotuloData, somarDias } from "@/lib/datas";
 import { formatarDuracao, formatarPreco } from "@/lib/formato";
 import { agendar, horariosDoDia, type EstadoAgendamento } from "./actions";
@@ -168,9 +170,14 @@ export function AgendarPublico({ slug, pagina, hoje }: Props) {
               return (
                 <li key={p.id}>
                   <Opcao selecionada={profissional === p.id} onClick={() => escolherProfissional(p.id)}>
-                    <span className="font-medium">{p.nome}</span>
-                    <span className="text-sm text-noite/65">
-                      {formatarDuracao(s.duracao_min)} · {formatarPreco(s.preco)}
+                    <span className="flex items-center gap-3">
+                      <Avatar nome={p.nome} foto={urlDaFoto(p.foto_path)} tamanho={44} />
+                      <span className="flex flex-col">
+                        <span className="font-medium">{p.nome}</span>
+                        <span className="text-sm text-noite/65">
+                          {formatarDuracao(s.duracao_min)} · {formatarPreco(s.preco)}
+                        </span>
+                      </span>
                     </span>
                   </Opcao>
                 </li>

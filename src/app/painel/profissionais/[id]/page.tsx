@@ -5,7 +5,10 @@ import { Cartao } from "@/components/ui";
 import { PaginaProtegida } from "@/components/pagina-protegida";
 import type { Vinculo } from "@/lib/auth";
 import { pode } from "@/lib/permissoes";
-import { iniciais } from "@/lib/formato";
+import { Avatar } from "@/components/avatar";
+import { CampoImagem } from "@/components/campo-imagem";
+import { prefixoDaFoto, urlDaFoto } from "@/lib/foto";
+import { removerFoto, salvarFoto } from "../actions";
 import { DIAS, faixasParaTela, resumoDia } from "@/lib/horarios";
 import { buscarProfissional, listarServicosAtivos } from "../dados";
 import { FormDados } from "./form-dados";
@@ -43,9 +46,7 @@ async function Conteudo({ vinculo: { salao, perfil, membroId }, id }: { vinculo:
   return (
     <>
       <div className="mt-4 flex items-center gap-4">
-        <span aria-hidden className="flex size-14 shrink-0 items-center justify-center rounded-full bg-on/10 text-lg font-semibold text-on">
-          {iniciais(profissional.nome)}
-        </span>
+        <Avatar nome={profissional.nome} foto={urlDaFoto(profissional.fotoPath)} tamanho={56} />
         <div className="min-w-0">
           <h1 className="break-words text-2xl font-semibold sm:text-3xl">{profissional.nome}</h1>
           <p className="text-sm text-noite/65">
@@ -60,6 +61,26 @@ async function Conteudo({ vinculo: { salao, perfil, membroId }, id }: { vinculo:
           <Cartao>
             <h2 className="text-lg font-semibold">Dados</h2>
             <FormDados id={profissional.id} nome={profissional.nome} ativo={profissional.ativo} />
+          </Cartao>
+        ) : null}
+
+        {editaCadastro ? (
+          <Cartao>
+            <h2 className="mb-4 text-lg font-semibold">Foto</h2>
+            <CampoImagem
+              bucket="fotos"
+              pasta={salao.id}
+              prefixo={prefixoDaFoto(profissional.id)}
+              extras={{ id: profissional.id }}
+              salvar={salvarFoto}
+              remover={removerFoto}
+              url={urlDaFoto(profissional.fotoPath)}
+              nome={profissional.nome}
+              redonda
+              titulo="Foto do profissional"
+              descricao="Aparece na página de agendamento, na escolha do profissional. PNG, JPG ou WebP, até 1 MB; de preferência quadrada, com o rosto no centro."
+              rotulo="foto"
+            />
           </Cartao>
         ) : null}
 

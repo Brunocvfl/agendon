@@ -177,14 +177,14 @@ isOneToOne: false
                   ]
                 },"professionals": {
                   Row: {
-                    "arquivado_em": string | null,"ativo": boolean,"created_at": string,"id": string,"member_id": string | null,"nome": string,"salon_id": string
+                    "arquivado_em": string | null,"ativo": boolean,"created_at": string,"foto_path": string | null,"id": string,"member_id": string | null,"nome": string,"salon_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "arquivado_em"?: string | null,"ativo"?: boolean,"created_at"?: string,"id"?: string,"member_id"?: string | null,"nome": string,"salon_id": string
+                    "arquivado_em"?: string | null,"ativo"?: boolean,"created_at"?: string,"foto_path"?: string | null,"id"?: string,"member_id"?: string | null,"nome": string,"salon_id": string
                   }
                   Update: {
-                    "arquivado_em"?: string | null,"ativo"?: boolean,"created_at"?: string,"id"?: string,"member_id"?: string | null,"nome"?: string,"salon_id"?: string
+                    "arquivado_em"?: string | null,"ativo"?: boolean,"created_at"?: string,"foto_path"?: string | null,"id"?: string,"member_id"?: string | null,"nome"?: string,"salon_id"?: string
                   }
                   Relationships: [
                     {
