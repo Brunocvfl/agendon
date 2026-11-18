@@ -77,8 +77,9 @@ async function Conteudo({ vinculo: { salao, perfil, membroId }, id }: { vinculo:
               url={urlDaFoto(profissional.fotoPath)}
               nome={profissional.nome}
               redonda
+              enquadrar
               titulo="Foto do profissional"
-              descricao="Aparece na página de agendamento, na escolha do profissional. PNG, JPG ou WebP, até 1 MB; de preferência quadrada, com o rosto no centro."
+              descricao="Aparece na página de agendamento, na escolha do profissional. PNG, JPG ou WebP; depois de escolher, você ajusta o zoom e o enquadramento."
               rotulo="foto"
             />
           </Cartao>
