@@ -2,11 +2,14 @@
 
 import Image from "next/image";
 import { startTransition, useActionState, useRef, useState, type ChangeEvent } from "react";
+import { Enquadrador } from "@/components/enquadrador";
 import { Alerta, Botao } from "@/components/ui";
 import type { EstadoForm } from "@/lib/acao";
 import { iniciais } from "@/lib/formato";
 import { erroDaLogo, LIMITES_LOGO } from "@/lib/logo";
 import { createClient } from "@/lib/supabase/client";
+
+const MAXIMO_ORIGINAL = 15 * 1024 * 1024;
 
 type Acao = (anterior: EstadoForm, fd: FormData) => Promise<EstadoForm>;
 
@@ -26,6 +29,7 @@ export function CampoImagem({
   url,
   nome,
   redonda = false,
+  enquadrar = false,
   titulo,
   descricao,
   rotulo,
@@ -40,6 +44,8 @@ export function CampoImagem({
   /** Para as iniciais e o texto alternativo. */
   nome: string;
   redonda?: boolean;
+  /** Antes de enviar, abre o Enquadrador (zoom e posição) e envia um JPEG quadrado de 512 px. */
+  enquadrar?: boolean;
   titulo: string;
   descricao: string;
   /** "logo", "foto": vira "Enviar logo", "Trocar foto"… */
@@ -49,6 +55,7 @@ export function CampoImagem({
   const [removido, remover, removendo] = useActionState<EstadoForm, FormData>(acaoRemover, {});
   const [erro, setErro] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
+  const [aEnquadrar, setAEnquadrar] = useState<File | null>(null);
   const arquivo = useRef<HTMLInputElement>(null);
   const ocupado = enviando || salvando || removendo;
   const forma = redonda ? "rounded-full" : "rounded-2xl";
@@ -57,17 +64,31 @@ export function CampoImagem({
     const escolhido = e.target.files?.[0];
     e.target.value = ""; // permite escolher o mesmo arquivo de novo
     if (!escolhido) return;
-    const problema = erroDaLogo(escolhido);
+    // Com enquadramento, o arquivo original pode ser maior: o que sobe é o recorte de 512 px.
+    const problema = enquadrar
+      ? erroDaLogo({ type: escolhido.type, size: Math.min(escolhido.size, LIMITES_LOGO.bytes) }) ??
+        (escolhido.size > MAXIMO_ORIGINAL ? "A imagem pode ter até 15 MB." : null)
+      : erroDaLogo(escolhido);
     if (problema) {
       setErro(problema);
       return;
     }
     setErro(null);
+    if (enquadrar) setAEnquadrar(escolhido);
+    else await enviar(escolhido);
+  }
+
+  async function enviar(imagem: Blob) {
+    setAEnquadrar(null);
+    if (imagem.size > LIMITES_LOGO.bytes) {
+      setErro("A imagem pode ter até 1 MB.");
+      return;
+    }
     setEnviando(true);
-    const caminho = `${pasta}/${prefixo}-${Date.now()}.${LIMITES_LOGO.tipos[escolhido.type]}`;
+    const caminho = `${pasta}/${prefixo}-${Date.now()}.${LIMITES_LOGO.tipos[imagem.type]}`;
     const { error } = await createClient()
       .storage.from(bucket)
-      .upload(caminho, escolhido, { contentType: escolhido.type, cacheControl: "31536000", upsert: false });
+      .upload(caminho, imagem, { contentType: imagem.type, cacheControl: "31536000", upsert: false });
     setEnviando(false);
     if (error) {
       setErro("Não foi possível enviar a imagem. Tente de novo.");
@@ -123,6 +144,9 @@ export function CampoImagem({
           ) : null}
         </div>
       </div>
+      {aEnquadrar ? (
+        <Enquadrador key={`${aEnquadrar.name}-${aEnquadrar.lastModified}`} arquivo={aEnquadrar} redonda={redonda} onConfirmar={enviar} onCancelar={() => setAEnquadrar(null)} />
+      ) : null}
       {mensagemErro ? <Alerta tipo="erro">{mensagemErro}</Alerta> : null}
       {mensagemOk ? <Alerta tipo="sucesso">{mensagemOk}</Alerta> : null}
     </div>
