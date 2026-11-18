@@ -31,6 +31,7 @@ const PUBLICO = {
   nome: "Ana",
   telefone: "+5511987654321",
   optin: true,
+  atendido: null,
 };
 const REMARCACAO = { id: ID, profissional: ID2, dia: "2030-03-05", inicio: "2030-03-05T11:00", encaixe: true };
 
@@ -140,6 +141,13 @@ describe("parâmetros das funções do banco", () => {
     expect(rpc).toHaveBeenCalledWith("agendar_publico", expect.objectContaining({
       p_slug: "salao", p_professional: null, p_optin: true, p_origem: "hash",
     }));
+    expect(rpc.mock.calls[0][1]).not.toHaveProperty("p_atendido");
+  });
+
+  it("agendarPublico manda o nome da outra pessoa", async () => {
+    const { deps, rpc } = banco({ data: [{ servico: "", profissional: "", inicio: "", fim: "", preco: 0 }] });
+    await ag.agendarPublico("salao", { ...PUBLICO, atendido: "Júlia" }, "hash", deps);
+    expect(rpc).toHaveBeenCalledWith("agendar_publico", expect.objectContaining({ p_atendido: "Júlia" }));
   });
 
   it("horariosLivres só manda p_ignorar quando é um id válido", async () => {

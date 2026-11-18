@@ -42,6 +42,8 @@ export type Atendimento = {
   status: Database["public"]["Enums"]["appointment_status"];
   servico: string;
   profissional: string;
+  /** Outra pessoa (ou outro nome) atendida pelo WhatsApp deste cliente; null = o próprio cliente. */
+  para: string | null;
 };
 
 export async function buscarCliente(salonId: string, id: string) {
@@ -49,7 +51,7 @@ export async function buscarCliente(salonId: string, id: string) {
   const { data } = await supabase
     .from("clients")
     .select(
-      "id, nome, telefone, observacoes, created_at, consentimento_whatsapp_em, optout_em, appointments(id, inicio, status, services(nome), professionals(nome))",
+      "id, nome, telefone, observacoes, created_at, consentimento_whatsapp_em, optout_em, appointments(id, inicio, status, atendido_nome, services(nome), professionals(nome))",
     )
     .eq("salon_id", salonId)
     .eq("id", id)
@@ -66,6 +68,7 @@ export async function buscarCliente(salonId: string, id: string) {
     status: a.status,
     servico: a.services?.nome ?? "Serviço",
     profissional: a.professionals?.nome ?? "Profissional",
+    para: a.atendido_nome && a.atendido_nome !== data.nome ? a.atendido_nome : null,
   }));
 
   return {

@@ -16,9 +16,10 @@ export type EstadoAgendamento = {
   erros?: Record<string, string>;
   /** O horário foi ocupado: a tela recarrega os horários do dia. */
   ocupado?: boolean;
-  confirmacao?: Confirmacao;
+  /** `atendido`: nome de quem será atendido, quando é outra pessoa. */
+  confirmacao?: Confirmacao & { atendido: string | null };
   /** O que a pessoa digitou, para não perder depois de um erro. */
-  campos?: { nome: string; telefone: string };
+  campos?: { nome: string; telefone: string; outraPessoa: boolean; atendido: string };
 };
 
 /** Horários livres de um dia (instantes ISO; a tela mostra no fuso do salão). */
@@ -51,7 +52,13 @@ export async function agendar(_anterior: EstadoAgendamento, formData: FormData):
   const texto = (campo: string) => String(formData.get(campo) ?? "");
   const slug = texto("slug");
   if (!slugValido(slug)) return { erro: "Salão não encontrado." };
-  const campos = { nome: texto("nome").slice(0, 80), telefone: texto("telefone").slice(0, 30) };
+  const outraPessoa = formData.get("outra_pessoa") === "sim";
+  const campos = {
+    nome: texto("nome").slice(0, 80),
+    telefone: texto("telefone").slice(0, 30),
+    outraPessoa,
+    atendido: texto("atendido").slice(0, 80),
+  };
   const falha = (e: EstadoAgendamento): EstadoAgendamento => ({ ...e, campos });
 
   const lido = lerAgendamentoPublico({
@@ -62,6 +69,8 @@ export async function agendar(_anterior: EstadoAgendamento, formData: FormData):
     nome: texto("nome"),
     telefone: texto("telefone"),
     optin: formData.get("optin") === "sim",
+    outraPessoa,
+    atendido: texto("atendido"),
   });
   if (!lido.ok) return falha({ erros: lido.erros, erro: CONFIRA });
 
@@ -77,7 +86,7 @@ export async function agendar(_anterior: EstadoAgendamento, formData: FormData):
     if (r.erro === "outro") throw new Error("agendar_publico falhou");
     return falha(ERROS[r.erro]);
   }
-  return { confirmacao: r.data };
+  return { confirmacao: { ...r.data, atendido: lido.valor.atendido } };
 }
 
 // Na Vercel, o primeiro IP de x-forwarded-for é o do visitante.

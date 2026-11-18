@@ -58,7 +58,7 @@ async function Conteudo({ vinculo, id }: { vinculo: Vinculo; id: string }) {
         ← Agenda de {rotuloData(dia)}
       </Link>
       <div className="mt-4 flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold sm:text-3xl">{ag.clienteNome}</h1>
+        <h1 className="text-2xl font-semibold sm:text-3xl">{ag.nome}</h1>
         <span className={`rounded-full px-3 py-1 text-sm font-semibold first-letter:uppercase ${ESTILO_STATUS[ag.status]}`}>
           {NOME_STATUS[ag.status]}
         </span>
@@ -73,6 +73,7 @@ async function Conteudo({ vinculo, id }: { vinculo: Vinculo; id: string }) {
             {ag.servico} · {formatarDuracao(duracao)}
           </Item>
           <Item rotulo="Profissional">{ag.profissional}</Item>
+          {ag.agendadoPor ? <Item rotulo="Agendado por">{ag.agendadoPor}</Item> : null}
           <Item rotulo="Preço">{formatarPreco(ag.preco)}</Item>
           {ag.clienteTelefone ? (
             <Item rotulo="WhatsApp">

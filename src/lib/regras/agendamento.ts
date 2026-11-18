@@ -4,8 +4,8 @@
 import { ehData, ehHora } from "@/lib/datas";
 import type { Database } from "@/lib/supabase/database.types";
 import { ehUuid } from "@/lib/ids";
-import { lerCliente } from "./cliente";
-import { invalido, valido, type ErrosPorCampo, type Resultado } from "./resultado";
+import { LIMITES_CLIENTE, lerCliente } from "./cliente";
+import { invalido, limparTexto, valido, type ErrosPorCampo, type Resultado } from "./resultado";
 
 export type EntradaAgendamento = {
   profissional?: string;
@@ -64,6 +64,9 @@ export type EntradaAgendamentoPublico = {
   nome?: string;
   telefone?: string;
   optin?: boolean;
+  /** Marcado: o horário é para outra pessoa (`atendido`); quem agenda recebe as mensagens. */
+  outraPessoa?: boolean;
+  atendido?: string;
 };
 
 export type AgendamentoPublicoValido = {
@@ -74,6 +77,8 @@ export type AgendamentoPublicoValido = {
   nome: string;
   telefone: string;
   optin: boolean;
+  /** Nome de quem será atendido, quando é outra pessoa; null = quem agenda. */
+  atendido: string | null;
 };
 
 /** Agendamento feito pelo cliente na página pública. O banco (agendar_publico) confere o resto. */
@@ -95,6 +100,15 @@ export function lerAgendamentoPublico(e: EntradaAgendamentoPublico): Resultado<A
     if (cliente.erros.telefone) erros.telefone = cliente.erros.telefone;
   }
 
+  let atendido: string | null = null;
+  if (e.outraPessoa) {
+    const { min, max } = LIMITES_CLIENTE.nome;
+    atendido = limparTexto(e.atendido);
+    if (atendido.length < min || atendido.length > max) {
+      erros.atendido = atendido ? `Use de ${min} a ${max} caracteres.` : "Informe o nome de quem será atendido.";
+    }
+  }
+
   if (Object.keys(erros).length > 0 || !cliente.ok) return invalido(erros);
   return valido({
     servico,
@@ -103,6 +117,7 @@ export function lerAgendamentoPublico(e: EntradaAgendamentoPublico): Resultado<A
     nome: cliente.valor.nome,
     telefone: cliente.valor.telefone,
     optin: Boolean(e.optin),
+    atendido,
   });
 }
 

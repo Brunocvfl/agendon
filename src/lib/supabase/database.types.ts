@@ -7,14 +7,14 @@ export type Database = {
           Tables: {
             "appointments": {
                   Row: {
-                    "client_id": string,"created_at": string,"fim": string,"id": string,"inicio": string,"origem": Database["public"]['Enums']["appointment_origin"],"preco": number,"professional_id": string,"salon_id": string,"service_id": string,"status": Database["public"]['Enums']["appointment_status"]
+                    "atendido_nome": string | null,"client_id": string,"created_at": string,"fim": string,"id": string,"inicio": string,"origem": Database["public"]['Enums']["appointment_origin"],"preco": number,"professional_id": string,"salon_id": string,"service_id": string,"status": Database["public"]['Enums']["appointment_status"]
                   }
                   ComputedFields: never
                   Insert: {
-                    "client_id": string,"created_at"?: string,"fim": string,"id"?: string,"inicio": string,"origem"?: Database["public"]['Enums']["appointment_origin"],"preco"?: number,"professional_id": string,"salon_id": string,"service_id": string,"status"?: Database["public"]['Enums']["appointment_status"]
+                    "atendido_nome"?: string | null,"client_id": string,"created_at"?: string,"fim": string,"id"?: string,"inicio": string,"origem"?: Database["public"]['Enums']["appointment_origin"],"preco"?: number,"professional_id": string,"salon_id": string,"service_id": string,"status"?: Database["public"]['Enums']["appointment_status"]
                   }
                   Update: {
-                    "client_id"?: string,"created_at"?: string,"fim"?: string,"id"?: string,"inicio"?: string,"origem"?: Database["public"]['Enums']["appointment_origin"],"preco"?: number,"professional_id"?: string,"salon_id"?: string,"service_id"?: string,"status"?: Database["public"]['Enums']["appointment_status"]
+                    "atendido_nome"?: string | null,"client_id"?: string,"created_at"?: string,"fim"?: string,"id"?: string,"inicio"?: string,"origem"?: Database["public"]['Enums']["appointment_origin"],"preco"?: number,"professional_id"?: string,"salon_id"?: string,"service_id"?: string,"status"?: Database["public"]['Enums']["appointment_status"]
                   }
                   Relationships: [
                     {
@@ -309,16 +309,16 @@ isOneToOne: false
                            },
 "agenda":
 { Args: { "p_ate": string,"p_de": string,"p_salon": string }; Returns: {
-              "cliente_id": string,"cliente_nome": string,"cliente_telefone": string,"fim": string,"id": string,"inicio": string,"origem": Database["public"]['Enums']["appointment_origin"],"preco": number,"professional_id": string,"servico": string,"status": Database["public"]['Enums']["appointment_status"]
+              "atendido": string,"cliente_id": string,"cliente_nome": string,"cliente_telefone": string,"fim": string,"id": string,"inicio": string,"origem": Database["public"]['Enums']["appointment_origin"],"preco": number,"professional_id": string,"servico": string,"status": Database["public"]['Enums']["appointment_status"]
             }[]
                            },
 "agendamento":
 { Args: { "p_appointment": string }; Returns: {
-              "cliente_id": string,"cliente_nome": string,"cliente_telefone": string,"criado_em": string,"fim": string,"id": string,"inicio": string,"origem": Database["public"]['Enums']["appointment_origin"],"preco": number,"professional_id": string,"profissional": string,"salon_id": string,"service_id": string,"servico": string,"status": Database["public"]['Enums']["appointment_status"]
+              "atendido": string,"cliente_id": string,"cliente_nome": string,"cliente_telefone": string,"criado_em": string,"fim": string,"id": string,"inicio": string,"origem": Database["public"]['Enums']["appointment_origin"],"preco": number,"professional_id": string,"profissional": string,"salon_id": string,"service_id": string,"servico": string,"status": Database["public"]['Enums']["appointment_status"]
             }[]
                            },
 "agendar_publico":
-{ Args: { "p_inicio": string,"p_nome": string,"p_optin": boolean,"p_origem": string,"p_professional": string,"p_service": string,"p_slug": string,"p_telefone": string }; Returns: {
+{ Args: { "p_atendido"?: string,"p_inicio": string,"p_nome": string,"p_optin": boolean,"p_origem": string,"p_professional": string,"p_service": string,"p_slug": string,"p_telefone": string }; Returns: {
               "fim": string,"id": string,"inicio": string,"preco": number,"profissional": string,"servico": string
             }[]
                            },

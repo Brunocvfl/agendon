@@ -215,8 +215,18 @@ describe("lerAgendamentoPublico", () => {
         nome: "Carla Souza",
         telefone: "+5511987654321",
         optin: true,
+        atendido: null,
       },
     });
+  });
+  it("outra pessoa: exige e normaliza o nome dela; desmarcado, ignora o campo", () => {
+    const r = lerAgendamentoPublico({ ...base, outraPessoa: true, atendido: "  Júlia   Souza " });
+    expect(r.ok && r.valor.atendido).toBe("Júlia Souza");
+    expect(lerAgendamentoPublico({ ...base, outraPessoa: false, atendido: "Júlia" })).toMatchObject({ ok: true, valor: { atendido: null } });
+    const vazio = lerAgendamentoPublico({ ...base, outraPessoa: true, atendido: "  " });
+    expect(vazio.ok ? {} : vazio.erros).toEqual({ atendido: "Informe o nome de quem será atendido." });
+    const curto = lerAgendamentoPublico({ ...base, outraPessoa: true, atendido: "J" });
+    expect(curto.ok ? {} : curto.erros).toEqual({ atendido: "Use de 2 a 80 caracteres." });
   });
   it("aceita profissional escolhido", () => {
     const r = lerAgendamentoPublico({ ...base, profissional: "22222222-2222-4222-8222-222222222222" });

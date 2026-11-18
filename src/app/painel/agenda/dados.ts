@@ -18,8 +18,17 @@ export type ItemAgenda = {
   preco: number;
   servico: string;
   clienteId: string | null;
-  clienteNome: string;
-};
+} & QuemAtende;
+
+/**
+ * Quem será atendido (`nome`) e, quando é outra pessoa ou outro nome no mesmo WhatsApp, o cliente que
+ * agendou (`agendadoPor`). O cliente é sempre o dono do WhatsApp.
+ */
+export type QuemAtende = { nome: string; agendadoPor: string | null };
+
+export function quemAtende(atendido: string | null | undefined, cliente: string): QuemAtende {
+  return atendido && atendido !== cliente ? { nome: atendido, agendadoPor: cliente } : { nome: cliente, agendadoPor: null };
+}
 
 /** Uma coluna da grade: um profissional num dia. */
 export type ColunaAgenda = {
@@ -97,7 +106,7 @@ export async function carregarAgenda(vinculo: Vinculo, dias: string[]): Promise<
               preco: Number(a.preco),
               servico: a.servico,
               clienteId: a.cliente_id ?? null,
-              clienteNome: a.cliente_nome,
+              ...quemAtende(a.atendido, a.cliente_nome),
             }))
             .filter((i) => naoVazio(i.periodo)),
         };
@@ -156,9 +165,8 @@ export type Agendamento = {
   criadoEm: string;
   /** Só para quem vê clientes (Dono(a) e Recepção). */
   clienteId: string | null;
-  clienteNome: string;
   clienteTelefone: string | null;
-};
+} & QuemAtende;
 
 /** Um agendamento (null se não existe ou se o perfil não pode vê-lo: Profissional, só os da própria agenda). */
 export async function carregarAgendamento(id: string): Promise<Agendamento | null> {
@@ -179,7 +187,7 @@ export async function carregarAgendamento(id: string): Promise<Agendamento | nul
     preco: Number(data.preco),
     criadoEm: data.criado_em,
     clienteId: data.cliente_id ?? null,
-    clienteNome: data.cliente_nome,
+    ...quemAtende(data.atendido, data.cliente_nome),
     clienteTelefone: data.cliente_telefone ?? null,
   };
 }
