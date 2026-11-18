@@ -4,10 +4,11 @@ import { useFocarPrimeiroErro } from "@/components/use-focar-erro";
 import Link from "next/link";
 import { useActionState, useEffect, useId, useRef, useState, useTransition } from "react";
 import { Avatar } from "@/components/avatar";
-import { Alerta, Botao, Campo } from "@/components/ui";
+import { Alerta, Botao, BotaoLink, Campo } from "@/components/ui";
 import { urlDaFoto } from "@/lib/foto";
 import { dataNoFuso, horaNoFuso, partesDaData, rotuloData, somarDias } from "@/lib/datas";
 import { formatarDuracao, formatarPreco } from "@/lib/formato";
+import { formatarEndereco, linkComoChegar } from "@/lib/regras/salao";
 import { agendar, horariosDoDia, type EstadoAgendamento } from "./actions";
 import type { PaginaPublica } from "./dados";
 import { Turnstile } from "./turnstile";
@@ -71,6 +72,8 @@ export function AgendarPublico({ slug, pagina, hoje }: Props) {
 
   if (estado.confirmacao) {
     const c = estado.confirmacao;
+    const endereco = formatarEndereco(pagina.salao.endereco);
+    const comoChegar = linkComoChegar(pagina.salao.endereco);
     return (
       <section className="rounded-2xl bg-white p-6 shadow-sm">
         <div aria-hidden className="flex size-12 items-center justify-center rounded-full bg-confirmado/15 text-2xl text-confirmado-escuro">
@@ -97,7 +100,18 @@ export function AgendarPublico({ slug, pagina, hoje }: Props) {
           </dd>
           <dt className="text-noite/65">Valor</dt>
           <dd className="font-medium">{formatarPreco(c.preco)}</dd>
+          {endereco ? (
+            <>
+              <dt className="text-noite/65">Onde</dt>
+              <dd className="font-medium">{endereco}</dd>
+            </>
+          ) : null}
         </dl>
+        {comoChegar ? (
+          <BotaoLink href={comoChegar} target="_blank" rel="noopener noreferrer" className="mt-5 w-full">
+            Como chegar
+          </BotaoLink>
+        ) : null}
         <p className="mt-5 text-sm text-noite/70">
           Se precisar cancelar ou remarcar, fale com o {pagina.salao.nome}.
         </p>

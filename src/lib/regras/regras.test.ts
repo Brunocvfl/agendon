@@ -6,7 +6,7 @@ import { lerNomeProfissional } from "./profissional";
 import { lerFolga } from "./folga";
 import { arquivoDaExportacao, lerCliente, lerTelefone } from "./cliente";
 import { lerAgendamento, lerAgendamentoPublico, lerMudancaDeStatus, lerRemarcacao, proximosStatus } from "./agendamento";
-import { formatarEndereco, lerDadosSalao, lerInstagram, lerSalao, normalizarSlug, SLUGS_RESERVADOS } from "./salao";
+import { formatarEndereco, lerDadosSalao, linkComoChegar, lerInstagram, lerSalao, normalizarSlug, SLUGS_RESERVADOS } from "./salao";
 import { lerConvite, lerMembro } from "./equipe";
 
 describe("lerServico", () => {
@@ -295,6 +295,21 @@ describe("lerDadosSalao", () => {
   it("lerInstagram aceita o link do perfil", () => {
     expect(lerInstagram("https://www.instagram.com/studio.bela/")).toBe("studio.bela");
     expect(lerInstagram("@")).toBeNull();
+  });
+});
+
+describe("linkComoChegar", () => {
+  it("monta a busca do Google Maps sem o complemento", () => {
+    const link = linkComoChegar({
+      logradouro: "Rua das Flores", numero: "120", complemento: "Sala 2", bairro: "Centro", cidade: "São Paulo", uf: "SP", cep: "01001-000",
+    });
+    expect(link).toBe(
+      "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent("Rua das Flores, 120, Centro, São Paulo - SP, 01001-000"),
+    );
+  });
+  it("sem rua não tem link", () => {
+    expect(linkComoChegar({ cidade: "Recife", uf: "PE" })).toBeNull();
+    expect(linkComoChegar({ logradouro: "  " })).toBeNull();
   });
 });
 
