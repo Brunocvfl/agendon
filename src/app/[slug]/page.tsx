@@ -68,14 +68,21 @@ async function Conteudo({ params }: { params: PageProps<"/[slug]">["params"] }) 
         <div className="min-w-0">
           <p className="text-sm font-medium text-on">Agende seu horário</p>
           <h1 className="mt-1 text-2xl font-semibold break-words sm:text-3xl">{salao.nome}</h1>
-          {endereco ? <p className="mt-1 text-sm text-noite/65">{endereco}</p> : null}
-          {salao.whatsapp || salao.instagram || comoChegar ? (
-            <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+          {endereco ? (
+            <p className="mt-1 text-sm text-noite/65">
+              {endereco}
               {comoChegar ? (
-                <a href={comoChegar} target="_blank" rel="noopener noreferrer" className="font-medium text-on hover:underline">
-                  Como chegar
-                </a>
+                <>
+                  {" · "}
+                  <a href={comoChegar} target="_blank" rel="noopener noreferrer" className="font-medium whitespace-nowrap text-on hover:underline">
+                    Como chegar
+                  </a>
+                </>
               ) : null}
+            </p>
+          ) : null}
+          {salao.whatsapp || salao.instagram ? (
+            <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
               {salao.whatsapp ? (
                 <a href={linkWhatsApp(salao.whatsapp)} target="_blank" rel="noopener noreferrer" className="font-medium text-on hover:underline">
                   WhatsApp {formatarTelefone(salao.whatsapp)}
