@@ -160,3 +160,16 @@ export function formatarEndereco(e: EnderecoSalao): string | null {
   const partes = [rua, e.complemento, e.bairro, cidade].filter(Boolean);
   return partes.length > 0 ? partes.join(" - ") : null;
 }
+
+/**
+ * Link "Como chegar" no Google Maps (abre o app no celular). Sem o complemento, que atrapalha a busca;
+ * null se não houver rua (só a cidade levaria a um ponto qualquer).
+ */
+export function linkComoChegar(e: EnderecoSalao): string | null {
+  if (!e.logradouro?.trim()) return null;
+  const consulta = [[e.logradouro, e.numero].filter(Boolean).join(", "), e.bairro, [e.cidade, e.uf].filter(Boolean).join(" - "), e.cep]
+    .map((parte) => parte?.trim())
+    .filter(Boolean)
+    .join(", ");
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(consulta)}`;
+}

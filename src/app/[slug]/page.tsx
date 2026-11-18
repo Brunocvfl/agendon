@@ -6,7 +6,7 @@ import { Suspense } from "react";
 import { dataNoFuso } from "@/lib/datas";
 import { formatarTelefone, linkWhatsApp } from "@/lib/formato";
 import { urlDaLogo } from "@/lib/logo";
-import { formatarEndereco } from "@/lib/regras/salao";
+import { formatarEndereco, linkComoChegar } from "@/lib/regras/salao";
 import { carregarPaginaPublica } from "./dados";
 import { AgendarPublico } from "./agendar-publico";
 
@@ -50,6 +50,7 @@ async function Conteudo({ params }: { params: PageProps<"/[slug]">["params"] }) 
 
   const { salao } = pagina;
   const endereco = formatarEndereco(salao.endereco);
+  const comoChegar = linkComoChegar(salao.endereco);
   return (
     <>
       <header className="mb-6 flex items-start gap-4">
@@ -68,8 +69,13 @@ async function Conteudo({ params }: { params: PageProps<"/[slug]">["params"] }) 
           <p className="text-sm font-medium text-on">Agende seu horário</p>
           <h1 className="mt-1 text-2xl font-semibold break-words sm:text-3xl">{salao.nome}</h1>
           {endereco ? <p className="mt-1 text-sm text-noite/65">{endereco}</p> : null}
-          {salao.whatsapp || salao.instagram ? (
+          {salao.whatsapp || salao.instagram || comoChegar ? (
             <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+              {comoChegar ? (
+                <a href={comoChegar} target="_blank" rel="noopener noreferrer" className="font-medium text-on hover:underline">
+                  Como chegar
+                </a>
+              ) : null}
               {salao.whatsapp ? (
                 <a href={linkWhatsApp(salao.whatsapp)} target="_blank" rel="noopener noreferrer" className="font-medium text-on hover:underline">
                   WhatsApp {formatarTelefone(salao.whatsapp)}
