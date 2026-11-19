@@ -12,6 +12,25 @@
   --font-sans: var(--font-sora), ui-sans-serif, system-ui, sans-serif;
 }
 
+/* Entrada de um elemento que acabou de aparecer por ação da pessoa (site: mensagem do WhatsApp). */
+@theme {
+  --animate-chegar: chegar 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+  /* Topo do site: o agendamento "cai" na linha do horário. */
+  --animate-encaixar: encaixar 0.6s cubic-bezier(0.2, 0.9, 0.25, 1.15);
+  @keyframes encaixar {
+    from {
+      opacity: 0;
+      transform: translateX(2.5rem) rotate(1.5deg);
+    }
+  }
+  @keyframes chegar {
+    from {
+      opacity: 0;
+      transform: translateY(0.75rem) scale(0.97);
+    }
+  }
+}
+
 html {
   /* Só tema claro por enquanto: campos nativos e barras de rolagem claros mesmo com o sistema no escuro. */
   color-scheme: light;
@@ -25,6 +44,61 @@ html {
   html:has([data-cabecalho-fixo]) {
     scroll-padding-top: 4.5rem;
   }
+}
+
+/* Site, versão 3: o trilho "Do link à agenda" anda para o lado conforme a página desce
+   (scroll-driven animation). Sem suporte, em tela estreita ou com "reduzir movimento": painéis empilhados. */
+@supports (animation-timeline: view()) {
+  @media (width >= 64rem) and (prefers-reduced-motion: no-preference) {
+    .trilho {
+      height: 300vh;
+      view-timeline-name: --trilho;
+    }
+    .trilho-palco {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .trilho-faixa {
+      display: flex;
+      flex-wrap: nowrap;
+      width: max-content;
+      max-width: none;
+      margin-inline: 0;
+      animation: trilho-deslizar linear both;
+      animation-timeline: --trilho;
+      animation-range: contain 0% contain 100%;
+    }
+    .trilho-painel {
+      width: min(44rem, 62vw);
+      flex-shrink: 0;
+    }
+    .trilho-barra {
+      transform-origin: left;
+      animation: trilho-encher linear both;
+      animation-timeline: --trilho;
+      animation-range: contain 0% contain 100%;
+    }
+  }
+}
+@keyframes trilho-deslizar {
+  to {
+    transform: translateX(calc(-100% + 100vw));
+  }
+}
+@keyframes trilho-encher {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+/* Site: o cabeçalho fixo não cobre o título da seção aberta por âncora. */
+html:has([data-cabecalho-site]) {
+  scroll-padding-top: 5.5rem;
 }
 
 body {
