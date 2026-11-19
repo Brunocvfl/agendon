@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { DemoAgendamento, IconeMensagem } from "@/app/_site/demo-agendamento";
 import { Agenda, BOTAO, BOTAO_PRIMARIO, Cabecalho, Check, Confianca, Duvidas, Equipe, H2, Rodape } from "@/app/_site/secoes";
-import { LinkSimples } from "./link-simples";
 
 // Versão 1 do site: clara, com o celular de teste no topo. Para comparar com /versoes/2 e /versoes/3.
 export const metadata: Metadata = {
@@ -152,7 +151,7 @@ function Mensagem({ titulo, children, className = "" }: { titulo: string; childr
 function Chamada() {
   return (
     <section aria-labelledby="titulo-chamada" className="px-4 py-20 sm:px-6 lg:py-28">
-      <div className="mx-auto grid max-w-6xl gap-12 rounded-[2.5rem] bg-on px-6 py-12 text-white sm:px-12 sm:py-16 lg:grid-cols-[1fr_1.1fr] lg:items-center">
+      <div className="mx-auto grid max-w-6xl gap-12 rounded-[2.5rem] bg-on px-6 py-12 text-white sm:px-12 sm:py-16">
         <div>
           <h2 id="titulo-chamada" className={H2}>
             Seu salão recebendo agendamentos ainda hoje.
@@ -163,9 +162,6 @@ function Chamada() {
           <Link href="/cadastro" className={`${BOTAO} mt-8 bg-white text-on hover:bg-white/90 focus-visible:outline-white`}>
             Cadastrar meu salão
           </Link>
-        </div>
-        <div className="rounded-3xl bg-noite/25 p-6 sm:p-8">
-          <LinkSimples />
         </div>
       </div>
     </section>

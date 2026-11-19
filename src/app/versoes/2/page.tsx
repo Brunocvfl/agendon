@@ -3,7 +3,6 @@ import Link from "next/link";
 import { AntecedenciaLembrete } from "@/app/_site/antecedencia-lembrete";
 import { DemoAgendamento } from "@/app/_site/demo-agendamento";
 import { DiaPreenchendo } from "@/app/_site/dia-preenchendo";
-import { LinkDoSalao } from "@/app/_site/link-do-salao";
 import { Agenda, BOTAO, Cabecalho, Confianca, Duvidas, Equipe, H2, Rodape } from "@/app/_site/secoes";
 
 // Site do AgendOn (página inicial). Só fala do que já existe no produto.
@@ -132,10 +131,9 @@ function Chamada() {
   return (
     <section aria-labelledby="titulo-chamada" className="bg-on text-white">
       <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:py-32">
-        <h2 id="titulo-chamada" className="sr-only">
-          Crie o link do seu salão
+        <h2 id="titulo-chamada" className={`max-w-3xl ${H2}`}>
+          Seu salão recebendo agendamentos ainda hoje.
         </h2>
-        <LinkDoSalao />
         <div className="mt-12 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
           <Link href="/cadastro" className={`${BOTAO} bg-white text-on hover:bg-white/90 focus-visible:outline-white`}>
             Cadastrar meu salão

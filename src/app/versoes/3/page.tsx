@@ -3,7 +3,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { AntecedenciaLembrete } from "@/app/_site/antecedencia-lembrete";
 import { DemoAgendamento, IconeMensagem } from "@/app/_site/demo-agendamento";
-import { LinkDoSalao } from "@/app/_site/link-do-salao";
 import { Agenda, BOTAO, Confianca, Duvidas, Equipe, H2, Rodape } from "@/app/_site/secoes";
 import { PalcoDoDia } from "./palco-do-dia";
 
@@ -258,10 +257,9 @@ function Chamada() {
     <section aria-labelledby="titulo-chamada" className="relative overflow-hidden">
       <div aria-hidden className="pointer-events-none absolute -bottom-40 left-1/2 h-[30rem] w-[70rem] -translate-x-1/2 rounded-full bg-on/40 blur-[120px]" />
       <div className="relative mx-auto max-w-6xl px-4 py-24 sm:px-6 lg:py-36">
-        <h2 id="titulo-chamada" className="sr-only">
-          Crie o link do seu salão
+        <h2 id="titulo-chamada" className={`max-w-3xl ${H2}`}>
+          Seu salão recebendo agendamentos ainda hoje.
         </h2>
-        <LinkDoSalao />
         <div className="mt-12 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
           <Link href="/cadastro" className={`${BOTAO} h-14 bg-on px-7 text-base text-white hover:bg-[#3d67ff] ${FOCO_CLARO}`}>
             Cadastrar meu salão
