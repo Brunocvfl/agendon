@@ -1,4 +1,5 @@
 // Seções comuns às versões do site (/versoes/1, 2 e 3) e constantes de estilo.
+// Logo do site: logo-agendon-site.png é o logo-agendon.png sem a margem transparente (sharp trim, 1200 px).
 // O rodapé com razão social e CNPJ precisa ficar: a Meta confere o nome de exibição do WhatsApp com o site.
 import Image from "next/image";
 import Link from "next/link";
@@ -14,9 +15,9 @@ export const H2 = "text-4xl leading-[1.02] font-bold tracking-[-0.04em] text-bal
 export function Cabecalho() {
   return (
     <header data-cabecalho-site className="sticky top-0 z-40 border-b border-noite/8 bg-fundo/90 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4 sm:px-6">
+      <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:gap-6 sm:px-6">
         <Link href="/" className={`shrink-0 rounded-md ${FOCO}`}>
-          <Image src="/logo-agendon.png" alt="AgendOn" width={4092} height={1230} priority className="h-7 w-auto" />
+          <Image src="/logo-agendon-site.png" alt="AgendOn" width={1200} height={241} priority className="h-6 w-auto sm:h-9" />
         </Link>
         <nav aria-label="Seções" className="hidden flex-1 md:block">
           <ul className="flex gap-1 text-sm text-noite/75">
@@ -36,10 +37,10 @@ export function Cabecalho() {
           </ul>
         </nav>
         <div className="ml-auto flex items-center gap-2">
-          <Link href="/entrar" className={`rounded-lg px-3 py-2 text-sm font-semibold hover:text-on ${FOCO}`}>
+          <Link href="/entrar" className={`rounded-lg px-2 py-2 text-sm sm:px-3 font-semibold hover:text-on ${FOCO}`}>
             Entrar
           </Link>
-          <Link href="/cadastro" className={`${BOTAO_PRIMARIO} h-10 px-4 text-sm whitespace-nowrap`}>
+          <Link href="/cadastro" className={`inline-flex h-10 items-center rounded-xl bg-on px-3 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-[#2249e0] sm:px-4 ${FOCO}`}>
             Cadastrar salão
           </Link>
         </div>
@@ -99,7 +100,7 @@ export function Equipe() {
             telefone.
           </p>
         </div>
-        <div className="mt-12 overflow-x-auto">
+        <div className="relative mt-12 overflow-x-auto">
           <table className="w-full min-w-[36rem] border-collapse text-left">
             <caption className="sr-only">O que cada perfil pode fazer</caption>
             <thead>
@@ -231,7 +232,7 @@ export function Rodape() {
     <footer className="border-t border-noite/8 bg-white">
       <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-12 sm:px-6 md:flex-row md:items-start md:justify-between">
         <div className="max-w-sm">
-          <Image src="/logo-agendon.png" alt="AgendOn" width={4092} height={1230} className="h-7 w-auto" />
+          <Image src="/logo-agendon-site.png" alt="AgendOn" width={1200} height={241} className="h-10 w-auto" />
           <p className="mt-4 text-sm leading-relaxed text-noite/70">Agenda online e lembretes no WhatsApp para salões de beleza.</p>
         </div>
         <nav aria-label="Rodapé">
