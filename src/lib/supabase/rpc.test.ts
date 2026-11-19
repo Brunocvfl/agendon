@@ -9,6 +9,8 @@ function soTipos(c: ClientePublico) {
   void c.from("clients");
   // @ts-expect-error função fora da lista não compila
   void c.rpc("whatsapp_optout", { p_telefones: [] });
+  // @ts-expect-error envio dos avisos da equipe não compila
+  void c.rpc("push_reservar", { p_limite: 1 });
   // @ts-expect-error função do painel não compila
   void c.rpc("anonimizar_cliente", { p_client: "x" });
 }

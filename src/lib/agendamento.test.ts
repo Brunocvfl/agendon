@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 vi.mock("next/server", () => ({ after: () => {} }));
 vi.mock("@/lib/whatsapp/enviar", () => ({ processarFila: async () => ({}) }));
+vi.mock("@/lib/push/enviar", () => ({ processarPush: async () => ({}) }));
 
 const ag = await import("./agendamento");
 
