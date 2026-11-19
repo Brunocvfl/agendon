@@ -2,8 +2,8 @@ name: Deploy (VPS)
 
 # main → produção; PR deste repositório → staging (staging.agendon.app.br, um PR por vez: o último a rodar
 # fica no ar). A main é protegida (PR com o CI verde), então o que chega nela já passou pelos testes.
-# A imagem leva só as variáveis públicas (NEXT_PUBLIC_*, as mesmas que o navegador vê); os segredos ficam
-# no servidor. A chave SSH só consegue rodar /srv/agendon/deploy.sh (comando forçado).
+# A imagem (privada no GHCR) leva só as variáveis públicas (NEXT_PUBLIC_*, as mesmas que o navegador vê);
+# os segredos ficam no servidor. A chave SSH só consegue rodar /srv/agendon/deploy.sh (comando forçado).
 on:
   push:
     branches: [main]
@@ -63,8 +63,11 @@ jobs:
           CHAVE: ${{ secrets.DEPLOY_SSH_KEY }}
           HOST: ${{ secrets.DEPLOY_HOST }}
           KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           install -m 700 -d ~/.ssh
           printf '%s\n' "$CHAVE" > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy
           printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
-          ssh -i ~/.ssh/deploy -o BatchMode=yes -o IdentitiesOnly=yes "deploy@$HOST" "$AMBIENTE $SHA"
+          # A imagem é privada: o token da execução (só leitura de pacotes, expira com o job) vai pela
+          # entrada padrão para o servidor baixar a imagem.
+          printf '%s\n' "$TOKEN" | ssh -i ~/.ssh/deploy -o BatchMode=yes -o IdentitiesOnly=yes "deploy@$HOST" "$AMBIENTE $SHA"

@@ -41,7 +41,19 @@ saudavel() {
 }
 
 echo "[$AMBIENTE] baixando ${SHA:0:7}"
+# Imagem privada no GHCR: o Actions manda pela entrada padrão o GITHUB_TOKEN da execução (vale só
+# enquanto o job roda). Login só para este pull, numa configuração temporária; nada fica guardado.
+TOKEN=""
+read -r -t 10 TOKEN || true
+DOCKER_CONFIG=$(mktemp -d)
+export DOCKER_CONFIG
+trap 'rm -rf "$DOCKER_CONFIG"' EXIT
+if [ -n "$TOKEN" ]; then
+	printf '%s' "$TOKEN" | docker login ghcr.io -u github-actions --password-stdin > /dev/null 2>&1 \
+		|| { echo "login no GHCR falhou" >&2; exit 1; }
+fi
 docker pull -q "$IMAGEM:$SHA" > /dev/null
+unset DOCKER_CONFIG
 definir_tag "$SHA"
 docker compose up -d --no-deps "$AMBIENTE" 2>&1 | grep -v -E '^\s*$' || true
 
