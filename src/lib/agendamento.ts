@@ -1,6 +1,6 @@
 // Agendamento: criar, remarcar, mudar status e agendar pela página pública, e os horários livres.
 // Esconde as funções do banco (nomes, parâmetros p_*, tipos gerados), traduz os erros para uma
-// lista fechada e avisa a fila do WhatsApp. Quem chama passa o cliente Supabase (o do usuário no
+// lista fechada e avisa a fila do WhatsApp e a dos avisos da equipe (Web Push). Quem chama passa o cliente Supabase (o do usuário no
 // painel, por causa da RLS; o da chave secreta na página pública) e transforma o erro em texto.
 import "server-only";
 import { after } from "next/server";
@@ -8,6 +8,7 @@ import { ehData } from "@/lib/datas";
 import { ehUuid } from "@/lib/ids";
 import type { AgendamentoPublicoValido, AgendamentoValido, RemarcacaoValida, Status } from "@/lib/regras/agendamento";
 import type { NomeRpc, Rpc } from "@/lib/supabase/rpc";
+import { processarPush } from "@/lib/push/enviar";
 import { processarFila } from "@/lib/whatsapp/enviar";
 
 // --- Erros ---------------------------------------------------------------------
@@ -103,12 +104,18 @@ function erroDa<E extends ErroAgendamento>(e: ErroPostgres, permitidos: readonly
 type Deps<F extends NomeRpc> = {
   /** Cliente do usuário (painel) ou da chave secreta (página pública). */
   supabase: Rpc<F>;
-  /** Envia o que está na fila do WhatsApp depois da resposta. Troca nos testes. */
+  /** Envia o que está na fila do WhatsApp (e os avisos da equipe) depois da resposta. Troca nos testes. */
   avisarFila?: () => void;
 };
 
 const avisarFilaPadrao = () =>
-  after(() => processarFila().catch((e) => console.error(e instanceof Error ? e.message : "whatsapp: fila falhou")));
+  after(async () => {
+    await Promise.all([
+      processarFila().catch((e) => console.error(e instanceof Error ? e.message : "whatsapp: fila falhou")),
+      // Avisos da equipe: só nascem de agendamento pela página pública (gatilho do banco).
+      processarPush().catch((e) => console.error(e instanceof Error ? e.message : "push: fila falhou")),
+    ]);
+  });
 
 // --- Operações -----------------------------------------------------------------
 

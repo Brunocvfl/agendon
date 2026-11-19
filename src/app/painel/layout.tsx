@@ -2,13 +2,15 @@ import type { ReactNode } from "react";
 import type { Viewport } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { Suspense } from "react";
+import { cache, Suspense } from "react";
 import { getUsuario, getVinculo } from "@/lib/auth";
 import { ehAdminDaPlataforma } from "@/lib/whatsapp/conta";
 import { DATA_DOCUMENTOS, VERSAO_DOCUMENTOS } from "@/lib/legal";
 import { sair } from "@/app/(acesso)/actions";
 import { AvisoNovosTermos } from "./aviso-termos";
 import { ListaMenu, MenuCelular, NavPainel } from "./nav-painel";
+import { Sininho } from "./sininho";
+import { createClient } from "@/lib/supabase/server";
 
 // Barra do navegador no celular na cor do cabeçalho do painel.
 export const viewport: Viewport = { themeColor: "#0f1b4d" };
@@ -24,19 +26,29 @@ export default function LayoutPainel({ children }: { children: ReactNode }) {
             <NomeSalao />
           </Suspense>
         </Link>
-        <Suspense fallback={<span className="h-10 w-20" />}>
-          <MenuCelularDoVinculo />
-        </Suspense>
+        <div className="flex shrink-0 items-center gap-1">
+          <Suspense fallback={null}>
+            <SininhoDoVinculo />
+          </Suspense>
+          <Suspense fallback={<span className="h-10 w-20" />}>
+            <MenuCelularDoVinculo />
+          </Suspense>
+        </div>
       </header>
 
       {/* Telas largas: barra lateral */}
       <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col bg-noite text-white md:flex">
-        <Link href="/painel" className="flex items-center gap-2.5 px-6 py-6">
-          <Image src="/simbolo-agendon.png" alt="" width={36} height={36} className="size-9 rounded-lg" />
-          <span className="text-xl font-semibold tracking-tight">
-            Agend<span className="text-on">On</span>
-          </span>
-        </Link>
+        <div className="flex items-center justify-between gap-2 py-6 pl-6 pr-4">
+          <Link href="/painel" className="flex items-center gap-2.5">
+            <Image src="/simbolo-agendon.png" alt="" width={36} height={36} className="size-9 rounded-lg" />
+            <span className="text-xl font-semibold tracking-tight">
+              Agend<span className="text-on">On</span>
+            </span>
+          </Link>
+          <Suspense fallback={null}>
+            <SininhoDoVinculo />
+          </Suspense>
+        </div>
         <Suspense fallback={<ListaMenu pathname={null} />}>
           <NavDoVinculo />
         </Suspense>
@@ -63,6 +75,21 @@ async function NavDoVinculo() {
 async function MenuCelularDoVinculo() {
   const [vinculo, admin] = await Promise.all([getVinculo(), ehAdmin()]);
   return <MenuCelular conta={<Conta />} perfil={vinculo?.perfil ?? null} admin={admin} />;
+}
+
+// Sininho com as notificações não lidas (só para quem tem vínculo ativo).
+// Aparece duas vezes (cabeçalho do celular e barra lateral): uma consulta só por requisição.
+const contarNaoLidas = cache(async () => {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("notificacoes_nao_lidas");
+  if (error) console.error(`notificacoes: contagem falhou (${error.code ?? "sem código"})`);
+  return data ?? 0;
+});
+
+async function SininhoDoVinculo() {
+  const vinculo = await getVinculo();
+  if (!vinculo) return null;
+  return <Sininho naoLidas={await contarNaoLidas()} />;
 }
 
 // Administrador da plataforma (tela temporária "Conta do WhatsApp").

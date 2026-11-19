@@ -149,6 +149,38 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"notificacoes": {
+                  Row: {
+                    "appointment_id": string,"created_at": string,"id": string,"lida_em": string | null,"member_id": string,"push_status": string | null,"salon_id": string,"tipo": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "appointment_id": string,"created_at"?: string,"id"?: string,"lida_em"?: string | null,"member_id": string,"push_status"?: string | null,"salon_id": string,"tipo"?: string
+                  }
+                  Update: {
+                    "appointment_id"?: string,"created_at"?: string,"id"?: string,"lida_em"?: string | null,"member_id"?: string,"push_status"?: string | null,"salon_id"?: string,"tipo"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "notificacoes_appointment_id_salon_id_fkey"
+      columns: ["appointment_id","salon_id"]
+isOneToOne: false
+      referencedRelation: "appointments"
+      referencedColumns: ["id","salon_id"]
+    },{
+      foreignKeyName: "notificacoes_member_id_salon_id_fkey"
+      columns: ["member_id","salon_id"]
+isOneToOne: false
+      referencedRelation: "members"
+      referencedColumns: ["id","salon_id"]
+    },{
+      foreignKeyName: "notificacoes_salon_id_fkey"
+      columns: ["salon_id"]
+isOneToOne: false
+      referencedRelation: "salons"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"professional_services": {
                   Row: {
                     "duracao_min": number | null,"preco": number | null,"professional_id": string,"salon_id": string,"service_id": string
@@ -195,6 +227,32 @@ isOneToOne: false
       referencedColumns: ["id","salon_id"]
     },{
       foreignKeyName: "professionals_salon_id_fkey"
+      columns: ["salon_id"]
+isOneToOne: false
+      referencedRelation: "salons"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"push_inscricoes": {
+                  Row: {
+                    "auth": string,"created_at": string,"endpoint": string,"id": string,"member_id": string,"p256dh": string,"salon_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "auth": string,"created_at"?: string,"endpoint": string,"id"?: string,"member_id": string,"p256dh": string,"salon_id": string
+                  }
+                  Update: {
+                    "auth"?: string,"created_at"?: string,"endpoint"?: string,"id"?: string,"member_id"?: string,"p256dh"?: string,"salon_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "push_inscricoes_member_id_salon_id_fkey"
+      columns: ["member_id","salon_id"]
+isOneToOne: false
+      referencedRelation: "members"
+      referencedColumns: ["id","salon_id"]
+    },{
+      foreignKeyName: "push_inscricoes_salon_id_fkey"
       columns: ["salon_id"]
 isOneToOne: false
       referencedRelation: "salons"
@@ -366,19 +424,44 @@ isOneToOne: false
               "criado_em": string,"faltas": number,"id": string,"nome": string,"telefone": string,"total": number,"ultimo_atendimento": string,"visitas": number
             }[]
                            },
+"marcar_notificacoes_lidas":
+{ Args: Record<PropertyKey, never>; Returns: number
+                           },
 "meu_acesso":
 { Args: Record<PropertyKey, never>; Returns: {
               "nome": string,"perfil": Database["public"]['Enums']["member_role"],"salao_nome": string,"status": string
             }[]
                            },
+"minhas_notificacoes":
+{ Args: { "p_limite"?: number }; Returns: {
+              "appointment_id": string,"cliente": string,"criada_em": string,"id": string,"lida_em": string,"servico": string
+            }[]
+                           },
 "mudar_status":
 { Args: { "p_appointment": string,"p_status": Database["public"]['Enums']["appointment_status"] }; Returns: undefined
+                           },
+"notificacoes_nao_lidas":
+{ Args: Record<PropertyKey, never>; Returns: number
                            },
 "pagina_publica":
 { Args: { "p_slug": string }; Returns: Json
                            },
+"push_remover_inscricao":
+{ Args: { "p_inscricao": string }; Returns: undefined
+                           },
+"push_reservar":
+{ Args: { "p_limite"?: number }; Returns: {
+              "appointment_id": string,"auth": string,"cliente": string,"endpoint": string,"inscricao_id": string,"notificacao_id": string,"p256dh": string,"servico": string
+            }[]
+                           },
+"push_resultado":
+{ Args: { "p_notificacao": string,"p_status": string }; Returns: undefined
+                           },
 "remarcar_agendamento":
 { Args: { "p_appointment": string,"p_encaixe"?: boolean,"p_inicio": string,"p_professional": string }; Returns: undefined
+                           },
+"remover_inscricao_push":
+{ Args: { "p_endpoint": string }; Returns: undefined
                            },
 "remover_membro":
 { Args: { "p_member": string }; Returns: undefined
@@ -388,6 +471,9 @@ isOneToOne: false
                            },
 "salvar_horarios":
 { Args: { "p_horarios": Json,"p_professional": string }; Returns: undefined
+                           },
+"salvar_inscricao_push":
+{ Args: { "p_auth": string,"p_endpoint": string,"p_p256dh": string }; Returns: undefined
                            },
 "salvar_servicos_profissional":
 { Args: { "p_professional": string,"p_servicos": (string)[] }; Returns: undefined
