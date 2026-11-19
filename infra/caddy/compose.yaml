@@ -1,0 +1,32 @@
+# Caddy do servidor (compartilhado por todos os projetos). No servidor: /srv/caddy.
+# Cada projeto põe o próprio arquivo em sites/<projeto>.caddy e os contêineres na rede `web`.
+#   docker network create web   (uma vez)
+#   docker compose up -d
+#   docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile   (depois de mudar a configuração)
+services:
+  caddy:
+    image: caddy:2.11.9-alpine
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./cloudflare_ips:/etc/caddy/cloudflare_ips:ro
+      - ./sites:/etc/caddy/sites:ro
+      - ./certs:/etc/caddy/certs:ro
+      - ./usuarios:/etc/caddy/usuarios:ro
+      - dados:/data
+      - config:/config
+    networks:
+      - web
+
+volumes:
+  dados:
+  config:
+
+networks:
+  web:
+    external: true

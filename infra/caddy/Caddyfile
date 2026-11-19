@@ -1,0 +1,18 @@
+# Caddy do servidor. Todo site fica atrás da Cloudflare (proxy laranja, SSL "Full (strict)") com o
+# certificado de origem da Cloudflare em certs/. O IP real do visitante vem de CF-Connecting-IP, aceito
+# só quando a conexão vem de um IP da Cloudflare (cloudflare_ips, gerado por atualizar-cloudflare-ips.sh).
+{
+	auto_https disable_certs
+	servers {
+		import /etc/caddy/cloudflare_ips
+		client_ip_headers CF-Connecting-IP
+	}
+}
+
+# Cabeçalhos para o app: o primeiro IP de X-Forwarded-For é sempre o do visitante.
+(proxy_app) {
+	header_up X-Forwarded-For {client_ip}
+	header_up X-Real-IP {client_ip}
+}
+
+import /etc/caddy/sites/*.caddy
