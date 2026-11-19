@@ -1,0 +1,27 @@
+# AgendOn no servidor (/srv/agendon). Produção e staging na rede `web`, sem porta exposta: só o Caddy
+# chega neles. Cada um sobe sozinho (`docker compose up -d producao`). As versões (sha do commit) ficam em /srv/agendon/.env, atualizado pelo deploy:
+#   PRODUCAO_TAG=<sha>
+#   STAGING_TAG=<sha>
+# Segredos: .env.producao e .env.staging (só no servidor, permissão 600; modelo no .env.example).
+services:
+  producao:
+    image: ghcr.io/codehousedevs/agendon:${PRODUCAO_TAG:-ausente}
+    container_name: agendon-producao
+    env_file: .env.producao
+    restart: unless-stopped
+    stop_grace_period: 30s # termina as requisições e os after() em andamento
+    mem_limit: 1g
+    networks: [web]
+
+  staging:
+    image: ghcr.io/codehousedevs/agendon-staging:${STAGING_TAG:-ausente}
+    container_name: agendon-staging
+    env_file: .env.staging
+    restart: unless-stopped
+    stop_grace_period: 30s
+    mem_limit: 768m
+    networks: [web]
+
+networks:
+  web:
+    external: true

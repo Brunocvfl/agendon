@@ -1,0 +1,73 @@
+name: Deploy (VPS)
+
+# main → produção; PR deste repositório → staging (staging.agendon.app.br, um PR por vez: o último a rodar
+# fica no ar). A main é protegida (PR com o CI verde), então o que chega nela já passou pelos testes.
+# A imagem (privada no GHCR) leva só as variáveis públicas (NEXT_PUBLIC_*, as mesmas que o navegador vê);
+# os segredos ficam no servidor. A chave SSH só consegue rodar /srv/agendon/deploy.sh (comando forçado).
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  deploy:
+    # PR de fork não recebe segredos nem faz deploy.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    name: Imagem e deploy (${{ github.event_name == 'pull_request' && 'staging' || 'producao' }})
+    runs-on: ubuntu-latest
+    environment: ${{ github.event_name == 'pull_request' && 'staging' || 'producao' }}
+    concurrency:
+      group: deploy-${{ github.event_name == 'pull_request' && 'staging' || 'producao' }}
+      cancel-in-progress: false
+    env:
+      AMBIENTE: ${{ github.event_name == 'pull_request' && 'staging' || 'producao' }}
+      IMAGEM: ghcr.io/codehousedevs/${{ github.event_name == 'pull_request' && 'agendon-staging' || 'agendon' }}
+      SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.SHA }}
+
+      - uses: docker/setup-buildx-action@v4
+
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Monta e publica a imagem
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          tags: ${{ env.IMAGEM }}:${{ env.SHA }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ env.SHA }}
+          build-args: |
+            NEXT_PUBLIC_SUPABASE_URL=${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+            NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+            NEXT_PUBLIC_TURNSTILE_SITE_KEY=${{ vars.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
+            NEXT_DEPLOYMENT_ID=${{ env.SHA }}
+          cache-from: type=gha,scope=${{ env.AMBIENTE }}
+          cache-to: type=gha,mode=max,scope=${{ env.AMBIENTE }}
+
+      - name: Troca o contêiner na VPS
+        env:
+          CHAVE: ${{ secrets.DEPLOY_SSH_KEY }}
+          HOST: ${{ secrets.DEPLOY_HOST }}
+          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$CHAVE" > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          # A imagem é privada: o token da execução (só leitura de pacotes, expira com o job) vai pela
+          # entrada padrão para o servidor baixar a imagem.
+          printf '%s\n' "$TOKEN" | ssh -i ~/.ssh/deploy -o BatchMode=yes -o IdentitiesOnly=yes "deploy@$HOST" "$AMBIENTE $SHA"

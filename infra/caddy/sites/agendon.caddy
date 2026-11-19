@@ -1,0 +1,32 @@
+# AgendOn. Contêineres em /srv/agendon (rede `web`). Certificado de origem da Cloudflare para
+# agendon.app.br e *.agendon.app.br em /srv/caddy/certs (ECC, válido até 2041). Trocou o certificado?
+# `docker compose restart caddy` (o reload mantém o certificado antigo em cache).
+(agendon_tls) {
+	tls /etc/caddy/certs/agendon.app.br.pem /etc/caddy/certs/agendon.app.br.key
+}
+
+agendon.app.br {
+	import agendon_tls
+	reverse_proxy agendon-producao:3000 {
+		import proxy_app
+	}
+}
+
+www.agendon.app.br {
+	import agendon_tls
+	redir https://agendon.app.br{uri} permanent
+}
+
+# Staging: fechado com senha (usa o Supabase de staging, o CAPTCHA de teste e o número real do WhatsApp)
+# e fora dos buscadores. A rota do webhook e a do job ficam fora da senha (têm validação própria).
+staging.agendon.app.br {
+	import agendon_tls
+	header X-Robots-Tag "noindex, nofollow"
+	@protegido not path /api/whatsapp/* /api/saude
+	basic_auth @protegido {
+		import /etc/caddy/usuarios/agendon-staging
+	}
+	reverse_proxy agendon-staging:3000 {
+		import proxy_app
+	}
+}

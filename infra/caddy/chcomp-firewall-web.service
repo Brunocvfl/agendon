@@ -1,0 +1,14 @@
+# Instalar: cp para /etc/systemd/system/ && systemctl enable --now chcomp-firewall-web
+[Unit]
+Description=Portas 80/443 do Docker so para a Cloudflare (DOCKER-USER)
+After=docker.service
+Requires=docker.service
+PartOf=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/srv/caddy/firewall-web.sh
+
+[Install]
+WantedBy=docker.service
