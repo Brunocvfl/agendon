@@ -13,3 +13,7 @@ export const EMPRESA = {
 
 export const EMAIL_LEGAL = "legal@agendon.app.br";
 export const SITE = "agendon.app.br";
+
+// Número oficial que envia a confirmação e o lembrete (WhatsApp Business Platform). Aparece em /contato:
+// a Meta confere o nome de exibição do WhatsApp com o site.
+export const WHATSAPP_ENVIO = { exibicao: "+55 11 95713-1962", link: "https://wa.me/5511957131962" } as const;
