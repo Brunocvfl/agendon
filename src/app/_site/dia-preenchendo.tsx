@@ -23,7 +23,7 @@ export function DiaPreenchendo() {
         {LINHAS.map(({ hora, agendamento }) => {
           const atraso = agendamento ? 0.5 + ordem++ * 0.75 : 0;
           return (
-            <li key={hora} className="grid grid-cols-[4.9rem_1fr] items-center border-t border-white/15 sm:grid-cols-[9.75rem_1fr]">
+            <li key={hora} className="grid grid-cols-[4.9rem_minmax(0,1fr)] items-center border-t border-white/15 sm:grid-cols-[9.75rem_minmax(0,1fr)]">
               <span className="py-1 text-[1.6rem] leading-none font-extralight tracking-[-0.04em] text-white/50 tabular-nums sm:text-[3.1rem]">
                 {hora}
               </span>
