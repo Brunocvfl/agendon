@@ -22,6 +22,22 @@ async function registrar() {
   return navigator.serviceWorker.register("/sw.js", { scope: "/", updateViaCache: "none" });
 }
 
+function mesmosBytes(a: ArrayBuffer | null | undefined, b: Uint8Array): boolean {
+  if (!a || a.byteLength !== b.byteLength) return false;
+  const x = new Uint8Array(a);
+  return x.every((v, i) => v === b[i]);
+}
+
+// Inscrição atual do aparelho, se foi feita com a chave pública atual. Feita com outra chave (as chaves
+// VAPID foram trocadas), ela não recebe mais nada: é cancelada para o aparelho se inscrever de novo.
+async function inscricaoAtual(registro: ServiceWorkerRegistration, chavePublica: string) {
+  const inscricao = await registro.pushManager.getSubscription();
+  if (!inscricao) return null;
+  if (mesmosBytes(inscricao.options.applicationServerKey, chaveParaBytes(chavePublica))) return inscricao;
+  await inscricao.unsubscribe().catch(() => {});
+  return null;
+}
+
 /** Liga ou desliga o Web Push neste navegador. */
 export function AvisosNesteAparelho({ chavePublica }: { chavePublica: string }) {
   const [estado, setEstado] = useState<Estado>("carregando");
@@ -39,7 +55,7 @@ export function AvisosNesteAparelho({ chavePublica }: { chavePublica: string }) 
         novo = "bloqueado";
       } else {
         const registro = await registrar();
-        const inscricao = await registro.pushManager.getSubscription();
+        const inscricao = await inscricaoAtual(registro, chavePublica);
         novo = inscricao && Notification.permission === "granted" ? "ligado" : "desligado";
         // Garante que o servidor conhece este aparelho (ex.: entrou com outro login neste navegador).
         if (novo === "ligado" && inscricao) void ligarAvisos(inscricao.toJSON());
@@ -63,7 +79,7 @@ export function AvisosNesteAparelho({ chavePublica }: { chavePublica: string }) 
         const registro = await registrar();
         await navigator.serviceWorker.ready;
         const inscricao =
-          (await registro.pushManager.getSubscription()) ??
+          (await inscricaoAtual(registro, chavePublica)) ??
           (await registro.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: chaveParaBytes(chavePublica) }));
         const r = await ligarAvisos(inscricao.toJSON());
         if (r.erro) {
