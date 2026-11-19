@@ -1,5 +1,6 @@
 # AgendOn. Contêineres em /srv/agendon (rede `web`). Certificado de origem da Cloudflare para
-# agendon.app.br e *.agendon.app.br em /srv/caddy/certs.
+# agendon.app.br e *.agendon.app.br em /srv/caddy/certs (ECC, válido até 2041). Trocou o certificado?
+# `docker compose restart caddy` (o reload mantém o certificado antigo em cache).
 (agendon_tls) {
 	tls /etc/caddy/certs/agendon.app.br.pem /etc/caddy/certs/agendon.app.br.key
 }
