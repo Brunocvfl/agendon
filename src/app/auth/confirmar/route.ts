@@ -3,9 +3,11 @@
 // passa pelo /auth/callback. Só aceita o tipo "invite" e sempre segue para /convite.
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { origemPublica } from "@/lib/origem";
 
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = request.nextUrl;
+  const { searchParams } = request.nextUrl;
+  const origin = origemPublica(request);
   const tokenHash = searchParams.get("token_hash");
   const tipo = searchParams.get("type");
 

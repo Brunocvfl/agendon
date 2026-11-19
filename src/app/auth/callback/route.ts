@@ -1,10 +1,12 @@
 // Link do e-mail de confirmação (fluxo PKCE): troca o código pela sessão e segue para o destino.
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { origemPublica } from "@/lib/origem";
 import { destinoSeguro } from "@/lib/destino";
 
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = request.nextUrl;
+  const { searchParams } = request.nextUrl;
+  const origin = origemPublica(request);
   const code = searchParams.get("code");
   const next = destinoSeguro(searchParams.get("next"));
 
