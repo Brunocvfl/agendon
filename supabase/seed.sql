@@ -30,6 +30,8 @@ where u.email like '%@agendon.test';
 -- Salão e vínculos
 insert into public.salons (id, nome, slug) values
   ('00000000-0000-4000-b000-000000000001', 'Studio Teste', 'studio-teste');
+-- Plano como o de um salão novo (create_salon): teste grátis de 30 dias a partir do db:reset.
+insert into public.subscriptions (salon_id) values ('00000000-0000-4000-b000-000000000001');
 
 insert into public.members (id, salon_id, user_id, perfil, nome) values
   ('00000000-0000-4000-c000-000000000001', '00000000-0000-4000-b000-000000000001', '00000000-0000-4000-a000-000000000001', 'dono', 'Patrícia Dona'),

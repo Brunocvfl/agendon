@@ -1,4 +1,4 @@
--- Dados do salão: o Dono(a) edita só as colunas de cadastro (status, plano e slug ficam de fora),
+-- Dados do salão: o Dono(a) edita só as colunas de cadastro (status e slug ficam de fora; o plano mora em subscriptions),
 -- as regras de formato valem, a página pública devolve o endereço em partes e as logos no Storage
 -- só são gravadas pelo Dono(a), na pasta do próprio salão.
 
@@ -35,7 +35,7 @@ select throws_ok(
   '42501', null, 'Dono(a) não mexe no status (cobrança)'
 );
 select throws_ok(
-  $$update public.salons set plano = 'pro' where id = 'be000000-0000-0000-0000-000000000001'$$,
+  $$update public.subscriptions set plano = 'cortesia' where salon_id = 'be000000-0000-0000-0000-000000000001'$$,
   '42501', null, 'Dono(a) não mexe no plano (cobrança)'
 );
 select throws_ok(

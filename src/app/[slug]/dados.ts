@@ -20,6 +20,8 @@ export type PaginaPublica = {
     logo_path: string | null;
     endereco: EnderecoSalao;
   };
+  /** false com o teste grátis encerrado: a página avisa e não mostra os passos. */
+  aceita_agendamento: boolean;
   servicos: ServicoPublico[];
   profissionais: ProfissionalPublico[];
 };

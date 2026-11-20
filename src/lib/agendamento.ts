@@ -67,6 +67,7 @@ const TOKENS: Record<string, ErroAgendamento> = {
   muitos_agendamentos: "muitos-agendamentos",
   telefone_invalido: "telefone-invalido",
   salao_nao_encontrado: "salao-indisponivel",
+  agendamento_indisponivel: "salao-indisponivel", // teste grátis encerrado (AGE-15)
 };
 
 function tipoDoErro(e: ErroPostgres): ErroAgendamento {
