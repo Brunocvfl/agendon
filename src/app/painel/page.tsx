@@ -10,6 +10,7 @@ import { formatarPreco, iniciais, NOME_STATUS } from "@/lib/formato";
 import { SITE } from "@/lib/legal";
 import { urlDaLogo } from "@/lib/logo";
 import { NOME_PERFIL, pode } from "@/lib/permissoes";
+import { avisoDoPlano, type AvisoDoPlano, type UsoDoPlano } from "@/lib/regras/plano";
 import { createClient } from "@/lib/supabase/server";
 import { carregarAgenda, type ItemAgenda } from "./agenda/dados";
 import { CopiarLink } from "./copiar-link";
@@ -42,10 +43,38 @@ async function progresso(salonId: string) {
   return { servicos, profissionais, horarios, publicos, logoPath: salao.data?.logo_path ?? null };
 }
 
+/** Plano e uso do salão (meu_plano, só Dono(a)). */
+async function usoDoPlano(salonId: string): Promise<UsoDoPlano | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("meu_plano", { p_salon: salonId });
+  if (error) throw new Error(`meu_plano falhou (${error.code})`);
+  return (data as unknown as UsoDoPlano | null) ?? null;
+}
+
+function AvisoPlano({ aviso }: { aviso: AvisoDoPlano | null }) {
+  if (!aviso) return null;
+  const cor = aviso.tom === "alerta" ? "border-amber-300 bg-amber-50" : "border-on/20 bg-on/5";
+  return (
+    <section className={`mt-6 rounded-2xl border p-4 text-sm ${cor}`}>
+      <h2 className="font-semibold">{aviso.titulo}</h2>
+      <p className="mt-1 text-noite/75">
+        {aviso.texto}{" "}
+        <Link href="/contato" className="font-medium text-on hover:underline">
+          Fale com a gente
+        </Link>
+      </p>
+    </section>
+  );
+}
+
 async function Inicio({ vinculo }: { vinculo: Vinculo }) {
   const { salao, perfil } = vinculo;
   const hoje = dataNoFuso(new Date(), salao.fuso);
-  const [p, agenda] = await Promise.all([progresso(salao.id), carregarAgenda(vinculo, [hoje])]);
+  const [p, agenda, plano] = await Promise.all([
+    progresso(salao.id),
+    carregarAgenda(vinculo, [hoje]),
+    pode(perfil, "gerenciar-salao") ? usoDoPlano(salao.id) : null,
+  ]);
   const dono = pode(perfil, "editar-servicos");
 
   const passos = [
@@ -119,6 +148,8 @@ async function Inicio({ vinculo }: { vinculo: Vinculo }) {
           Abrir
         </Link>
       </p>
+
+      {plano ? <AvisoPlano aviso={avisoDoPlano(plano, new Date())} /> : null}
 
       {feitos < passos.length ? <Checklist passos={passos} feitos={feitos} /> : null}
 

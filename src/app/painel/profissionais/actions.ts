@@ -2,6 +2,7 @@
 
 import { acaoDoPainel, comandoDoPainel, ERRO_GERAL, texto, type EstadoForm } from "@/lib/acao";
 import { ERROS_EXCLUIR_PROFISSIONAL } from "@/lib/regras/profissional";
+import { ERRO_LIMITE_DE_AGENDAS, ehLimiteDeAgendas } from "@/lib/regras/plano";
 import { ehUuid } from "@/lib/ids";
 import { DIAS, telaParaFaixas, type DiaTela } from "@/lib/horarios";
 import { lerFolga } from "@/lib/regras/folga";
@@ -17,6 +18,9 @@ export type { EstadoForm };
 const VOLTAR = "/painel/profissionais";
 const SEM_ID = invalido({ [ERRO_GERAL]: "Profissional inválido. Recarregue a página." });
 const NOME_REPETIDO = { campo: "nome", msg: "Já existe um profissional com esse nome." };
+// Cadastrar ou reativar além do limite do plano (gatilho professionals_limite_de_agendas).
+const LIMITE_OU_GERAL = (e: { message?: string }) =>
+  ehLimiteDeAgendas(e) ? ERRO_LIMITE_DE_AGENDAS : "Não foi possível salvar agora. Tente de novo em instantes.";
 
 // --- Cadastro (editar-profissionais) ------------------------------------------
 
@@ -37,6 +41,7 @@ export const criarProfissional = acaoDoPainel({
   mensagens: {
     // Dois índices únicos: um login só vira um profissional; nome não se repete no salão.
     duplicado: (e) => (e.message?.includes("member") ? "Você já está cadastrado(a) como profissional." : NOME_REPETIDO),
+    outro: LIMITE_OU_GERAL,
   },
   depois: { ir: (p: { id: string }) => `${VOLTAR}/${p.id}` },
 });
@@ -51,7 +56,7 @@ export const salvarDados = acaoDoPainel({
   },
   executar: ({ id, ...dados }, { supabase, vinculo }) =>
     supabase.from("professionals").update(dados).eq("id", id).eq("salon_id", vinculo.salao.id),
-  mensagens: { duplicado: NOME_REPETIDO },
+  mensagens: { duplicado: NOME_REPETIDO, outro: LIMITE_OU_GERAL },
   depois: { ok: "Dados salvos." },
 });
 

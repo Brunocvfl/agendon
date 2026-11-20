@@ -102,7 +102,12 @@ async function Conteudo({ params }: { params: PageProps<"/[slug]">["params"] }) 
           ) : null}
         </div>
       </header>
-      {pagina.servicos.length === 0 ? (
+      {!pagina.aceita_agendamento ? (
+        <p className="rounded-2xl bg-white p-6 text-sm text-noite/70 shadow-sm">
+          O agendamento online deste salão está indisponível no momento.
+          {salao.whatsapp ? " Fale com o salão pelo WhatsApp para marcar seu horário." : null}
+        </p>
+      ) : pagina.servicos.length === 0 ? (
         <p className="rounded-2xl bg-white p-6 text-sm text-noite/70 shadow-sm">
           Este salão ainda não abriu horários para agendamento online.
         </p>

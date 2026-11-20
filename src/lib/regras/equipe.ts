@@ -1,6 +1,7 @@
 // Regras da Equipe: convite (nome, e-mail, perfil e agenda) e edição de quem já está na equipe.
 // Espelham o banco (members_nome_tamanho, member_role) e as regras do gatilho members_guarda.
 import { ehUuid } from "@/lib/ids";
+import { ERRO_LIMITE_DE_AGENDAS } from "./plano";
 import type { Perfil } from "@/lib/permissoes";
 import { invalido, limparTexto, valido, type ErrosPorCampo, type Resultado } from "./resultado";
 
@@ -64,4 +65,6 @@ export const ERROS_EQUIPE: Record<string, string> = {
   convite_pendente: "Essa pessoa ainda não aceitou o convite.",
   membro_nao_apaga: "Quem já entrou no salão não é apagado: use “Remover da equipe”.",
   membro_imutavel: "Não foi possível salvar. Recarregue a página.",
+  // Agenda nova além do limite do plano (gatilho professionals_limite_de_agendas).
+  limite_de_agendas: ERRO_LIMITE_DE_AGENDAS,
 };

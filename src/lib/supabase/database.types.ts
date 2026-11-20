@@ -261,14 +261,14 @@ isOneToOne: false
                   ]
                 },"salons": {
                   Row: {
-                    "bairro": string | null,"cep": string | null,"cidade": string | null,"complemento": string | null,"created_at": string,"email": string | null,"fuso": string,"id": string,"instagram": string | null,"lembrete_horas": number | null,"logo_path": string | null,"logradouro": string | null,"nome": string,"numero": string | null,"plano": string,"slug": string,"status": string,"uf": string | null,"whatsapp": string | null
+                    "bairro": string | null,"cep": string | null,"cidade": string | null,"complemento": string | null,"created_at": string,"email": string | null,"fuso": string,"id": string,"instagram": string | null,"lembrete_horas": number | null,"logo_path": string | null,"logradouro": string | null,"nome": string,"numero": string | null,"slug": string,"status": string,"uf": string | null,"whatsapp": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "bairro"?: string | null,"cep"?: string | null,"cidade"?: string | null,"complemento"?: string | null,"created_at"?: string,"email"?: string | null,"fuso"?: string,"id"?: string,"instagram"?: string | null,"lembrete_horas"?: number | null,"logo_path"?: string | null,"logradouro"?: string | null,"nome": string,"numero"?: string | null,"plano"?: string,"slug": string,"status"?: string,"uf"?: string | null,"whatsapp"?: string | null
+                    "bairro"?: string | null,"cep"?: string | null,"cidade"?: string | null,"complemento"?: string | null,"created_at"?: string,"email"?: string | null,"fuso"?: string,"id"?: string,"instagram"?: string | null,"lembrete_horas"?: number | null,"logo_path"?: string | null,"logradouro"?: string | null,"nome": string,"numero"?: string | null,"slug": string,"status"?: string,"uf"?: string | null,"whatsapp"?: string | null
                   }
                   Update: {
-                    "bairro"?: string | null,"cep"?: string | null,"cidade"?: string | null,"complemento"?: string | null,"created_at"?: string,"email"?: string | null,"fuso"?: string,"id"?: string,"instagram"?: string | null,"lembrete_horas"?: number | null,"logo_path"?: string | null,"logradouro"?: string | null,"nome"?: string,"numero"?: string | null,"plano"?: string,"slug"?: string,"status"?: string,"uf"?: string | null,"whatsapp"?: string | null
+                    "bairro"?: string | null,"cep"?: string | null,"cidade"?: string | null,"complemento"?: string | null,"created_at"?: string,"email"?: string | null,"fuso"?: string,"id"?: string,"instagram"?: string | null,"lembrete_horas"?: number | null,"logo_path"?: string | null,"logradouro"?: string | null,"nome"?: string,"numero"?: string | null,"slug"?: string,"status"?: string,"uf"?: string | null,"whatsapp"?: string | null
                   }
                   Relationships: [
                     
@@ -295,14 +295,14 @@ isOneToOne: false
                   ]
                 },"subscriptions": {
                   Row: {
-                    "ciclo_inicio": string,"max_agendamentos_mes": number,"max_agendas": number,"plano": string,"salon_id": string
+                    "criada_em": string,"max_agendas": number | null,"max_mensagens": number | null,"plano": string,"salon_id": string,"teste_ate": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "ciclo_inicio"?: string,"max_agendamentos_mes"?: number,"max_agendas"?: number,"plano"?: string,"salon_id": string
+                    "criada_em"?: string,"max_agendas"?: number | null,"max_mensagens"?: number | null,"plano"?: string,"salon_id": string,"teste_ate"?: string | null
                   }
                   Update: {
-                    "ciclo_inicio"?: string,"max_agendamentos_mes"?: number,"max_agendas"?: number,"plano"?: string,"salon_id"?: string
+                    "criada_em"?: string,"max_agendas"?: number | null,"max_mensagens"?: number | null,"plano"?: string,"salon_id"?: string,"teste_ate"?: string | null
                   }
                   Relationships: [
                     {
@@ -431,6 +431,9 @@ isOneToOne: false
 { Args: Record<PropertyKey, never>; Returns: {
               "nome": string,"perfil": Database["public"]['Enums']["member_role"],"salao_nome": string,"status": string
             }[]
+                           },
+"meu_plano":
+{ Args: { "p_salon": string }; Returns: Json
                            },
 "minhas_notificacoes":
 { Args: { "p_limite"?: number }; Returns: {
