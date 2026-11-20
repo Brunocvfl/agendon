@@ -5,7 +5,7 @@
 #
 #   sudo bash infra/bootstrap.sh <hostname> "<chave pública SSH do administrador>"
 #
-# Faz: hostname, relógio (NTP.br), atualizações (e automáticas), usuário `ops` (sudo, só por chave),
+# Faz: hostname, relógio (NTP da Locaweb), atualizações (e automáticas), usuário `ops` (sudo, só por chave),
 # SSH sem root e sem senha, ufw (22/80/443), fail2ban, Docker (logs limitados) e a rede `web`, e o
 # Caddy compartilhado em /srv/caddy com 80/443 só para a Cloudflare.
 # NÃO faz (é manual, ver README): certificado de origem da Cloudflare, senhas do basic auth, projetos.
@@ -44,11 +44,15 @@ grep -qE "^127\.0\.1\.1[[:space:]]+$NOME\$" /etc/hosts || {
 	echo "127.0.1.1 $NOME" >> /etc/hosts
 }
 
-passo "Relógio (NTP.br)"
-gravar /etc/systemd/timesyncd.conf.d/ntp-br.conf <<'EOF' && systemctl restart systemd-timesyncd || true
+passo "Relógio (NTP da Locaweb)"
+# A Locaweb bloqueia a saída UDP 123 (NTP) e não libera sob demanda (resposta do suporte em
+# 2026-11-20); os servidores dela só respondem dentro da rede da Locaweb. Em outro provedor,
+# trocar por NTP.br (a.st1.ntp.br b.st1.ntp.br c.st1.ntp.br).
+rm -f /etc/systemd/timesyncd.conf.d/ntp-br.conf
+gravar /etc/systemd/timesyncd.conf.d/ntp-locaweb.conf <<'EOF' && systemctl restart systemd-timesyncd || true
 [Time]
-NTP=a.st1.ntp.br b.st1.ntp.br c.st1.ntp.br
-FallbackNTP=ntp.ubuntu.com
+NTP=ntp1.locaweb.com.br ntp2.locaweb.com.br ntp3.locaweb.com.br
+FallbackNTP=
 EOF
 timedatectl set-ntp true || true
 timedatectl set-timezone America/Sao_Paulo
