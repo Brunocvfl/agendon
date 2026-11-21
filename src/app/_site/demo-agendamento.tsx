@@ -93,7 +93,7 @@ export function DemoAgendamento({ fundoEscuro = false }: { fundoEscuro?: boolean
                   {DIAS.map((d, i) => (
                     <label
                       key={d.numero}
-                      className="flex cursor-pointer flex-col items-center rounded-xl border border-noite/10 py-1.5 text-noite has-checked:border-on has-checked:bg-on has-checked:text-white has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-on"
+                      className="group flex cursor-pointer flex-col items-center rounded-xl border border-noite/10 py-1.5 text-noite has-checked:border-on has-checked:bg-on has-checked:text-white has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-on"
                     >
                       <input
                         type="radio"
@@ -105,7 +105,7 @@ export function DemoAgendamento({ fundoEscuro = false }: { fundoEscuro?: boolean
                           setHora(null);
                         }}
                       />
-                      <span className="text-[0.7rem] opacity-75">{d.sigla}</span>
+                      <span className="text-[0.7rem] opacity-75 group-has-checked:opacity-100">{d.sigla}</span>
                       <span className="text-sm font-semibold tabular-nums">{d.numero}</span>
                     </label>
                   ))}

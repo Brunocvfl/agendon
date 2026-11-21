@@ -8,6 +8,8 @@ const sora = Sora({
 });
 
 export const metadata: Metadata = {
+  // Endereço absoluto da imagem de prévia (opengraph-image.png): atrás do proxy, a origem da requisição é interna.
+  metadataBase: new URL("https://agendon.app.br"),
   title: "AgendOn",
   description: "Agendamento online para salões de beleza.",
   // iPhone: "Adicionar à Tela de Início" abre em tela cheia, com o nome curto (o ícone é o apple-icon.png).

@@ -1,10 +1,10 @@
-// Seções comuns às versões do site (/versoes/1, 2 e 3) e constantes de estilo.
+// Seções do site (página inicial) e constantes de estilo.
 // Logo do site: logo-agendon-site.png é o logo-agendon.png sem a margem transparente (sharp trim, 1200 px).
 // O rodapé com razão social e CNPJ precisa ficar: a Meta confere o nome de exibição do WhatsApp com o site.
 import Image from "next/image";
 import Link from "next/link";
 import { EMAIL_LEGAL, EMPRESA, WHATSAPP_ENVIO } from "@/lib/legal";
-import { AgendaIlustrada } from "./agenda-ilustrada";
+import { MolduraNavegador } from "./telas";
 
 export const FOCO = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-on";
 export const BOTAO =
@@ -15,16 +15,17 @@ export const H2 = "text-4xl leading-[1.02] font-bold tracking-[-0.04em] text-bal
 export function Cabecalho() {
   return (
     <header data-cabecalho-site className="sticky top-0 z-40 border-b border-noite/8 bg-fundo/90 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:gap-6 sm:px-6">
-        <Link href="/" className={`shrink-0 rounded-md ${FOCO}`}>
-          <Image src="/logo-agendon-site.png" alt="AgendOn" width={1200} height={241} priority className="h-6 w-auto sm:h-9" />
+      <div className="mx-auto flex h-16 max-w-6xl items-center gap-2 px-4 sm:gap-6 sm:px-6">
+        <Link href="/" className={`shrink-0 rounded-md py-2.5 ${FOCO}`}>
+          <Image src="/logo-agendon-site.png" alt="AgendOn" width={1200} height={241} priority sizes="180px" className="h-[1.3rem] w-auto min-[360px]:h-6 sm:h-9" />
         </Link>
-        <nav aria-label="Seções" className="hidden flex-1 md:block">
+        <nav aria-label="Seções" className="hidden flex-1 lg:block">
           <ul className="flex gap-1 text-sm text-noite/75">
             {[
               ["/#experimente", "Como funciona"],
               ["/#agenda", "Agenda"],
               ["/#lembretes", "Lembretes"],
+              ["/#teste-gratis", "Teste grátis"],
               ["/#duvidas", "Dúvidas"],
               ["/contato", "Sobre"],
             ].map(([href, texto]) => (
@@ -36,12 +37,12 @@ export function Cabecalho() {
             ))}
           </ul>
         </nav>
-        <div className="ml-auto flex items-center gap-2">
-          <Link href="/entrar" className={`rounded-lg px-2 py-2 text-sm sm:px-3 font-semibold hover:text-on ${FOCO}`}>
+        <div className="ml-auto flex items-center gap-1 sm:gap-2">
+          <Link href="/entrar" className={`inline-flex h-11 items-center rounded-lg px-2 text-sm font-semibold hover:text-on sm:px-3 ${FOCO}`}>
             Entrar
           </Link>
-          <Link href="/cadastro" className={`inline-flex h-10 items-center rounded-xl bg-on px-3 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-[#2249e0] sm:px-4 ${FOCO}`}>
-            Cadastrar salão
+          <Link href="/cadastro" className={`inline-flex h-11 items-center rounded-xl bg-on px-3 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-on-escuro sm:px-4 ${FOCO}`}>
+            Testar grátis
           </Link>
         </div>
       </div>
@@ -54,25 +55,31 @@ export function Agenda() {
     ["Dia e semana", "Uma coluna por profissional no dia, ou a semana inteira de uma pessoa, com expediente, intervalo e folgas."],
     ["Encaixe com aviso", "Agende pelo painel até fora do expediente, com confirmação. Dois clientes no mesmo horário, nunca."],
     ["Status de cada atendimento", "Agendado, confirmado, concluído ou faltou. Falta e cancelamento liberam o horário na hora."],
-    ["Valores do dia", "O dono vê o previsto, o confirmado e quanto se perdeu com faltas."],
+    ["Valores do dia", "Só o dono vê o previsto, o confirmado e quanto se perdeu com faltas."],
   ];
   return (
     <section id="agenda" aria-labelledby="titulo-agenda" className="bg-noite text-white">
-      <div className="mx-auto grid max-w-6xl items-center gap-14 px-4 py-20 sm:px-6 lg:grid-cols-[0.85fr_1.15fr] lg:py-28">
-        <div>
-          <h2 id="titulo-agenda" className={`${H2}`}>
-            O dia do salão inteiro numa tela só.
-          </h2>
-          <dl className="mt-10 space-y-6">
-            {itens.map(([t, d]) => (
-              <div key={t}>
-                <dt className="font-semibold">{t}</dt>
-                <dd className="mt-1 leading-relaxed text-white/75">{d}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-        <AgendaIlustrada />
+      <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:py-28">
+        <h2 id="titulo-agenda" className={`max-w-3xl ${H2}`}>
+          O dia do salão inteiro numa tela só.
+        </h2>
+        <MolduraNavegador
+          src="/site/agenda-dia.webp"
+          alt="Agenda do dia no painel do AgendOn: resumo com 17 agendamentos e os valores do dia, e uma coluna para cada profissional (Ana Lima, Bruno Costa e Carla Souza) com os horários coloridos pelo status."
+          largura={2000}
+          altura={1520}
+          url="agendon.app.br/painel/agenda"
+          sizes="(min-width: 72rem) 72rem, (min-width: 40rem) 100vw, 230vw"
+          className="mt-12 lg:mt-16"
+        />
+        <dl className="mt-12 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-4">
+          {itens.map(([t, d]) => (
+            <div key={t}>
+              <dt className="font-semibold">{t}</dt>
+              <dd className="mt-1 leading-relaxed text-white/75">{d}</dd>
+            </div>
+          ))}
+        </dl>
       </div>
     </section>
   );
@@ -91,7 +98,7 @@ export function Equipe() {
   return (
     <section aria-labelledby="titulo-equipe" className="border-y border-noite/8 bg-white">
       <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:py-28">
-        <div className="grid gap-6 lg:grid-cols-[1fr_1fr] lg:items-end">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_1fr] lg:items-end">
           <h2 id="titulo-equipe" className={`${H2}`}>
             Cada pessoa da equipe vê o que precisa.
           </h2>
@@ -100,8 +107,33 @@ export function Equipe() {
             telefone.
           </p>
         </div>
-        <div className="relative mt-12 overflow-x-auto">
-          <table className="w-full min-w-[36rem] border-collapse text-left">
+        {/* Celular: uma linha por permissão, dizendo quem pode (a tabela de 3 colunas não cabe). */}
+        <ul className="mt-10 divide-y divide-noite/10 border-y border-noite/10 sm:hidden">
+          {linhas.map(([permissao, ...valores]) => (
+            <li key={permissao} className="py-4">
+              <p className="font-semibold">{permissao}</p>
+              <ul className="mt-2 flex flex-wrap gap-1.5 text-sm">
+                {(["Dono(a)", "Recepção", "Profissional"] as const).map((perfil, i) => {
+                  const v = valores[i];
+                  return v === false ? (
+                    <li key={perfil} className="rounded-full px-2.5 py-1 text-noite/65 line-through">
+                      {perfil}
+                      <span className="sr-only">: não</span>
+                    </li>
+                  ) : (
+                    <li key={perfil} className="flex items-center gap-1 rounded-full bg-confirmado-claro px-2.5 py-1 font-semibold text-confirmado-escuro">
+                      <Check className="size-3.5" />
+                      {perfil}
+                      {typeof v === "string" && <span className="font-normal">: {v.toLowerCase()}</span>}
+                    </li>
+                  );
+                })}
+              </ul>
+            </li>
+          ))}
+        </ul>
+        <div className="relative mt-12 hidden sm:block">
+          <table className="w-full border-collapse text-left">
             <caption className="sr-only">O que cada perfil pode fazer</caption>
             <thead>
               <tr className="border-b-2 border-noite">
@@ -164,12 +196,12 @@ export function Confianca() {
       </h2>
       <dl className="mt-12 grid gap-x-12 gap-y-10 sm:grid-cols-2">
         {itens.map(([t, d]) => (
-          <div key={t} className="flex gap-4">
-            <span aria-hidden className="mt-1.5 size-2.5 shrink-0 rounded-full bg-on" />
-            <div>
-              <dt className="text-lg font-semibold">{t}</dt>
-              <dd className="mt-1.5 leading-relaxed text-noite/70">{d}</dd>
-            </div>
+          // O ponto azul é um pseudo-elemento: dentro do <dl>, cada <div> só pode ter <dt> e <dd>.
+          <div key={t} className="pl-6.5">
+            <dt className="relative text-lg font-semibold before:absolute before:top-2 before:-left-6.5 before:size-2.5 before:rounded-full before:bg-on">
+              {t}
+            </dt>
+            <dd className="mt-1.5 leading-relaxed text-noite/70">{d}</dd>
           </div>
         ))}
       </dl>
@@ -193,7 +225,11 @@ export function Duvidas() {
     ["O cliente precisa baixar algum aplicativo?", "Não. Ele abre o link do salão no navegador do celular, escolhe e confirma. Não precisa criar conta nem senha."],
     [
       "Preciso ter WhatsApp Business ou configurar alguma coisa?",
-      "Não. A confirmação e o lembrete saem pelo número oficial do AgendOn, com o nome do seu salão na mensagem. Você só escolhe a antecedência do lembrete.",
+      "Não. A confirmação e o lembrete saem pelo número oficial do AgendOn, com o nome do seu salão no texto. Você só escolhe a antecedência do lembrete. No teste grátis, sai só a confirmação.",
+    ],
+    [
+      "Quanto custa?",
+      "Nada durante os 30 dias de teste. Depois, os planos são mensais, de acordo com o número de profissionais com agenda, e já incluem as mensagens do WhatsApp.",
     ],
     ["Serve para quem trabalha sozinho?", "Sim. Cadastre você mesmo como profissional (opção “Sou eu”) e a sua agenda fica pronta. Se a equipe crescer, é só convidar."],
     [
@@ -201,11 +237,13 @@ export function Duvidas() {
       "Pode escolher o profissional ou “qualquer um”. Nesse caso, o AgendOn escolhe quem tem menos agendamentos no dia.",
     ],
     ["Consigo agendar quem liga ou chega no balcão?", "Sim. Pelo painel você busca o cliente pelo nome ou cadastra um novo e escolhe um horário livre. Se ele já autorizou as mensagens, também recebe a confirmação."],
-    ["Dá para usar no celular?", "Sim. O painel funciona no celular e pode ser instalado como aplicativo na tela inicial, direto pelo navegador."],
+    ["O cliente consegue cancelar ou remarcar sozinho?", "Ainda não pelo link. Por enquanto ele fala com o salão, e você remarca ou cancela pelo painel."],
+    ["Dá para usar no celular?", "Sim. O painel funciona no celular e pode ser instalado como aplicativo na tela inicial, direto pelo navegador. Você recebe um aviso a cada agendamento novo pelo link."],
+    ["E se eu quiser levar meus clientes para outro lugar?", "O dono do salão baixa a lista de clientes em planilha (CSV) quando quiser, com o histórico de visitas."],
   ];
   return (
     <section id="duvidas" aria-labelledby="titulo-duvidas" className="border-t border-noite/8 bg-white">
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-20 sm:px-6 lg:grid-cols-[0.8fr_1.2fr] lg:py-28">
+      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-4 py-20 sm:px-6 lg:grid-cols-[0.8fr_1.2fr] lg:py-28">
         <h2 id="titulo-duvidas" className={`${H2}`}>
           Dúvidas
         </h2>
@@ -232,14 +270,14 @@ export function Rodape() {
     <footer className="border-t border-noite/8 bg-white">
       <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-12 sm:px-6 md:flex-row md:items-start md:justify-between">
         <div className="max-w-sm">
-          <Image src="/logo-agendon-site.png" alt="AgendOn" width={1200} height={241} className="h-10 w-auto" />
+          <Image src="/logo-agendon-site.png" alt="AgendOn" width={1200} height={241} sizes="200px" className="h-10 w-auto" />
           <p className="mt-4 text-sm leading-relaxed text-noite/70">Agenda online e lembretes no WhatsApp para salões de beleza.</p>
         </div>
         <nav aria-label="Rodapé">
           <ul className="grid grid-cols-2 gap-x-10 gap-y-2 text-sm text-noite/75">
             <li>
               <Link href="/cadastro" className={`hover:text-on ${FOCO}`}>
-                Cadastrar salão
+                Começar teste grátis
               </Link>
             </li>
             <li>
