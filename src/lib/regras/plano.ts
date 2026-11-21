@@ -12,6 +12,28 @@ export const NOME_DO_PLANO: Record<Plano, string> = {
   cortesia: "Cortesia",
 };
 
+/** Planos que se assinam (o resto é teste, cortesia ou combinado à mão). */
+export type PlanoPago = "essencial" | "salao" | "salao_mais";
+export type Ciclo = "mensal" | "anual";
+
+/** Preço mensal de cada plano (decisão de 2026-11-20, AGE-12). Limites no banco: app.limites_do_plano. */
+export const PRECO_MENSAL: Record<PlanoPago, number> = { essencial: 39.9, salao: 89.9, salao_mais: 169.9 };
+/** Desconto do anual. */
+export const DESCONTO_ANUAL = 0.2;
+/** Pacote extra de mensagens (AGE-30): vale até o fim do mês da compra. */
+export const PACOTE_EXTRA = { mensagens: 200, preco: 14.9 } as const;
+
+export const ehPlanoPago = (p: unknown): p is PlanoPago => p === "essencial" || p === "salao" || p === "salao_mais";
+export const ehCiclo = (c: unknown): c is Ciclo => c === "mensal" || c === "anual";
+
+const centavos = (v: number) => Math.round(v * 100) / 100;
+
+/** Quanto se paga por um ciclo do plano (anual = 12 meses com desconto). */
+export function precoDoCiclo(plano: PlanoPago, ciclo: Ciclo): number {
+  const mensal = PRECO_MENSAL[plano];
+  return ciclo === "mensal" ? mensal : centavos(mensal * 12 * (1 - DESCONTO_ANUAL));
+}
+
 /** O que meu_plano() devolve. */
 export type UsoDoPlano = {
   plano: Plano;

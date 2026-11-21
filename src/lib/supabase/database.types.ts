@@ -181,6 +181,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"pagamentos": {
+                  Row: {
+                    "aprovado_em": string | null,"atualizado_em": string,"ciclo": string | null,"criado_em": string,"id": string,"mp_id": string,"plano": string | null,"salon_id": string,"status": string,"tipo": string,"valor": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "aprovado_em"?: string | null,"atualizado_em"?: string,"ciclo"?: string | null,"criado_em"?: string,"id"?: string,"mp_id": string,"plano"?: string | null,"salon_id": string,"status": string,"tipo": string,"valor": number
+                  }
+                  Update: {
+                    "aprovado_em"?: string | null,"atualizado_em"?: string,"ciclo"?: string | null,"criado_em"?: string,"id"?: string,"mp_id"?: string,"plano"?: string | null,"salon_id"?: string,"status"?: string,"tipo"?: string,"valor"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "pagamentos_salon_id_fkey"
+      columns: ["salon_id"]
+isOneToOne: false
+      referencedRelation: "salons"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"professional_services": {
                   Row: {
                     "duracao_min": number | null,"preco": number | null,"professional_id": string,"salon_id": string,"service_id": string
@@ -295,14 +315,14 @@ isOneToOne: false
                   ]
                 },"subscriptions": {
                   Row: {
-                    "criada_em": string,"max_agendas": number | null,"max_mensagens": number | null,"plano": string,"salon_id": string,"teste_ate": string | null
+                    "ciclo": string | null,"criada_em": string,"forma": string | null,"max_agendas": number | null,"max_mensagens": number | null,"mp_assinatura_id": string | null,"pago_ate": string | null,"plano": string,"plano_proximo": string | null,"salon_id": string,"teste_ate": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "criada_em"?: string,"max_agendas"?: number | null,"max_mensagens"?: number | null,"plano"?: string,"salon_id": string,"teste_ate"?: string | null
+                    "ciclo"?: string | null,"criada_em"?: string,"forma"?: string | null,"max_agendas"?: number | null,"max_mensagens"?: number | null,"mp_assinatura_id"?: string | null,"pago_ate"?: string | null,"plano"?: string,"plano_proximo"?: string | null,"salon_id": string,"teste_ate"?: string | null
                   }
                   Update: {
-                    "criada_em"?: string,"max_agendas"?: number | null,"max_mensagens"?: number | null,"plano"?: string,"salon_id"?: string,"teste_ate"?: string | null
+                    "ciclo"?: string | null,"criada_em"?: string,"forma"?: string | null,"max_agendas"?: number | null,"max_mensagens"?: number | null,"mp_assinatura_id"?: string | null,"pago_ate"?: string | null,"plano"?: string,"plano_proximo"?: string | null,"salon_id"?: string,"teste_ate"?: string | null
                   }
                   Relationships: [
                     {
@@ -390,6 +410,9 @@ isOneToOne: false
 { Args: { "p_busca": string,"p_limite"?: number,"p_salon": string }; Returns: {
               "id": string,"nome": string,"ultimo_atendimento": string
             }[]
+                           },
+"cobranca_registrar_pagamento":
+{ Args: { "p_ciclo": string,"p_mp_id": string,"p_plano": string,"p_salon": string,"p_status": string,"p_tipo": string,"p_valor": number }; Returns: boolean
                            },
 "create_salon":
 { Args: { "p_nome": string,"p_slug": string }; Returns: string

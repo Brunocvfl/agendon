@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { avisoDoPlano, diasRestantes, ehLimiteDeAgendas, type UsoDoPlano } from "./plano";
+import { avisoDoPlano, diasRestantes, ehLimiteDeAgendas, precoDoCiclo, type UsoDoPlano } from "./plano";
 
 const agora = new Date("2026-11-20T12:00:00Z");
 const uso = (u: Partial<UsoDoPlano>): UsoDoPlano => ({
@@ -58,5 +58,14 @@ describe("ehLimiteDeAgendas", () => {
   it("reconhece o erro do banco", () => {
     expect(ehLimiteDeAgendas({ message: "limite_de_agendas" })).toBe(true);
     expect(ehLimiteDeAgendas({ message: "outra coisa" })).toBe(false);
+  });
+});
+
+describe("precoDoCiclo", () => {
+  it("mensal e anual com 20% de desconto", () => {
+    expect(precoDoCiclo("essencial", "mensal")).toBe(39.9);
+    expect(precoDoCiclo("essencial", "anual")).toBe(383.04);
+    expect(precoDoCiclo("salao", "anual")).toBe(863.04);
+    expect(precoDoCiclo("salao_mais", "anual")).toBe(1631.04);
   });
 });

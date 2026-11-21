@@ -1,5 +1,5 @@
 // A chave secreta do Supabase (ignora a RLS). Só no servidor, e nunca usada direto: cada uso recebe
-// um tipo restrito ao que pode fazer (clientePublico, filaWhatsApp, filaPush, authAdmin).
+// um tipo restrito ao que pode fazer (clientePublico, filaWhatsApp, filaPush, authAdmin, bancoDeCobranca).
 import "server-only";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "./database.types";
