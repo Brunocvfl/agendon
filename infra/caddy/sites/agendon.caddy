@@ -18,11 +18,11 @@ www.agendon.app.br {
 }
 
 # Staging: fechado com senha (usa o Supabase de staging, o CAPTCHA de teste e o número real do WhatsApp)
-# e fora dos buscadores. A rota do webhook e a do job ficam fora da senha (têm validação própria).
+# e fora dos buscadores. Os webhooks (Meta e Mercado Pago) e o job ficam fora da senha (têm validação própria).
 staging.agendon.app.br {
 	import agendon_tls
 	header X-Robots-Tag "noindex, nofollow"
-	@protegido not path /api/whatsapp/* /api/saude
+	@protegido not path /api/whatsapp/* /api/mercadopago/webhook /api/saude
 	basic_auth @protegido {
 		import /etc/caddy/usuarios/agendon-staging
 	}
