@@ -9,6 +9,10 @@
   /* Verde para texto e para fundo com texto branco: o #19C37D dá só 2,3:1 com o branco (WCAG pede 4,5:1). */
   --color-confirmado-escuro: #0e7a4d;
   --color-fundo: #f7f8fc;
+  /* Tons de apoio do site (docs/site/direcao-visual.md): palco das demos, hover do botão e fundo do selo verde. */
+  --color-on-claro: #e4e9ff;
+  --color-on-escuro: #2249e0;
+  --color-confirmado-claro: #e3f8ef;
   --font-sans: var(--font-sora), ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -46,53 +50,30 @@ html {
   }
 }
 
-/* Site, versão 3: o trilho "Do link à agenda" anda para o lado conforme a página desce
-   (scroll-driven animation). Sem suporte, em tela estreita ou com "reduzir movimento": painéis empilhados. */
-@supports (animation-timeline: view()) {
-  @media (width >= 64rem) and (prefers-reduced-motion: no-preference) {
-    .trilho {
-      height: 300vh;
-      view-timeline-name: --trilho;
-    }
-    .trilho-palco {
-      position: sticky;
-      top: 0;
-      height: 100vh;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-    .trilho-faixa {
-      display: flex;
-      flex-wrap: nowrap;
-      width: max-content;
-      max-width: none;
-      margin-inline: 0;
-      animation: trilho-deslizar linear both;
-      animation-timeline: --trilho;
-      animation-range: contain 0% contain 100%;
-    }
-    .trilho-painel {
-      width: min(44rem, 62vw);
-      flex-shrink: 0;
-    }
-    .trilho-barra {
-      transform-origin: left;
-      animation: trilho-encher linear both;
-      animation-timeline: --trilho;
-      animation-range: contain 0% contain 100%;
-    }
-  }
+/* Site: mídias que entram uma vez ao aparecer na tela (data-revelar; src/app/_site/revelar.tsx).
+   Só vale com a classe "revelar-pronto" no <html>, que o script põe quando há IntersectionObserver e o
+   movimento não está reduzido: sem JavaScript, tudo aparece no estado final. As animações de dentro
+   (agendamentos encaixando, checks) ficam pausadas até o bloco aparecer. */
+.revelar-pronto [data-revelar] {
+  transition:
+    opacity 0.7s cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
-@keyframes trilho-deslizar {
-  to {
-    transform: translateX(calc(-100% + 100vw));
-  }
+.revelar-pronto [data-revelar]:not([data-revelado]) {
+  opacity: 0;
+  transform: translateY(0.75rem);
 }
-@keyframes trilho-encher {
+.revelar-pronto [data-revelar]:not([data-revelado]) * {
+  animation-play-state: paused !important;
+}
+
+/* Topo do site: a linha de "agora" desce pela régua de horas, uma vez. */
+@keyframes linha-agora {
   from {
-    transform: scaleX(0);
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(var(--linha-agora-fim, 60%));
   }
 }
 

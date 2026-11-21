@@ -51,6 +51,9 @@ export function AntecedenciaLembrete() {
           ))}
         </div>
         <p className="mt-4 text-sm text-noite/70">Para um horário na quarta, 11, às 10:30. O padrão é 24 horas.</p>
+        <p className="mt-3 text-sm text-noite/70">
+          No teste grátis, o WhatsApp envia só a confirmação, até 10 mensagens. O lembrete entra nos planos pagos.
+        </p>
       </fieldset>
     </div>
   );
