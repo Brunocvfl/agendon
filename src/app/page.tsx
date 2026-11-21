@@ -49,7 +49,7 @@ export default function Home() {
 
 function Topo() {
   return (
-    <section aria-labelledby="titulo" className="relative overflow-hidden bg-on text-white">
+    <section aria-labelledby="titulo" className="relative overflow-hidden bg-noite text-white">
       <div className="mx-auto grid grid-cols-1 max-w-6xl gap-12 px-4 pt-14 pb-16 sm:px-6 lg:grid-cols-[1.12fr_1fr] lg:gap-14 lg:pt-24 lg:pb-24">
         <div className="lg:pt-6">
           <h1
@@ -63,7 +63,7 @@ function Topo() {
             Sem largar a tesoura para responder mensagem.
           </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <Link href="/cadastro" className={`${BOTAO} bg-white text-on hover:bg-white/90 focus-visible:outline-white`}>
+            <Link href="/cadastro" className={`${BOTAO} bg-on text-white hover:bg-on-escuro focus-visible:outline-white`}>
               Começar teste grátis
             </Link>
             <a href="#experimente" className={`${BOTAO} border border-white/40 text-white hover:bg-white/10 focus-visible:outline-white`}>
@@ -212,14 +212,14 @@ function TesteGratis() {
 
 function Chamada() {
   return (
-    <section aria-labelledby="titulo-chamada" className="bg-on text-white">
+    <section aria-labelledby="titulo-chamada" className="bg-noite text-white">
       <div className="mx-auto grid grid-cols-1 max-w-6xl items-center gap-14 px-4 py-20 sm:px-6 lg:grid-cols-[1fr_1fr] lg:py-32">
         <div>
           <h2 id="titulo-chamada" className={`max-w-3xl ${H2}`}>
             Seu link de agendamento no ar ainda hoje.
           </h2>
           <div className="mt-12 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
-            <Link href="/cadastro" className={`${BOTAO} shrink-0 bg-white text-on hover:bg-white/90 focus-visible:outline-white`}>
+            <Link href="/cadastro" className={`${BOTAO} shrink-0 bg-on text-white hover:bg-on-escuro focus-visible:outline-white`}>
               Começar teste grátis
             </Link>
             <p className="text-white">Cadastre o salão, os serviços e a equipe, e divulgue o link.</p>

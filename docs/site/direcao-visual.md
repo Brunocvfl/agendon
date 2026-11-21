@@ -7,7 +7,7 @@ Etapa 2 de 9. Base: `docs/site/briefing-site.md` (2026-11-20). Refinamento da **
 Vista em 1440 px em 2026-11-20.
 
 - Títulos grandes em Sora bold com tracking negativo: personalidade firme e direta, sem cara de template.
-- Topo azul On com a agenda "se preenchendo": comunica o produto em um olhar.
+- Topo azul noite (até 2026-11-21 era azul On, forte demais em área grande) com a agenda "se preenchendo": comunica o produto em um olhar.
 - Demo interativa do agendamento dentro de um celular: prova sem precisar de depoimento.
 - Alternância clara/escura (fundo → noite → fundo → branco) dá respiro.
 
@@ -31,8 +31,8 @@ Tokens já existentes em `src/app/globals.css` (`@theme inline`). Nenhuma cor no
 
 | Token | Hex | Papel | Onde |
 |---|---|---|---|
-| `on` | #2F5BFF | Ação e marca | Botão principal, links, topo, chamada final |
-| `noite` | #0F1B4D | Texto e superfície de contraste | Títulos, corpo (com opacidade), seção Agenda |
+| `on` | #2F5BFF | Ação e marca | Botão principal, links, detalhes (nunca fundo de área grande) |
+| `noite` | #0F1B4D | Texto e superfície de contraste | Títulos, corpo (com opacidade), topo, seção Agenda, chamada final |
 | `fundo` | #F7F8FC | Fundo padrão | Maioria das seções |
 | branco | #FFFFFF | Superfície elevada | Cartões, Equipe, Dúvidas, rodapé |
 | `confirmado` | #19C37D | **Só sobre escuro**, decoração e ícone grande | Check grande na seção Lembretes, linha do horário sobre `noite` |
@@ -54,6 +54,8 @@ Regra de proporção por tela: ~70% neutro (fundo/branco), ~20% noite, ~10% azul
 | noite/75 | fundo | 7,15 | Corpo |
 | noite/65 | fundo / branco | 5,15 / 5,24 | Mínimo para texto secundário (regra já no `globals.css`) |
 | branco/75 | noite | 9,61 | Corpo sobre noite |
+| branco | noite | 16,35 | Topo e chamada final (desde 2026-11-21) |
+| branco | on (botão sobre noite) | 5,17 | Botão principal do topo e da chamada; botão on sobre noite = 3,16 (contorno de componente, mínimo 3:1) |
 | branco/60 | noite | 6,60 | Mínimo para texto secundário sobre noite |
 | confirmado | noite | 7,12 | Verde vivo pode ser texto **sobre noite** |
 | confirmado | branco | 2,30 | **Nunca** texto ou ícone sozinho sobre claro |
@@ -97,7 +99,7 @@ Cada seção ganha um **papel** e um layout próprio, para quebrar a repetição
 | Confiança | Apoio | 4 itens em grade 2×2 com ícones de linha (pino de localização, escudo, documento, calendário), H2 de apoio. | Ícones SVG simples |
 | Teste grátis (nova) | Conversão | Cartão único centralizado, borda `on`, com o que o teste inclui (30 dias · até 15 agendas · 10 confirmações no WhatsApp) e o que acontece no fim. Botão principal. | Nenhuma |
 | Dúvidas | Apoio | Mantém o acordeão. | – |
-| Chamada final | Fechamento | Fundo `on`; a régua de horas do topo volta, agora **cheia e toda confirmada**: o dia terminou. | Reaproveita `DiaPreenchendo` estático |
+| Chamada final | Fechamento | Fundo `noite` (desde 2026-11-21); a régua de horas do topo volta, agora **cheia e toda confirmada**: o dia terminou. | Reaproveita `DiaPreenchendo` estático |
 | Rodapé | Legal | Mantém (obrigatório pela Meta). | – |
 
 ## Tratamento de imagem (capturas reais)
