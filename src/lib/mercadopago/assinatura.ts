@@ -2,7 +2,8 @@
 // HMAC-SHA256 (hex) do "manifesto" `id:<data.id>;request-id:<x-request-id>;ts:<ts>;` com a chave secreta
 // do webhook (Suas integrações > Webhooks). O data.id vem da query string (em minúsculas se tiver
 // letras); parte que não veio fica de fora do manifesto. Conferir antes de qualquer outra coisa.
-// A documentação não traz o manifesto por extenso: conferir com um aviso de teste do MP (AGE-14).
+// Manifesto confirmado com o simulador do painel do MP em 2026-11-21 (AGE-14). Teste e produção têm
+// chaves secretas diferentes (uma por modo, na mesma tela de Webhooks).
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 export function lerCabecalhoDeAssinatura(cabecalho: string | null): { ts: string; v1: string } | null {
