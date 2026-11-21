@@ -23,6 +23,15 @@ export const DESCONTO_ANUAL = 0.2;
 /** Pacote extra de mensagens (AGE-30): vale até o fim do mês da compra. */
 export const PACOTE_EXTRA = { mensagens: 200, preco: 14.9 } as const;
 
+/** Os planos que se assinam, na ordem da tela. */
+export const PLANOS_PAGOS: readonly PlanoPago[] = ["essencial", "salao", "salao_mais"];
+/** Agendas e mensagens de cada plano pago: espelho de app.limites_do_plano (mudou lá? mude aqui). */
+export const LIMITES_DO_PLANO: Record<PlanoPago, { agendas: number; mensagens: number }> = {
+  essencial: { agendas: 1, mensagens: 300 },
+  salao: { agendas: 5, mensagens: 1200 },
+  salao_mais: { agendas: 15, mensagens: 3000 },
+};
+
 export const ehPlanoPago = (p: unknown): p is PlanoPago => p === "essencial" || p === "salao" || p === "salao_mais";
 export const ehCiclo = (c: unknown): c is Ciclo => c === "mensal" || c === "anual";
 
@@ -43,6 +52,24 @@ export type UsoDoPlano = {
   agendas: number;
   max_mensagens: number | null;
   mensagens: number;
+  // Cobrança (migration 29). Opcionais para os testes do aviso, que não dependem deles.
+  situacao?: Situacao;
+  ciclo?: Ciclo | null;
+  forma?: "cartao" | "avulso" | null;
+  pago_ate?: string | null;
+  mensagens_extras?: number;
+};
+
+/** app.situacao_cobranca (AGE-13). */
+export type Situacao = "em_dia" | "tolerancia" | "leitura" | "pagina_fechada" | "suspensa" | "teste_encerrado";
+
+export const NOME_DA_SITUACAO: Record<Situacao, string> = {
+  em_dia: "Em dia",
+  tolerancia: "Pagamento atrasado",
+  leitura: "Atrasado: mensagens do WhatsApp paradas",
+  pagina_fechada: "Atrasado: página de agendamento fechada",
+  suspensa: "Conta suspensa",
+  teste_encerrado: "Teste grátis encerrado",
 };
 
 /** Texto do erro `limite_de_agendas` (P0001) ao cadastrar ou reativar uma agenda. */

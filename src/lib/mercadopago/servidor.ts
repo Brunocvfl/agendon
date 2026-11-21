@@ -4,6 +4,7 @@ import "server-only";
 import { connection } from "next/server";
 import { paraRpc } from "@/lib/supabase/rpc";
 import { clienteSecreto } from "@/lib/supabase/secreto";
+import type { ApiDeCheckout } from "./checkout";
 import type { ApiMercadoPago, BancoDeCobranca, PagamentoMP } from "./cobranca";
 
 const API = "https://api.mercadopago.com";
@@ -20,6 +21,30 @@ export function apiMercadoPago(token: string): ApiMercadoPago {
       if (r.status === 404) return null;
       if (!r.ok) throw new Error(`mercadopago: GET payment respondeu ${r.status}`);
       return (await r.json()) as PagamentoMP;
+    },
+  };
+}
+
+/** Checkout Pro com o MERCADOPAGO_ACCESS_TOKEN, ou null se ele não está configurado. */
+export function checkoutMercadoPago(): ApiDeCheckout | null {
+  const token = process.env.MERCADOPAGO_ACCESS_TOKEN;
+  if (!token) {
+    console.warn("mercadopago: falta MERCADOPAGO_ACCESS_TOKEN; checkout indisponível.");
+    return null;
+  }
+  return {
+    async criarPreferencia(corpo) {
+      const r = await fetch(`${API}/checkout/preferences`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify(corpo),
+        cache: "no-store",
+        signal: AbortSignal.timeout(10_000),
+      });
+      if (!r.ok) throw new Error(`mercadopago: POST preference respondeu ${r.status}`);
+      const { init_point } = (await r.json()) as { init_point?: string };
+      if (!init_point?.startsWith("https://")) throw new Error("mercadopago: preferência sem init_point");
+      return init_point;
     },
   };
 }
